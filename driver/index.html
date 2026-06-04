@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="Fairfood Price - تطبيق السائق" />
+  <meta name="robots" content="index,follow" />
+  <title data-i18n="app_title">Fairfood Price - السائق</title>
+
+  <!-- Vendor CSS (انقلها إلى /assets/vendor/ قبل الإطلاق) -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-theme="light">
+  <noscript>
+    <div class="noscript-warning" data-i18n="noscript_warning">يجب تفعيل JavaScript لاستخدام التطبيق.</div>
+  </noscript>
+
+  <div id="app" class="app-wrapper app-loading" data-app="driver">
+
+    <!-- لودر البداية -->
+    <div id="appLoader" class="app-loader">
+      <div class="spinner large"></div>
+      <p data-i18n="loading">جاري التحميل…</p>
+    </div>
+
+    <!-- حالة الاتصال بالإنترنت -->
+    <div id="offlineBanner" class="offline-banner is-hidden" role="alert" data-i18n="offline_banner">أنت غير متصل بالإنترنت</div>
+    <div id="reconnectBanner" class="reconnect-banner is-hidden" role="status" data-i18n="reconnect_banner">تمت إعادة الاتصال</div>
+
+    <!-- 1. شاشة الخريطة والرئيسية (Home + Map) -->
+    <section id="homeScreen" class="screen active" data-i18n-aria-label="home_map">
+      <header class="app-header">
+        <div class="header-left">
+          <button type="button" id="menuBtn" class="icon-btn" data-i18n-aria-label="menu">
+            <i class="fas fa-user-circle"></i>
+          </button>
+          <h1 class="header-title" data-i18n="home">الرئيسية</h1>
+        </div>
+        <div class="header-actions">
+          <div class="lang-switcher">
+            <button type="button" data-lang="ar" class="lang-btn active" data-i18n-aria-label="lang_ar">AR</button>
+            <button type="button" data-lang="en" class="lang-btn" data-i18n-aria-label="lang_en">EN</button>
+            <button type="button" data-lang="de" class="lang-btn" data-i18n-aria-label="lang_de">DE</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="toggle-container">
+        <button type="button" id="toggleOnlineBtn" class="btn btn-success btn-block">
+          <span data-i18n="online">🟢 متصل</span>
+        </button>
+      </div>
+
+      <div id="driverMap" class="map-container" data-i18n-aria-label="map"></div>
+      <div id="mapFallback" class="map-fallback is-hidden" data-i18n="map_unavailable">الخريطة غير متاحة حالياً</div>
+
+      <div class="quick-stats" id="quickStats">
+        <div class="stat-badge"><span data-i18n="today_earnings">💰 0 ر.س</span></div>
+        <div class="stat-badge"><span data-i18n="today_deliveries">📦 0 توصيل</span></div>
+      </div>
+    </section>
+
+    <!-- 2. شاشة ملف السائق والقائمة (Driver Profile + Menu) -->
+    <section id="profileScreen" class="screen" data-i18n-aria-label="driver_profile">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="home" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="my_profile">ملفي الشخصي</h1>
+      </header>
+      <div class="driver-profile-content" id="driverProfileContent">
+        <!-- قسم صورة السائق والمعلومات الأساسية -->
+        <div class="profile-header-card">
+          <div class="driver-avatar-large" id="driverAvatar">
+            <img src="" alt="صورة السائق" id="driverAvatarImg" />
+            <span class="avatar-placeholder"><i class="fas fa-user-circle"></i></span>
+          </div>
+          <h2 id="driverName">---</h2>
+          <div class="driver-rating"><span>⭐</span> <span id="driverRating">0.0</span></div>
+          <div class="driver-vehicle-info">
+            <span id="driverVehicleNumber">---</span> • <span id="driverVehicleType">---</span>
+          </div>
+        </div>
+
+        <!-- إحصائيات سريعة -->
+        <div class="driver-stats-grid">
+          <div class="stat-card"><span data-i18n="total_deliveries">التوصيلات</span><strong id="statDeliveries">0</strong></div>
+          <div class="stat-card"><span data-i18n="today_earnings">أرباح اليوم</span><strong id="statToday">0</strong></div>
+          <div class="stat-card"><span data-i18n="weekly_earnings">أسبوعي</span><strong id="statWeekly">0</strong></div>
+          <div class="stat-card"><span data-i18n="monthly_earnings">شهري</span><strong id="statMonthly">0</strong></div>
+        </div>
+
+        <!-- قائمة الخيارات -->
+        <div class="menu-list">
+          <button class="menu-item" data-action="dashboard"><i class="fas fa-tachometer-alt"></i><span data-i18n="dashboard">لوحة التحكم</span></button>
+          <button class="menu-item" data-screen="ordersHistory"><i class="fas fa-history"></i><span data-i18n="orders_history">سجل الطلبات</span></button>
+          <button class="menu-item" data-screen="earnings"><i class="fas fa-chart-line"></i><span data-i18n="earnings">الأرباح</span></button>
+          <button class="menu-item" data-screen="wallet"><i class="fas fa-wallet"></i><span data-i18n="wallet">المحفظة</span></button>
+          <button class="menu-item" data-screen="documents"><i class="fas fa-file-alt"></i><span data-i18n="documents">المستندات</span></button>
+          <button class="menu-item" data-screen="vehicleInfo"><i class="fas fa-motorcycle"></i><span data-i18n="vehicle_info">معلومات المركبة</span></button>
+          <button class="menu-item" data-screen="notifications"><i class="fas fa-bell"></i><span data-i18n="notifications">الإشعارات</span></button>
+          <button class="menu-item" data-action="theme"><i class="fas fa-moon"></i><span data-i18n="theme">المظهر</span></button>
+          <button class="menu-item" data-screen="settings"><i class="fas fa-cog"></i><span data-i18n="settings">الإعدادات</span></button>
+          <button class="menu-item" data-action="support"><i class="fas fa-headset"></i><span data-i18n="support">الدعم الفني</span></button>
+          <button class="menu-item" data-action="about"><i class="fas fa-info-circle"></i><span data-i18n="about">عن التطبيق</span></button>
+          <button class="menu-item logout-item" data-action="logout"><i class="fas fa-sign-out-alt"></i><span data-i18n="logout">تسجيل الخروج</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. شاشة تاريخ الطلبات (Orders History) -->
+    <section id="ordersHistoryScreen" class="screen" data-i18n-aria-label="orders_history">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="profile" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="orders_history">سجل الطلبات</h1>
+      </header>
+      <div id="ordersHistoryList" class="orders-list"></div>
+      <div class="empty-state is-hidden" id="emptyOrdersHistory">
+        <p data-i18n="no_orders_history">لا يوجد سجل طلبات</p>
+      </div>
+    </section>
+
+    <!-- 4. شاشة الطلبات الواردة (Incoming Orders) -->
+    <section id="ordersScreen" class="screen" data-i18n-aria-label="incoming_orders">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="home" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="incoming_orders">طلبات جديدة</h1>
+      </header>
+      <div id="incomingOrdersList" class="orders-list"></div>
+      <div class="empty-state is-hidden" id="emptyOrders">
+        <p data-i18n="no_new_orders">لا توجد طلبات جديدة حاليًا</p>
+      </div>
+    </section>
+
+    <!-- 5. شاشة التوصيل النشط (Active Delivery) -->
+    <section id="deliveryScreen" class="screen" data-i18n-aria-label="active_delivery">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="home" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="active_delivery">توصيل نشط</h1>
+      </header>
+      <div id="activeDeliveryContent" class="delivery-steps"></div>
+    </section>
+
+    <!-- 6. شاشة الأرباح (Earnings) -->
+    <section id="earningsScreen" class="screen" data-i18n-aria-label="earnings">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="profile" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="earnings">أرباحي</h1>
+      </header>
+      <div class="earnings-container" id="earningsContainer"></div>
+    </section>
+
+    <!-- 7. شاشة المحفظة (Wallet) -->
+    <section id="walletScreen" class="screen" data-i18n-aria-label="wallet">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="profile" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="wallet">المحفظة</h1>
+      </header>
+      <div id="walletContent" class="wallet-container">
+        <div class="wallet-balance-card">
+          <h3 data-i18n="wallet_balance">الرصيد الحالي</h3>
+          <div class="balance-amount" id="walletBalance">0.00 ر.س</div>
+          <button class="btn btn-primary btn-sm" id="withdrawBtn" data-i18n="withdraw">طلب سحب</button>
+        </div>
+        <div class="transactions-section">
+          <h3 data-i18n="transaction_history">سجل الحركات</h3>
+          <div id="transactionsList"></div>
+          <div class="empty-state is-hidden" id="emptyTransactions">
+            <p data-i18n="no_transactions">لا توجد حركات مالية</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. شاشة المستندات (Documents) -->
+    <section id="documentsScreen" class="screen" data-i18n-aria-label="documents">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="profile" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="documents">المستندات</h1>
+      </header>
+      <div id="documentsContent" class="documents-container">
+        <!-- تُملأ ديناميكياً -->
+      </div>
+    </section>
+
+    <!-- 9. شاشة معلومات المركبة (Vehicle Info) -->
+    <section id="vehicleInfoScreen" class="screen" data-i18n-aria-label="vehicle_info">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="profile" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="vehicle_info">معلومات المركبة</h1>
+      </header>
+      <div id="vehicleInfoContent" class="vehicle-info-container">
+        <!-- تُملأ ديناميكياً -->
+      </div>
+    </section>
+
+    <!-- 10. شاشة الإشعارات (Notifications) -->
+    <section id="notificationsScreen" class="screen" data-i18n-aria-label="notifications">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="profile" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="notifications">الإشعارات</h1>
+      </header>
+      <div id="notificationsList" class="notifications-list"></div>
+      <div class="empty-state is-hidden" id="emptyNotifications">
+        <p data-i18n="no_notifications">لا توجد إشعارات</p>
+      </div>
+    </section>
+
+    <!-- 11. شاشة الإعدادات (Settings) -->
+    <section id="settingsScreen" class="screen" data-i18n-aria-label="settings">
+      <header class="app-header">
+        <button type="button" class="back-btn" data-screen="profile" data-i18n-aria-label="back">
+          <i class="fas fa-arrow-right back-icon"></i>
+        </button>
+        <h1 class="header-title" data-i18n="settings">الإعدادات</h1>
+      </header>
+      <div class="settings-content" id="settingsContent"></div>
+    </section>
+
+    <!-- مودال طلب وارد -->
+    <div id="incomingOrderModal" class="modal-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="incomingModalTitle">
+      <div class="modal incoming-modal">
+        <h3 id="incomingModalTitle" data-i18n="new_order">طلب جديد</h3>
+        <div id="incomingOrderDetails"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-success" id="acceptOrderBtn" data-i18n="accept">قبول</button>
+          <button type="button" class="btn btn-danger" id="rejectOrderBtn" data-i18n="reject">رفض</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- مودال المحادثة (Chat Modal) -->
+    <div id="chatModal" class="modal-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="chatModalTitle">
+      <div class="modal chat-modal">
+        <div class="sheet-header">
+          <h3 id="chatModalTitle" data-i18n="chat_customer">محادثة</h3>
+          <button type="button" id="closeChatModalBtn" class="sheet-close" data-i18n-aria-label="close">&times;</button>
+        </div>
+        <div id="chatMessages" class="chat-messages"></div>
+        <div class="chat-input">
+          <input type="text" id="chatMessageInput" data-i18n-placeholder="type_message" placeholder="اكتب رسالة..." autocomplete="off" />
+          <button type="button" id="sendMessageBtn" class="btn btn-primary btn-sm" data-i18n="send">إرسال</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- مودال الدعم الفني (Support) -->
+    <div id="supportModal" class="modal-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="supportModalTitle">
+      <div class="modal support-modal">
+        <div class="sheet-header">
+          <h3 id="supportModalTitle" data-i18n="support">الدعم الفني</h3>
+          <button type="button" id="closeSupportModalBtn" class="sheet-close" data-i18n-aria-label="close">&times;</button>
+        </div>
+        <div id="supportContent" class="support-modal-content">
+          <!-- محتوى الدعم الفني -->
+        </div>
+      </div>
+    </div>
+
+    <!-- مودال عن التطبيق (About) -->
+    <div id="aboutModal" class="modal-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle">
+      <div class="modal about-modal">
+        <div class="sheet-header">
+          <h3 id="aboutModalTitle" data-i18n="about">عن التطبيق</h3>
+          <button type="button" id="closeAboutModalBtn" class="sheet-close" data-i18n-aria-label="close">&times;</button>
+        </div>
+        <div id="aboutContent" class="about-modal-content">
+          <!-- معلومات عن التطبيق -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Sheet للتوصيل النشط -->
+    <div id="activeDeliverySheet" class="bottom-sheet is-hidden" role="dialog" aria-modal="true" aria-labelledby="deliverySheetTitle">
+      <div class="sheet-content">
+        <div class="sheet-header">
+          <h3 id="deliverySheetTitle" data-i18n="active_delivery">توصيل نشط</h3>
+          <button type="button" id="closeDeliverySheetBtn" class="sheet-close" data-i18n-aria-label="close">&times;</button>
+        </div>
+        <div id="deliveryStepContent"></div>
+        <div class="navigation-buttons">
+          <a id="googleMapsBtn" class="btn btn-outline btn-sm" href="#" target="_blank" rel="noopener" data-i18n="navigate_google">🗺️ Google Maps</a>
+          <a id="wazeBtn" class="btn btn-outline btn-sm" href="#" target="_blank" rel="noopener" data-i18n="navigate_waze">🚗 Waze</a>
+          <button type="button" id="callCustomerBtn" class="btn btn-outline btn-sm" disabled data-i18n="call_customer">📞 اتصال</button>
+          <button type="button" id="chatCustomerBtn" class="btn btn-outline btn-sm" data-i18n="chat_customer">💬 محادثة</button>
+          <button type="button" id="emergencySupportBtn" class="btn btn-outline btn-sm btn-danger" data-i18n="emergency_support">🆘 طوارئ</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="ariaLiveRegion" class="sr-only" aria-live="polite"></div>
+
+    <!-- شريط التنقل السفلي -->
+    <nav id="bottomNav" class="bottom-nav" role="tablist" data-i18n-aria-label="main_navigation">
+      <button type="button" class="nav-btn active" data-screen="home" role="tab" aria-selected="true">
+        <i class="fas fa-map-marked-alt" aria-hidden="true"></i>
+        <span data-i18n="nav_home">الرئيسية</span>
+      </button>
+      <button type="button" class="nav-btn" data-screen="orders" role="tab" aria-selected="false">
+        <i class="fas fa-list-alt" aria-hidden="true"></i>
+        <span data-i18n="nav_orders">الطلبات</span>
+        <span id="ordersBadge" class="badge is-hidden">0</span>
+      </button>
+      <button type="button" class="nav-btn" data-screen="profile" role="tab" aria-selected="false">
+        <i class="fas fa-user-circle" aria-hidden="true"></i>
+        <span data-i18n="nav_profile">ملفي</span>
+      </button>
+      <button type="button" class="nav-btn" data-screen="wallet" role="tab" aria-selected="false">
+        <i class="fas fa-wallet" aria-hidden="true"></i>
+        <span data-i18n="nav_wallet">المحفظة</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="toastContainer" class="toast-container" aria-live="assertive"></div>
+
+  <audio id="soundNewOrder" src="/assets/sounds/new_order.mp3" preload="none"></audio>
+  <audio id="soundCancelled" src="/assets/sounds/cancelled.mp3" preload="none"></audio>
+
+  <script src="config.js" defer></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script src="main.js" defer></script>
+</body>
+</html>

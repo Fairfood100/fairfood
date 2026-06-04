@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="Fairfood Price - توصيل طعام سريع وموثوق" />
+  <meta name="robots" content="index,follow" />
+  <title data-i18n="app_title">Fairfood Price</title>
+
+  <!-- Vendor CSS
+       انقل الملفات إلى /assets/vendor/ قبل الإطلاق النهائي -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <noscript>
+    <div class="noscript-warning" data-i18n="noscript_warning">
+      يجب تفعيل JavaScript لاستخدام التطبيق.
+    </div>
+  </noscript>
+
+  <div id="app" class="app-wrapper" data-app="customer">
+    <!-- رأس التطبيق -->
+    <header class="app-header">
+      <button type="button" class="location-trigger" id="locationTrigger" aria-label="اختيار عنوان التوصيل">
+        <i class="fas fa-map-marker-alt" aria-hidden="true"></i>
+        <span id="userAddressLine" data-i18n="locating">جاري تحديد الموقع...</span>
+        <i class="fas fa-chevron-down" aria-hidden="true"></i>
+      </button>
+
+      <div class="header-actions">
+        <div class="lang-switcher">
+          <button type="button" data-lang="ar" class="lang-btn active" aria-label="العربية">AR</button>
+          <button type="button" data-lang="en" class="lang-btn" aria-label="English">EN</button>
+          <button type="button" data-lang="de" class="lang-btn" aria-label="Deutsch">DE</button>
+        </div>
+        <button type="button" id="profileMenuBtn" class="profile-menu-btn" aria-label="فتح الحساب">
+          <i class="fas fa-user-circle" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- قسم البحث والتصفية -->
+    <section class="search-section" aria-label="البحث والتصفية">
+      <div class="search-box">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input
+          type="search"
+          id="searchInput"
+          data-i18n-placeholder="search_placeholder"
+          placeholder="ابحث عن مطعم أو وجبة..."
+          autocomplete="off"
+          inputmode="search"
+          aria-label="البحث"
+        />
+      </div>
+      <button type="button" id="filterToggleBtn" class="filter-btn" aria-label="فتح الفلاتر" aria-expanded="false">
+        <i class="fas fa-sliders-h" aria-hidden="true"></i>
+      </button>
+    </section>
+
+    <!-- لوحة الفلاتر -->
+    <section id="filterPanel" class="filter-panel hidden" aria-label="خيارات التصفية">
+      <label class="sr-only" for="categorySelect" data-i18n="category_label">التصنيف</label>
+      <select id="categorySelect">
+        <option value="" data-i18n="all_categories">جميع التصنيفات</option>
+        <!-- التصنيفات تُملأ من الخادم -->
+      </select>
+
+      <label class="sr-only" for="sortSelect" data-i18n="sort_label">الترتيب</label>
+      <select id="sortSelect">
+        <option value="rating" data-i18n="sort_rating">الأعلى تقييمًا</option>
+        <option value="deliveryTime" data-i18n="sort_time">أسرع توصيل</option>
+        <option value="deliveryFee" data-i18n="sort_fee">الأقل رسومًا</option>
+      </select>
+    </section>
+
+    <!-- المحتوى الرئيسي -->
+    <main id="appContent" class="app-content" aria-live="polite">
+      <div class="loading-spinner" role="status">
+        <span data-i18n="loading">جاري التحميل...</span>
+      </div>
+    </main>
+
+    <!-- شريط التنقل السفلي -->
+    <nav class="bottom-nav" role="tablist" aria-label="التنقل الرئيسي">
+      <button type="button" class="nav-btn active" data-tab="home" role="tab" aria-selected="true">
+        <i class="fas fa-home" aria-hidden="true"></i>
+        <span data-i18n="nav_home">الرئيسية</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="cart" role="tab" aria-selected="false">
+        <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+        <span data-i18n="nav_cart">السلة</span>
+        <span id="cartBadge" class="badge hidden" aria-label="عدد العناصر">0</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="tracking" role="tab" aria-selected="false">
+        <i class="fas fa-truck" aria-hidden="true"></i>
+        <span data-i18n="nav_tracking">التتبع</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="profile" role="tab" aria-selected="false">
+        <i class="fas fa-user" aria-hidden="true"></i>
+        <span data-i18n="nav_profile">حسابي</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Bottom Sheets -->
+  <!-- قائمة العناوين -->
+  <section id="addressSheet" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="addressSheetTitle">
+    <div class="sheet-content">
+      <header class="sheet-header">
+        <h3 id="addressSheetTitle" data-i18n="address_sheet_title">عنوان التوصيل</h3>
+        <button type="button" class="close-sheet" data-sheet="addressSheet" aria-label="إغلاق">&times;</button>
+      </header>
+      <div id="addressListContainer"></div>
+      <button type="button" id="addNewAddressBtn" class="btn-secondary">
+        <span data-i18n="add_address">+ إضافة عنوان جديد</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- إتمام الطلب -->
+  <section id="checkoutSheet" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="checkoutSheetTitle">
+    <div class="sheet-content">
+      <header class="sheet-header">
+        <h3 id="checkoutSheetTitle" data-i18n="checkout_title">إتمام الطلب</h3>
+        <button type="button" class="close-sheet" data-sheet="checkoutSheet" aria-label="إغلاق">&times;</button>
+      </header>
+      <div id="checkoutCartItems" class="cart-items-list"></div>
+      <div class="divider"></div>
+
+      <label for="checkoutAddressSelect" data-i18n="delivery_address_label">عنوان التوصيل</label>
+      <select id="checkoutAddressSelect" required></select>
+
+      <label for="paymentMethodSelect" data-i18n="payment_method_label">طريقة الدفع</label>
+      <select id="paymentMethodSelect" required>
+        <option value="cash" data-i18n="payment_cash">دفع عند الاستلام</option>
+        <option value="card" data-i18n="payment_card">بطاقة</option>
+        <option value="wallet" data-i18n="payment_wallet">محفظة</option>
+      </select>
+
+      <label for="orderNotes" data-i18n="order_notes_label">ملاحظات للمطعم</label>
+      <textarea id="orderNotes" rows="2" maxlength="300" data-i18n-placeholder="order_notes_placeholder" placeholder="مثال: بدون بصل، الرجاء الاتصال عند الوصول"></textarea>
+
+      <label for="couponCode" data-i18n="coupon_label">كود الخصم</label>
+      <div class="coupon-input">
+        <input type="text" id="couponCode" data-i18n-placeholder="coupon_placeholder" placeholder="أدخل الكود" autocomplete="off" />
+        <button type="button" id="applyCouponBtn" class="btn-small" data-i18n="apply_coupon">تطبيق</button>
+      </div>
+
+      <div id="checkoutTotal" class="total-price" aria-live="polite"></div>
+
+      <button type="button" id="confirmOrderBtn" class="btn-primary" data-i18n="confirm_order">
+        تأكيد الطلب
+      </button>
+    </div>
+  </section>
+
+  <!-- عنوان جديد -->
+  <section id="newAddressSheet" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="newAddressSheetTitle">
+    <div class="sheet-content">
+      <header class="sheet-header">
+        <h3 id="newAddressSheetTitle" data-i18n="new_address_title">عنوان جديد</h3>
+        <button type="button" class="close-sheet" data-sheet="newAddressSheet" aria-label="إغلاق">&times;</button>
+      </header>
+
+      <label for="newAddressName" data-i18n="address_name_label">اسم العنوان</label>
+      <input type="text" id="newAddressName" data-i18n-placeholder="address_name_placeholder" placeholder="مثال: المنزل" autocomplete="address-line1" />
+
+      <label for="newAddressDetails" data-i18n="address_details_label">العنوان التفصيلي</label>
+      <input type="text" id="newAddressDetails" data-i18n-placeholder="address_details_placeholder" placeholder="الشارع، رقم المبنى، المدينة" autocomplete="street-address" />
+
+      <div id="addressPickerMap" class="map-container hidden"></div>
+
+      <button type="button" id="useCurrentLocationBtn" class="btn-secondary" data-i18n="use_current_location">
+        استخدام موقعي الحالي
+      </button>
+
+      <button type="button" id="saveAddressBtn" class="btn-primary" data-i18n="save_address">
+        حفظ العنوان
+      </button>
+    </div>
+  </section>
+
+  <!-- تسجيل الدخول -->
+  <section id="authSheet" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="authSheetTitle">
+    <div class="sheet-content">
+      <header class="sheet-header">
+        <h3 id="authSheetTitle" data-i18n="auth_title">تسجيل الدخول</h3>
+        <button type="button" class="close-sheet" data-sheet="authSheet" aria-label="إغلاق">&times;</button>
+      </header>
+
+      <label for="loginEmail" data-i18n="email_label">البريد الإلكتروني</label>
+      <input type="email" id="loginEmail" placeholder="name@example.com" autocomplete="email" />
+
+      <label for="loginPassword" data-i18n="password_label">كلمة المرور</label>
+      <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password" />
+
+      <button type="button" id="doLoginBtn" class="btn-primary" data-i18n="login_btn">
+        دخول
+      </button>
+
+      <button type="button" id="guestModeBtn" class="btn-secondary" data-i18n="guest_btn">
+        متابعة كزائر
+      </button>
+    </div>
+  </section>
+
+  <!-- تتبع الطلب المباشر -->
+  <section id="trackingContainer" class="tracking-container hidden" aria-label="تتبع الطلب">
+    <div id="trackingMap" class="tracking-map"></div>
+    <div id="trackingStatusCard" class="tracking-status-card">
+      <h3 id="trackingOrderStatus" data-i18n="no_active_order">لا يوجد طلب نشط</h3>
+      <p id="trackingOrderDetails" data-i18n="tracking_placeholder">سيظهر التتبع هنا بعد تأكيد الطلب.</p>
+    </div>
+  </section>
+
+  <!-- حاوية التنبيهات -->
+  <div id="toastContainer" class="toast-container" aria-live="assertive"></div>
+
+  <!-- إعدادات التطبيق -->
+  <script>
+    window.APP_CONFIG = {
+      appName: "Fairfood Price",
+      apiBaseUrl: "/api/v1",
+      socketUrl: window.location.origin,
+      mapProvider: "leaflet",
+      defaultLanguage: "ar",
+      // العملة تُحدد من الخادم حسب الدولة
+      defaultCurrency: ""
+    };
+  </script>
+
+  <!-- Vendor JS – انقلها إلى /assets/vendor/ قبل النشر النهائي -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script src="main.js" defer></script>
+</body>
+</html>

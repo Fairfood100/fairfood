@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="description" content="Fairfood Price - لوحة الإدارة" />
+  <meta name="robots" content="index,follow" />
+  <title data-i18n="app_title">Fairfood Price - الإدارة</title>
+
+  <!-- Vendor CSS (انقلها إلى /assets/vendor/ قبل الإطلاق) -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-theme="light">
+  <noscript>
+    <div class="noscript-warning" data-i18n="noscript_warning">يجب تفعيل JavaScript لاستخدام لوحة الإدارة.</div>
+  </noscript>
+
+  <div id="app" class="app-wrapper app-loading" data-app="admin">
+
+    <!-- لودر البداية -->
+    <div id="appLoader" class="app-loader">
+      <div class="spinner large"></div>
+      <p data-i18n="loading">جاري التحميل…</p>
+    </div>
+
+    <!-- حالة الاتصال بالإنترنت -->
+    <div id="offlineBanner" class="offline-banner is-hidden" role="alert" data-i18n="offline_banner">أنت غير متصل بالإنترنت</div>
+    <div id="reconnectBanner" class="reconnect-banner is-hidden" role="status" data-i18n="reconnect_banner">تمت إعادة الاتصال</div>
+
+    <div class="admin-layout">
+      <!-- القائمة الجانبية (Sidebar) -->
+      <aside id="sidebar" class="admin-sidebar">
+        <div class="sidebar-header">
+          <h2 data-i18n="app_title">Fairfood Price</h2>
+        </div>
+        <nav class="sidebar-nav" role="navigation" data-i18n-aria-label="admin_navigation">
+          <button class="sidebar-link active" data-screen="dashboard" data-i18n="dashboard">📊 لوحة التحكم</button>
+          <button class="sidebar-link" data-screen="orders" data-i18n="active_orders">📋 الطلبات النشطة</button>
+          <button class="sidebar-link" data-screen="accounts" data-i18n="accounts_management">👥 إدارة الحسابات</button>
+          <button class="sidebar-link" data-screen="notifications" data-i18n="notifications">🔔 الإشعارات</button>
+          <button class="sidebar-link" data-screen="settings" data-i18n="settings">⚙️ إعدادات المنصة</button>
+        </nav>
+        <div class="sidebar-footer">
+          <button class="sidebar-link" data-action="logout" data-i18n="logout">🚪 تسجيل الخروج</button>
+        </div>
+      </aside>
+
+      <!-- المحتوى الرئيسي -->
+      <main class="admin-main">
+        <!-- هيدر علوي -->
+        <header class="admin-header">
+          <div class="header-left">
+            <button id="sidebarToggleBtn" class="icon-btn" data-i18n-aria-label="toggle_sidebar">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h1 id="currentPageTitle" data-i18n="dashboard">لوحة التحكم</h1>
+          </div>
+          <div class="header-actions">
+            <div class="lang-switcher">
+              <button type="button" data-lang="ar" class="lang-btn active" data-i18n-aria-label="lang_ar">AR</button>
+              <button type="button" data-lang="en" class="lang-btn" data-i18n-aria-label="lang_en">EN</button>
+              <button type="button" data-lang="de" class="lang-btn" data-i18n-aria-label="lang_de">DE</button>
+            </div>
+            <span id="adminName" class="admin-name">مدير النظام</span>
+          </div>
+        </header>
+
+        <!-- 1. شاشة لوحة التحكم (Dashboard) -->
+        <section id="dashboardScreen" class="screen active">
+          <div class="stats-grid" id="statsGrid">
+            <!-- الكرتان الجديدتان -->
+            <div class="stat-card">
+              <span class="stat-icon">💰</span>
+              <div class="stat-info">
+                <span class="stat-label" data-i18n="revenue_today">أرباح اليوم</span>
+                <strong class="stat-value" id="statRevenueToday">0</strong>
+              </div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🏦</span>
+              <div class="stat-info">
+                <span class="stat-label" data-i18n="platform_commission">عمولة المنصة</span>
+                <strong class="stat-value" id="statPlatformRevenue">0</strong>
+              </div>
+            </div>
+            <!-- الكروت الأصلية -->
+            <div class="stat-card">
+              <span class="stat-icon">👥</span>
+              <div class="stat-info">
+                <span class="stat-label" data-i18n="total_customers">العملاء</span>
+                <strong class="stat-value" id="statCustomers">0</strong>
+              </div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🏪</span>
+              <div class="stat-info">
+                <span class="stat-label" data-i18n="total_restaurants">المطاعم</span>
+                <strong class="stat-value" id="statRestaurants">0</strong>
+              </div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🛵</span>
+              <div class="stat-info">
+                <span class="stat-label" data-i18n="total_drivers">السائقين</span>
+                <strong class="stat-value" id="statDrivers">0</strong>
+              </div>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">📦</span>
+              <div class="stat-info">
+                <span class="stat-label" data-i18n="active_orders">طلبات نشطة</span>
+                <strong class="stat-value" id="statActiveOrders">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- رسم بياني سريع (placeholder) -->
+          <div class="chart-container">
+            <h3 data-i18n="revenue_overview">نظرة على الأرباح</h3>
+            <div id="revenueChart" class="chart-placeholder">
+              <span data-i18n="chart_loading">يتم تحميل الرسم البياني…</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. شاشة الطلبات النشطة (Active Orders) -->
+        <section id="ordersScreen" class="screen">
+          <h2 data-i18n="active_orders">الطلبات النشطة</h2>
+          <div id="activeOrdersList" class="orders-list"></div>
+          <div class="empty-state is-hidden" id="emptyActiveOrders">
+            <p data-i18n="no_active_orders">لا توجد طلبات نشطة حالياً</p>
+          </div>
+        </section>
+
+        <!-- 3. شاشة إدارة الحسابات (Accounts Management) -->
+        <section id="accountsScreen" class="screen">
+          <div class="tabs">
+            <button class="tab active" data-tab="customers" data-i18n="customers">العملاء</button>
+            <button class="tab" data-tab="restaurants" data-i18n="restaurants">المطاعم</button>
+            <button class="tab" data-tab="drivers" data-i18n="drivers">السائقين</button>
+          </div>
+          <div id="accountsList" class="accounts-list"></div>
+          <div class="empty-state is-hidden" id="emptyAccounts">
+            <p data-i18n="no_accounts">لا توجد حسابات</p>
+          </div>
+        </section>
+
+        <!-- 4. شاشة الإشعارات (Notifications) -->
+        <section id="notificationsScreen" class="screen">
+          <h2 data-i18n="notifications">الإشعارات</h2>
+          <div id="notificationsList" class="notifications-list"></div>
+          <div class="empty-state is-hidden" id="emptyNotifications">
+            <p data-i18n="no_notifications">لا توجد إشعارات</p>
+          </div>
+        </section>
+
+        <!-- 5. شاشة إعدادات المنصة (Settings) -->
+        <section id="settingsScreen" class="screen">
+          <h2 data-i18n="platform_settings">إعدادات المنصة</h2>
+          <div id="settingsContent" class="settings-content"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- حاوية التنبيهات -->
+    <div id="toastContainer" class="toast-container" aria-live="assertive"></div>
+
+    <!-- منطقة تنبيهات للقارئات الآلية -->
+    <div id="ariaLiveRegion" class="sr-only" aria-live="polite"></div>
+  </div>
+
+  <!-- ملف الإعدادات الخارجي -->
+  <script src="config.js" defer></script>
+  <!-- Vendor JS (إن احتجت) -->
+  <!-- كود التطبيق الرئيسي -->
+  <script src="main.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ar" dir="auto">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="لوحة تحكم المطعم – Fairfood Price">
+  <meta name="robots" content="index,follow">
+
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fairfood">
+  <link rel="icon" href="/assets/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+
+  <!-- Preload (استبدل المسارات بملفاتك الفعلية) -->
+  <link rel="preload" href="/assets/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- CSP مؤقت -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.socket.io https://cdnjs.cloudflare.com; style-src 'self' https://cdnjs.cloudflare.com; img-src 'self' data:; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' wss:;">
+
+  <title data-i18n="app_title">Fairfood Price – مطعم</title>
+
+  <!-- Vendor CSS -->
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-light app-loading" data-app="restaurant">
+  <!-- skip link -->
+  <a href="#restaurantContent" class="skip-link" data-i18n="skip_to_content">تخطي إلى المحتوى</a>
+
+  <!-- no-js fallback -->
+  <noscript>
+    <div class="noscript-warning" data-i18n="noscript_warning">يتطلب التطبيق تفعيل JavaScript.</div>
+  </noscript>
+
+  <!-- app loader -->
+  <div id="appLoader" class="app-loader">
+    <div class="spinner"></div>
+    <span data-i18n="loading">جاري التحميل…</span>
+  </div>
+
+  <div id="app" class="restaurant-app">
+    <!-- رأس التطبيق -->
+    <header class="app-header">
+      <div class="restaurant-info">
+        <h1 id="restaurantName" data-i18n="restaurant_name">اسم المطعم</h1>
+        <div class="online-status" id="onlineStatus">
+          <span class="status-dot"></span>
+          <span id="statusLabel" data-i18n="status_closed">مغلق</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="lang-switcher">
+          <button type="button" data-lang="ar" class="lang-btn active" aria-label="العربية">AR</button>
+          <button type="button" data-lang="en" class="lang-btn" aria-label="English">EN</button>
+          <button type="button" data-lang="de" class="lang-btn" aria-label="Deutsch">DE</button>
+        </div>
+        <button id="notificationsBtn" class="icon-btn" aria-label="الإشعارات">
+          <i class="fas fa-bell" aria-hidden="true"></i>
+          <span id="notificationBadge" class="badge hidden">0</span>
+        </button>
+        <button id="settingsBtn" class="icon-btn" aria-label="الإعدادات">
+          <i class="fas fa-cog" aria-hidden="true"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- التبويبات الرئيسية -->
+    <nav class="restaurant-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="dashboard" role="tab" aria-selected="true">
+        <span data-i18n="tab_dashboard">الطلبات</span>
+        <span id="newOrdersCountBadge" class="tab-badge hidden">0</span>
+      </button>
+      <button class="tab-btn" data-tab="menu" role="tab" aria-selected="false">
+        <span data-i18n="tab_menu">المنيو</span>
+      </button>
+      <button class="tab-btn" data-tab="earnings" role="tab" aria-selected="false">
+        <span data-i18n="tab_earnings">الأرباح</span>
+      </button>
+      <button class="tab-btn" data-tab="settings" role="tab" aria-selected="false">
+        <span data-i18n="tab_settings">الإعدادات</span>
+      </button>
+    </nav>
+
+    <!-- المحتوى الرئيسي -->
+    <main id="restaurantContent" class="restaurant-content">
+
+      <!-- ========== لوحة الطلبات ========== -->
+      <div id="dashboardPanel" class="tab-panel active" role="tabpanel">
+        <div class="dashboard-metrics" id="dashboardMetrics">
+          <div class="metric-card">
+            <span data-i18n="metric_new_orders">طلبات جديدة</span>
+            <strong id="metricNewOrders">0</strong>
+          </div>
+          <div class="metric-card">
+            <span data-i18n="metric_active_orders">قيد التحضير</span>
+            <strong id="metricActiveOrders">0</strong>
+          </div>
+          <div class="metric-card">
+            <span data-i18n="metric_avg_prep_time">متوسط التحضير</span>
+            <strong id="metricAvgPrepTime">0 <small data-i18n="minutes">دقيقة</small></strong>
+          </div>
+        </div>
+
+        <section class="orders-section">
+          <h2 data-i18n="new_orders_title">طلبات جديدة</h2>
+          <div id="newOrdersList" class="orders-list">
+            <div class="skeleton-card" data-skeleton="order"></div>
+            <div class="skeleton-card" data-skeleton="order"></div>
+          </div>
+          <div id="emptyNewOrdersState" class="empty-state hidden" data-i18n="no_new_orders">لا توجد طلبات جديدة</div>
+        </section>
+
+        <section class="orders-section">
+          <h2 data-i18n="active_orders_title">الطلبات الجارية</h2>
+          <div id="activeOrdersList" class="orders-list">
+            <div class="skeleton-card" data-skeleton="order"></div>
+          </div>
+          <div id="emptyActiveOrdersState" class="empty-state hidden" data-i18n="no_active_orders">لا توجد طلبات جارية</div>
+        </section>
+      </div>
+
+      <!-- ========== إدارة المنيو ========== -->
+      <div id="menuPanel" class="tab-panel hidden" role="tabpanel">
+        <div class="menu-header">
+          <h2 data-i18n="menu_management_title">إدارة المنيو</h2>
+          <div class="menu-actions">
+            <select id="menuCategoryFilter" aria-label="تصفية حسب التصنيف" data-i18n-aria-label="filter_by_category">
+              <option value="" data-i18n="all_categories">جميع التصنيفات</option>
+            </select>
+            <button id="addMenuItemBtn" class="btn-primary" data-i18n="add_menu_item">+ إضافة صنف</button>
+          </div>
+        </div>
+        <div id="menuItemsList" class="menu-items-list">
+          <div class="skeleton-card" data-skeleton="menu"></div>
+          <div class="skeleton-card" data-skeleton="menu"></div>
+        </div>
+        <div id="emptyMenuState" class="empty-state hidden" data-i18n="no_menu_items">المنيو فارغ</div>
+      </div>
+
+      <!-- ========== الأرباح ========== -->
+      <div id="earningsPanel" class="tab-panel hidden" role="tabpanel">
+        <div class="earnings-summary" id="earningsSummary"></div>
+        <div class="earnings-charts" id="earningsCharts"></div>
+        <div class="earnings-history">
+          <h3 data-i18n="earnings_history">سجل الأرباح</h3>
+          <div id="earningsTableContainer" class="table-responsive"></div>
+          <div id="emptyEarningsState" class="empty-state hidden" data-i18n="no_earnings">لا توجد بيانات أرباح</div>
+        </div>
+      </div>
+
+      <!-- ========== الإعدادات ========== -->
+      <div id="settingsPanel" class="tab-panel hidden" role="tabpanel">
+        <div class="settings-group hidden" id="branchSelectorGroup">
+          <h3 data-i18n="branch">الفرع</h3>
+          <select id="branchSelect" aria-label="اختيار الفرع" data-i18n-aria-label="select_branch"></select>
+        </div>
+
+        <div class="settings-group">
+          <h3 data-i18n="working_hours">ساعات العمل</h3>
+          <div class="working-hours">
+            <label><span data-i18n="from">من</span>: <input type="time" id="openingTime" aria-label="وقت الفتح" data-i18n-aria-label="opening_time"></label>
+            <label><span data-i18n="to">إلى</span>: <input type="time" id="closingTime" aria-label="وقت الإغلاق" data-i18n-aria-label="closing_time"></label>
+          </div>
+          <label class="switch-label">
+            <input type="checkbox" id="restaurantOpenToggle">
+            <span data-i18n="restaurant_open_toggle">المطعم مفتوح حالياً</span>
+          </label>
+        </div>
+
+        <div class="settings-group">
+          <h3 data-i18n="notifications">الإشعارات</h3>
+          <label><input type="checkbox" id="notifyNewOrders" checked> <span data-i18n="notify_new_orders">إشعارات الطلبات الجديدة (صوت)</span></label>
+          <label><input type="checkbox" id="notifyStatusChange" checked> <span data-i18n="notify_status_change">إشعارات تغيير حالة الطلب</span></label>
+          <label><input type="checkbox" id="notifyDriverArrived" checked> <span data-i18n="notify_driver_arrived">إشعار وصول السائق</span></label>
+        </div>
+
+        <div class="settings-group">
+          <h3 data-i18n="restaurant_info">معلومات المطعم</h3>
+          <input type="text" id="restaurantNameInput" data-i18n-placeholder="restaurant_name_placeholder" placeholder="اسم المطعم" aria-label="اسم المطعم">
+          <input type="tel" id="restaurantPhone" data-i18n-placeholder="phone_placeholder" placeholder="رقم الهاتف" aria-label="رقم الهاتف">
+          <textarea id="restaurantAddress" rows="2" data-i18n-placeholder="address_placeholder" placeholder="العنوان" aria-label="العنوان"></textarea>
+          <button id="saveSettingsBtn" class="btn-primary" data-i18n="save_changes">حفظ التغييرات</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- شريط معلومات السائق -->
+    <aside id="driverInfoBar" class="driver-info-bar hidden" role="alert" aria-live="polite">
+      <span data-i18n="driver_arriving">السائق في الطريق</span> – <span id="driverETA"></span>
+    </aside>
+
+    <!-- قائمة الإشعارات -->
+    <div id="notificationDropdown" class="notification-dropdown hidden" role="dialog" aria-modal="true" aria-label="الإشعارات">
+      <div class="notification-list" id="notificationList"></div>
+    </div>
+
+    <!-- مودال إضافة/تعديل صنف -->
+    <div id="menuItemModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="menuItemModalTitle">
+      <div class="modal-content">
+        <h3 id="menuItemModalTitle" data-i18n="add_menu_item_title">إضافة صنف</h3>
+        <div class="modal-body">
+          <input type="text" id="itemName" data-i18n-placeholder="item_name" placeholder="اسم الصنف" aria-label="اسم الصنف">
+          <textarea id="itemDescription" rows="2" data-i18n-placeholder="item_description" placeholder="الوصف" aria-label="الوصف"></textarea>
+          <input type="number" id="itemPrice" step="0.01" data-i18n-placeholder="item_price" placeholder="السعر" aria-label="السعر">
+          <select id="itemCategory" aria-label="اختيار التصنيف" data-i18n-aria-label="select_category"></select>
+          <div id="modifiersContainer"></div>
+          <label><input type="checkbox" id="itemAvailable" checked> <span data-i18n="item_available">متوفر</span></label>
+          <div class="item-image-upload">
+            <label data-i18n="item_image">صورة الصنف</label>
+            <input type="file" id="itemImage" accept="image/*" aria-label="رفع صورة الصنف">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="saveMenuItemBtn" class="btn-primary" data-i18n="save_item">حفظ</button>
+          <button id="cancelMenuItemBtn" class="btn-secondary" data-i18n="cancel">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- مودال تفاصيل الطلب -->
+    <div id="orderDetailsModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="orderDetailsTitle">
+      <div class="modal-content">
+        <h3 id="orderDetailsTitle" data-i18n="order_details">تفاصيل الطلب</h3>
+        <div id="orderDetailsContent"></div>
+      </div>
+    </div>
+
+    <!-- مودال تسليم السائق -->
+    <div id="driverHandoffModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="driverHandoffTitle">
+      <div class="modal-content">
+        <h3 id="driverHandoffTitle" data-i18n="driver_handoff">تسليم للسائق</h3>
+        <div id="driverHandoffContent"></div>
+        <button id="confirmHandoffBtn" class="btn-primary" data-i18n="confirm_handoff">تأكيد التسليم</button>
+      </div>
+    </div>
+
+    <!-- أوفرلي عام -->
+    <div id="overlay" class="overlay hidden"></div>
+
+    <!-- حالة انقطاع الاتصال -->
+    <aside id="offlineBanner" class="offline-banner hidden" role="alert">
+      <span data-i18n="offline_warning">أنت غير متصل بالإنترنت</span>
+    </aside>
+
+    <!-- شريط إعادة الاتصال -->
+    <aside id="reconnectBanner" class="reconnect-banner hidden" role="alert">
+      <span data-i18n="reconnecting">جارٍ إعادة الاتصال…</span>
+    </aside>
+
+    <!-- شريط تثبيت التطبيق (PWA) -->
+    <aside id="installAppBanner" class="install-banner hidden">
+      <span data-i18n="install_app">ثبّت التطبيق لتجربة أفضل</span>
+      <button id="installAppBtn" class="btn-primary btn-sm" data-i18n="install">تثبيت</button>
+    </aside>
+
+    <!-- حاوية التنبيهات -->
+    <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+
+    <!-- منطقة aria-live للقراءة الصوتية -->
+    <div id="ariaLiveRegion" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- أصوات التنبيه -->
+    <audio id="soundNewOrder" preload="auto" src="assets/sounds/new-order.mp3"></audio>
+    <audio id="soundUrgentOrder" preload="auto" src="assets/sounds/urgent-order.mp3"></audio>
+    <audio id="soundCancelledOrder" preload="auto" src="assets/sounds/cancelled-order.mp3"></audio>
+    <audio id="soundDriverArrived" preload="auto" src="assets/sounds/driver-arrived.mp3"></audio>
+    <audio id="soundPickupConfirmed" preload="auto" src="assets/sounds/pickup-confirmed.mp3"></audio>
+  </div>
+
+  <!-- إعدادات التطبيق -->
+  <script>
+    window.APP_CONFIG = {
+      appName: "Fairfood Price Restaurant",
+      apiBaseUrl: "/api/v1",
+      socketUrl: window.location.origin,
+      defaultLanguage: "ar",
+      defaultCurrency: ""
+    };
+  </script>
+
+  <!-- Vendor JS -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script src="main.js" defer></script>
+</body>
+</html>

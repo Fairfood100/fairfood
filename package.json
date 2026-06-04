@@ -1,0 +1,13 @@
+{
+  "name": "fairfood-cloudflare",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "db:migrate": "wrangler d1 execute fairfood-db --file=./database/schema.sql",
+    "db:seed": "wrangler d1 execute fairfood-db --file=./database/seed.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

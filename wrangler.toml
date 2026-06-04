@@ -1,0 +1,8 @@
+name = "fairfood"
+compatibility_date = "2026-06-03"
+pages_build_output_dir = "."
+
+[[d1_databases]]
+binding = "DB"
+database_name = "fairfood-db"
+database_id = "d6950e98-4c6b-4247-bb28-67438d08b806"

@@ -1,0 +1,32 @@
+import { ok, error, onOptions } from "../../../../utils/response.js";
+import { requireAuth } from "../../../../utils/auth.js";
+
+export const onRequestOptions = onOptions;
+
+export async function onRequestGet({ request, env }) {
+  const user = await requireAuth(request, env);
+  if (!user) return error("Unauthorized", 401);
+
+  const url = new URL(request.url);
+  let restaurantId = url.searchParams.get("restaurantId");
+
+  if (!restaurantId && user.role === "restaurant") {
+    const restaurant = await env.DB.prepare("SELECT id FROM restaurants WHERE user_id = ?")
+      .bind(user.sub)
+      .first();
+
+    restaurantId = restaurant?.id;
+  }
+
+  if (!restaurantId) return error("Missing restaurantId", 422);
+
+  const orders = await env.DB.prepare(
+    "SELECT * FROM orders WHERE restaurant_id = ? ORDER BY created_at DESC"
+  )
+    .bind(restaurantId)
+    .all();
+
+  return ok({
+    orders: orders.results || []
+  });
+}
