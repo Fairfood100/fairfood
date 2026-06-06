@@ -1,4 +1,4 @@
-const API="https://fairfood.fairfood100.workers.dev";
+const API="https://fairfood.pages.dev";
 function euro(c){return (Number(c||0)/100).toFixed(2).replace(".",",")+" €"}
 async function api(path, options={}){
   const token = localStorage.ff_token || localStorage.ff_rest_token || localStorage.ff_driver_token || localStorage.ff_admin_token || "";
