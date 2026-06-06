@@ -1,13 +1,15 @@
 import { ok, error, onOptions } from "../../utils/response.js";
-import { verifyAuth } from "../../utils/auth.js";
+import { requireAuth } from "../../utils/auth.js";
 
 export const onRequestOptions = onOptions;
 
 export async function onRequestGet(context) {
   const { request, env } = context;
 
-  const user = await verifyAuth(request, env);
+  const user = await requireAuth(request, env);
   if (!user) return error("Unauthorized", 401);
+
+  const userId = user.id || user.sub;
 
   const url = new URL(request.url);
   const action = url.searchParams.get("action") || "wallet";
@@ -19,7 +21,7 @@ export async function onRequestGet(context) {
       WHERE owner_id = ?
       LIMIT 1
     `)
-      .bind(user.id)
+      .bind(userId)
       .first();
 
     return ok({
@@ -38,7 +40,7 @@ export async function onRequestGet(context) {
       ORDER BY created_at DESC
       LIMIT 100
     `)
-      .bind(user.id)
+      .bind(userId)
       .all();
 
     return ok({
@@ -52,10 +54,11 @@ export async function onRequestGet(context) {
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const user = await verifyAuth(request, env);
+  const user = await requireAuth(request, env);
   if (!user) return error("Unauthorized", 401);
 
-  const body = await request.json();
+  const userId = user.id || user.sub;
+  const body = await request.json().catch(() => ({}));
   const action = body.action;
 
   if (action === "payment") {
@@ -73,8 +76,8 @@ export async function onRequestPost(context) {
     `)
       .bind(
         paymentId,
-        user.id,
-        body.amount_cents || 0,
+        userId,
+        Number(body.amount_cents || body.amountCents || 0),
         "pending",
         Date.now()
       )
