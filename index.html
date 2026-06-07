@@ -3,371 +3,875 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Fairfood Price — منصة توصيل الطعام السحرية</title>
-  <meta name="theme-color" content="#000000" />
+  <title>Fairfood Price — منصة توصيل الطعام الذكية</title>
+  <meta name="theme-color" content="#0a0a0a" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #000;
-      --surface: rgba(255,255,255,0.02);
-      --border: rgba(255,255,255,0.08);
-      --text: #fff;
-      --text-secondary: rgba(255,255,255,0.7);
-      --neon-pink: #ff2d55;
-      --neon-blue: #5e5ce6;
-      --neon-cyan: #64d2ff;
-      --neon-green: #30d158;
-      --neon-orange: #ff9f0a;
-      --neon-purple: #bf5af2;
-      --glow-pink: 0 0 30px rgba(255,45,85,0.6);
-      --glow-blue: 0 0 30px rgba(94,92,230,0.6);
-      --glow-cyan: 0 0 30px rgba(100,210,255,0.6);
-      --transition: 0.3s ease;
+      --bg: #0a0a0a;
+      --surface: rgba(255, 255, 255, 0.03);
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.65);
+      --text-tertiary: rgba(255, 255, 255, 0.4);
+      --accent: #ff6b2b;
+      --accent-soft: #ff8a50;
+      --accent-glow: rgba(255, 107, 43, 0.4);
+      --accent-secondary: #ffb800;
+      --radius: 22px;
+      --radius-lg: 36px;
+      --transition: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    * { margin:0; padding:0; box-sizing:border-box; }
-    html { scroll-behavior:smooth; -webkit-font-smoothing:antialiased; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+    }
+
     body {
-      font-family: 'Inter', 'Cairo', sans-serif;
+      font-family: 'Inter', 'Cairo', system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      line-height:1.6;
-      overflow-x:hidden;
-      position:relative;
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
     }
 
     body::before {
-      content:''; position:fixed; inset:0;
-      background: radial-gradient(ellipse at 20% 20%, rgba(94,92,230,0.15), transparent 40%),
-                  radial-gradient(ellipse at 80% 10%, rgba(255,45,85,0.1), transparent 35%),
-                  radial-gradient(ellipse at 50% 80%, rgba(48,209,88,0.1), transparent 35%);
-      pointer-events:none; z-index:0;
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(255, 107, 43, 0.08), transparent 35%),
+        radial-gradient(ellipse 60% 40% at 80% 20%, rgba(255, 184, 0, 0.05), transparent 30%),
+        radial-gradient(ellipse 50% 60% at 50% 90%, rgba(255, 107, 43, 0.03), transparent 30%);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    .container { width:min(1200px, 90vw); margin:0 auto; position:relative; z-index:1; }
+    /* Rain canvas */
+    #rainCanvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
 
-    /* Nav */
+    .container {
+      width: min(1280px, 90vw);
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navigation */
     .nav {
-      position:fixed; top:0; left:0; right:0; z-index:100;
-      background:rgba(0,0,0,0.7); backdrop-filter:blur(30px);
-      border-bottom:1px solid var(--border); padding:0 1rem;
-      animation:slideDown 0.6s ease-out;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      animation: slideDown 0.8s ease-out;
     }
-    @keyframes slideDown { from{transform:translateY(-100%)} to{transform:translateY(0)} }
+
+    @keyframes slideDown {
+      from { transform: translateY(-100%); }
+      to { transform: translateY(0); }
+    }
 
     .nav-inner {
-      display:flex; align-items:center; justify-content:space-between;
-      height:70px; gap:20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      gap: 20px;
     }
-    .brand { display:flex; align-items:center; gap:10px; text-decoration:none; color:#fff; font-weight:800; font-size:1.2rem; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+
     .logo {
-      width:42px; height:42px; border-radius:12px;
-      background:linear-gradient(135deg, var(--neon-purple), var(--neon-pink));
-      display:grid; place-items:center; font-size:1.4rem;
-      box-shadow:var(--glow-purple); animation:logoGlow 3s infinite;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 8px 30px var(--accent-glow);
+      animation: logoGlow 3s infinite;
     }
-    @keyframes logoGlow { 0%,100%{box-shadow:var(--glow-purple)} 50%{box-shadow:var(--glow-pink)} }
 
-    .nav-links { display:flex; gap:8px; }
+    @keyframes logoGlow {
+      0%, 100% { box-shadow: 0 8px 30px var(--accent-glow); }
+      50% { box-shadow: 0 12px 40px var(--accent-glow), 0 0 50px rgba(255,107,43,0.3); }
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
     .nav-link {
-      padding:8px 16px; border-radius:100px; color:var(--text-secondary);
-      text-decoration:none; font-weight:600; font-size:0.9rem; transition:var(--transition);
+      padding: 8px 16px;
+      border-radius: 100px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: var(--transition);
     }
-    .nav-link:hover { color:#fff; background:rgba(255,255,255,0.05); }
 
-    .lang-switch { display:flex; gap:4px; }
-    .lang-btn {
-      padding:6px 12px; border-radius:8px; border:1px solid transparent;
-      background:none; color:var(--text-secondary); font-weight:700; font-size:0.8rem;
-      cursor:pointer; transition:var(--transition);
+    .nav-link:hover {
+      color: #fff;
+      background: var(--surface-hover);
     }
-    .lang-btn.active { color:var(--neon-cyan); border-color:rgba(100,210,255,0.5); background:rgba(100,210,255,0.1); }
-    .mobile-menu { display:none; background:none; border:none; color:#fff; font-size:1.5rem; cursor:pointer; }
+
+    .lang-switch {
+      display: flex;
+      gap: 4px;
+    }
+
+    .lang-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: inherit;
+    }
+
+    .lang-btn.active {
+      color: var(--accent);
+      border-color: var(--accent);
+      background: rgba(255, 107, 43, 0.15);
+    }
 
     .nav-cta {
-      padding:10px 20px; border-radius:100px;
-      background:linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
-      color:#fff; text-decoration:none; font-weight:700; font-size:0.9rem;
-      box-shadow:var(--glow-blue); transition:var(--transition);
+      padding: 10px 22px;
+      border-radius: 100px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #0a0a0a;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: var(--transition);
+      box-shadow: 0 6px 24px var(--accent-glow);
     }
-    .nav-cta:hover { transform:translateY(-2px); box-shadow:var(--glow-cyan); }
+
+    .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 32px var(--accent-glow);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.6rem;
+      cursor: pointer;
+    }
 
     /* Hero */
     .hero {
-      min-height:100vh; display:flex; align-items:center; padding:120px 0 60px;
-      text-align:center; flex-direction:column; justify-content:center;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 140px 0 80px;
+      position: relative;
     }
-    .hero h1 {
-      font-size:clamp(3rem, 8vw, 6rem); font-weight:900; line-height:1.1;
-      letter-spacing:-2px; margin-bottom:1rem; animation:fadeInUp 1s;
-    }
-    .gradient {
-      background:linear-gradient(135deg, var(--neon-cyan), var(--neon-purple), var(--neon-pink));
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-    }
-    .hero p {
-      color:var(--text-secondary); font-size:1.2rem; max-width:600px;
-      margin-bottom:2rem; animation:fadeInUp 1s 0.2s both;
-    }
-    @keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
 
-    .hero-actions { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .hero-text {
+      animation: fadeInLeft 1s ease-out;
+    }
+
+    @keyframes fadeInLeft {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 28px;
+      animation: float 3s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .hero-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 6vw, 5.5rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -2px;
+      margin-bottom: 24px;
+    }
+
+    .hero-title .gradient {
+      background: linear-gradient(135deg, #fff 20%, var(--accent-secondary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      background-size: 200% 200%;
+      animation: gradientShift 4s infinite;
+    }
+
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+
+    .hero-desc {
+      color: var(--text-secondary);
+      font-size: clamp(1rem, 1.5vw, 1.2rem);
+      line-height: 1.8;
+      margin-bottom: 36px;
+      max-width: 500px;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+
     .btn {
-      padding:14px 28px; border-radius:100px; font-weight:700; text-decoration:none;
-      transition:var(--transition); display:inline-flex; align-items:center; gap:8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 26px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+      border: none;
+      white-space: nowrap;
     }
+
     .btn-primary {
-      background:linear-gradient(135deg, var(--neon-purple), var(--neon-blue));
-      color:#fff; box-shadow:var(--glow-purple);
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #0a0a0a;
+      box-shadow: 0 8px 28px var(--accent-glow);
     }
-    .btn-primary:hover { transform:translateY(-3px); box-shadow:var(--glow-blue); }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 36px var(--accent-glow);
+    }
+
     .btn-outline {
-      border:1px solid var(--border); color:#fff;
-    }
-    .btn-outline:hover { border-color:var(--neon-cyan); box-shadow:var(--glow-cyan); transform:translateY(-3px); }
-
-    /* Scenes */
-    .scene {
-      padding:80px 0; display:flex; align-items:center; justify-content:center;
-      min-height:70vh; position:relative; overflow:hidden;
-    }
-    .scene-content {
-      display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
-      gap:40px; max-width:1000px; margin:0 auto;
-    }
-    .scene-text {
-      flex:1 1 300px; text-align:center;
-    }
-    .scene-text h2 {
-      font-size:2.5rem; font-weight:900; margin-bottom:1rem; line-height:1.2;
-    }
-    .scene-text p { color:var(--text-secondary); font-size:1.1rem; }
-
-    .scene-visual {
-      flex:1 1 300px; position:relative; height:300px;
-      display:flex; align-items:center; justify-content:center;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: #fff;
     }
 
-    /* Character animations */
-    .character {
-      font-size:8rem; transition: all 0.6s ease; position:absolute;
-      animation: float 3s ease-in-out infinite;
-    }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
-
-    .dish {
-      font-size:8rem; opacity:0; transform:scale(0); transition: all 0.6s ease;
+    .btn-outline:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+      box-shadow: 0 8px 20px rgba(255, 107, 43, 0.2);
+      transform: translateY(-3px);
     }
 
-    .scene-visual:hover .character { opacity:0; transform:scale(0) rotate(20deg); }
-    .scene-visual:hover .dish { opacity:1; transform:scale(1) rotate(0deg); }
-
-    /* special backgrounds */
-    .ocean-bg {
-      position:absolute; inset:0; background:linear-gradient(to bottom, #0a1628, #001a33);
-      opacity:0.3; pointer-events:none;
-    }
-    .farm-bg {
-      position:absolute; inset:0; background:linear-gradient(to bottom, #1a2f1a, #0d1a0d);
-      opacity:0.3; pointer-events:none;
+    .hero-visual {
+      display: flex;
+      justify-content: center;
+      position: relative;
+      animation: fadeInRight 1s ease-out;
     }
 
-    /* fishing elements */
-    .fish {
-      animation: swim 4s ease-in-out infinite;
-    }
-    @keyframes swim {
-      0%{transform:translateX(-80px) translateY(0)}
-      50%{transform:translateX(80px) translateY(-20px)}
-      100%{transform:translateX(-80px) translateY(0)}
+    @keyframes fadeInRight {
+      from { opacity: 0; transform: translateX(-30px); }
+      to { opacity: 1; transform: translateX(0); }
     }
 
-    .chef {
-      animation: knead 1.5s ease-in-out infinite;
-    }
-    @keyframes knead {
-      0%,100%{transform:rotate(0deg)}
-      25%{transform:rotate(-5deg)}
-      75%{transform:rotate(5deg)}
+    .orb {
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 107, 43, 0.3), transparent 70%);
+      filter: blur(50px);
+      animation: pulse 4s infinite;
     }
 
-    /* Features */
-    .features {
-      padding:80px 0; display:grid; grid-template-columns:repeat(auto-fit, minmax(250px,1fr));
-      gap:24px;
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.1); opacity: 1; }
     }
-    .feature-card {
-      padding:30px; border-radius:24px; background:var(--surface);
-      border:1px solid var(--border); text-align:center;
-      transition:var(--transition);
+
+    .phone-mock {
+      position: absolute;
+      width: 240px;
+      height: 480px;
+      border-radius: 36px;
+      padding: 10px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.15), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 50px var(--accent-glow);
+      backdrop-filter: blur(20px);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-3deg);
     }
-    .feature-card:hover {
-      border-color:var(--neon-cyan); transform:translateY(-5px);
-      box-shadow:var(--glow-cyan);
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 28px;
+      background: #0b0b0b;
+      overflow: hidden;
     }
-    .feature-icon { font-size:3rem; margin-bottom:1rem; }
-    .feature-title { font-size:1.5rem; font-weight:800; margin-bottom:0.5rem; }
-    .feature-desc { color:var(--text-secondary); }
+
+    .phone-header {
+      height: 120px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.9)), 
+                  url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="%231a1a1a"/><circle cx="200" cy="100" r="80" fill="%23ff6b2b" opacity="0.3"/></svg>');
+      background-size: cover;
+    }
+
+    .phone-content {
+      padding: 16px;
+    }
+
+    .phone-search {
+      height: 36px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      margin-bottom: 12px;
+    }
+
+    .phone-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      margin-bottom: 8px;
+    }
+
+    .phone-card .thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+    }
+
+    .phone-card .name {
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .phone-card .meta {
+      font-size: 0.65rem;
+      color: var(--text-tertiary);
+    }
+
+    /* Sections */
+    .section {
+      padding: 100px 0;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 70px;
+    }
+
+    .section-label {
+      display: inline-block;
+      padding: 8px 20px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      font-size: clamp(2.2rem, 4vw, 3.5rem);
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Apps Grid */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+
+    .app-card {
+      padding: 36px 28px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 30px var(--accent-glow);
+    }
+
+    .app-icon {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+
+    .app-name {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .app-desc {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      flex: 1;
+      margin-bottom: 20px;
+    }
+
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--accent);
+    }
+
+    /* Steps */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 18px;
+    }
+
+    .step-card {
+      padding: 30px 20px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-align: center;
+      transition: var(--transition);
+    }
+
+    .step-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #0a0a0a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 1.3rem;
+      margin: 0 auto 18px;
+    }
+
+    .step-title {
+      font-weight: 800;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
 
     /* CTA */
-    .cta {
-      padding:80px 0; text-align:center;
-      background:radial-gradient(circle at center, rgba(94,92,230,0.2), transparent);
-      border-radius:48px; margin:40px auto;
+    .cta-section {
+      padding: 80px 0;
     }
-    .cta h2 { font-size:3rem; font-weight:900; margin-bottom:1rem; }
-    .cta p { color:var(--text-secondary); margin-bottom:2rem; }
+
+    .cta-card {
+      padding: 80px 48px;
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at 50% 0%, rgba(255, 107, 43, 0.15), transparent 45%),
+                  var(--surface);
+      border: 1px solid var(--border);
+      text-align: center;
+      box-shadow: 0 0 80px rgba(255, 107, 43, 0.1);
+    }
+
+    .cta-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900;
+      margin-bottom: 16px;
+    }
+
+    .cta-desc {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+
+    .cta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
 
     /* Footer */
     .footer {
-      padding:40px 0; border-top:1px solid var(--border);
-      display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;
-      color:var(--text-secondary);
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 20px;
+      color: var(--text-tertiary);
+      font-size: 0.9rem;
     }
-    .footer-links { display:flex; gap:20px; }
-    .footer-links a { color:var(--text-secondary); text-decoration:none; }
-    .footer-links a:hover { color:#fff; }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      color: #fff;
+    }
+
+    /* Reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+
+    .reveal.revealed {
+      opacity: 1;
+      transform: translateY(0);
+    }
 
     /* Mobile */
-    @media (max-width:768px) {
-      .nav-links { display:none; }
-      .mobile-menu { display:block; }
-      .scene-content { flex-direction:column; }
-      .character, .dish { font-size:5rem; }
+    @media (max-width: 1024px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+      }
+      .phone-mock {
+        width: 200px;
+        height: 400px;
+      }
+      .apps-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .steps-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
     }
 
-    [data-i18n] { transition: opacity 0.2s; }
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+      .hero-actions {
+        flex-direction: column;
+      }
+      .btn {
+        justify-content: center;
+      }
+      .apps-grid {
+        grid-template-columns: 1fr;
+      }
+      .steps-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .cta-card {
+        padding: 48px 24px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+      .footer {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
   </style>
 </head>
 <body>
+  <canvas id="rainCanvas"></canvas>
+
   <nav class="nav">
     <div class="container nav-inner">
-      <a href="#" class="brand"><span class="logo">🍽️</span> Fairfood</a>
+      <a href="#" class="brand">
+        <span class="logo">🍽️</span>
+        <span>Fairfood</span>
+      </a>
       <div class="nav-links">
-        <a href="#scenes" class="nav-link" data-i18n="nav_story">القصة</a>
-        <a href="#apps" class="nav-link" data-i18n="nav_apps">التطبيقات</a>
+        <a href="#apps" class="nav-link" data-i18n="nav_apps">Apps</a>
+        <a href="#how" class="nav-link" data-i18n="nav_how">How it works</a>
+        <a href="#features" class="nav-link" data-i18n="nav_features">Features</a>
       </div>
       <div class="lang-switch">
         <button class="lang-btn active" data-lang="ar">AR</button>
         <button class="lang-btn" data-lang="en">EN</button>
         <button class="lang-btn" data-lang="de">DE</button>
       </div>
-      <a href="customer/" class="nav-cta" data-i18n="order_now">اطلب الآن</a>
-      <button class="mobile-menu" id="mobileMenuBtn">☰</button>
+      <a href="customer/" class="nav-cta" data-i18n="order_now">Order now</a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
     </div>
   </nav>
 
   <section class="hero">
+    <div class="container hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="dot"></span>
+          <span data-i18n="hero_badge">Platform available for trial</span>
+        </div>
+        <h1 class="hero-title">
+          <span data-i18n="hero_title1">Food delivery</span><br>
+          <span class="gradient" data-i18n="hero_title2">at light speed</span>
+        </h1>
+        <p class="hero-desc" data-i18n="hero_desc">
+          An integrated platform with four separate apps: Customer, Restaurant, Driver, and Admin. Ready to connect and scale.
+        </p>
+        <div class="hero-actions">
+          <a href="customer/" class="btn btn-primary" data-i18n="btn_customer">📱 Customer App</a>
+          <a href="restaurant/" class="btn btn-outline" data-i18n="btn_restaurant">🏪 Restaurant Portal</a>
+          <a href="driver/" class="btn btn-outline" data-i18n="btn_driver">🛵 Driver App</a>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="orb"></div>
+        <div class="phone-mock">
+          <div class="phone-screen">
+            <div class="phone-header"></div>
+            <div class="phone-content">
+              <div class="phone-search"></div>
+              <div class="phone-card">
+                <div class="thumb"></div>
+                <div>
+                  <div class="name">Burger House</div>
+                  <div class="meta">⭐ 4.9 · 18 min</div>
+                </div>
+              </div>
+              <div class="phone-card">
+                <div class="thumb"></div>
+                <div>
+                  <div class="name">Pizza Italia</div>
+                  <div class="meta">⭐ 4.8 · 22 min</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="apps">
     <div class="container">
-      <h1><span data-i18n="hero_title1">طعامك المفضل</span><br><span class="gradient" data-i18n="hero_title2">بلمسة سحرية</span></h1>
-      <p data-i18n="hero_desc">منصة توصيل متكاملة بأربعة تطبيقات: العميل، المطعم، السائق، ولوحة الإدارة. جاهزة للانطلاق والتوسع.</p>
-      <div class="hero-actions">
-        <a href="customer/" class="btn btn-primary" data-i18n="cta_customer">📱 تطبيق العميل</a>
-        <a href="restaurant/" class="btn btn-outline" data-i18n="cta_restaurant">🏪 المطعم</a>
-        <a href="driver/" class="btn btn-outline" data-i18n="cta_driver">🛵 السائق</a>
+      <div class="section-header reveal">
+        <div class="section-label" data-i18n="apps_label">Platform Apps</div>
+        <h2 class="section-title" data-i18n="apps_title">Four Integrated Apps</h2>
+        <p class="section-subtitle" data-i18n="apps_subtitle">Each part of the platform has its own app with a professional interface and complete user experience.</p>
+      </div>
+      <div class="apps-grid">
+        <a href="customer/" class="app-card reveal">
+          <div class="app-icon">🛒</div>
+          <div class="app-name" data-i18n="app1_name">Customer</div>
+          <div class="app-desc" data-i18n="app1_desc">Browse restaurants and menus, add to cart and confirm your order easily. Track your order until it arrives.</div>
+          <span class="app-link" data-i18n="open_app">Open App →</span>
+        </a>
+        <a href="restaurant/" class="app-card reveal">
+          <div class="app-icon">🏪</div>
+          <div class="app-name" data-i18n="app2_name">Restaurant</div>
+          <div class="app-desc" data-i18n="app2_desc">Receive new orders, manage your menu, track earnings and daily reports.</div>
+          <span class="app-link" data-i18n="open_app">Open App →</span>
+        </a>
+        <a href="driver/" class="app-card reveal">
+          <div class="app-icon">🛵</div>
+          <div class="app-name" data-i18n="app3_name">Driver</div>
+          <div class="app-desc" data-i18n="app3_desc">Receive delivery orders, navigate using the map, and track your earnings and wallet.</div>
+          <span class="app-link" data-i18n="open_app">Open App →</span>
+        </a>
+        <a href="admin/" class="app-card reveal">
+          <div class="app-icon">📊</div>
+          <div class="app-name" data-i18n="app4_name">Admin</div>
+          <div class="app-desc" data-i18n="app4_desc">A comprehensive dashboard to monitor the platform, manage users, orders, and settings.</div>
+          <span class="app-link" data-i18n="open_app">Open App →</span>
+        </a>
       </div>
     </div>
   </section>
 
-  <section id="scenes">
-    <!-- مشهد الدجاجة -->
-    <div class="scene" style="background:radial-gradient(circle at 30% 50%, rgba(255,159,10,0.2), transparent);">
-      <div class="container scene-content">
-        <div class="scene-text">
-          <h2 data-i18n="chicken_title">دجاجة طازجة</h2>
-          <p data-i18n="chicken_desc">من المزرعة إلى طبقك، دجاج شهي ومقرمش.</p>
-        </div>
-        <div class="scene-visual">
-          <span class="character">🐔</span>
-          <span class="dish">🍗</span>
-        </div>
+  <section class="section" id="how">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label" data-i18n="how_label">How It Works</div>
+        <h2 class="section-title" data-i18n="how_title">Simple and Fast Ordering</h2>
+        <p class="section-subtitle" data-i18n="how_subtitle">Just five steps from choosing a restaurant to receiving your order at your door.</p>
       </div>
-    </div>
-
-    <!-- مشهد السمكة -->
-    <div class="scene" style="background:radial-gradient(circle at 70% 50%, rgba(100,210,255,0.2), transparent);">
-      <div class="ocean-bg"></div>
-      <div class="container scene-content">
-        <div class="scene-visual">
-          <span class="character fish">🐟</span>
-          <span class="dish">🍣</span>
+      <div class="steps-grid">
+        <div class="step-card reveal">
+          <div class="step-number">1</div>
+          <div class="step-title" data-i18n="step1">Choose</div>
+          <div class="step-desc" data-i18n="step1d">Browse available restaurants.</div>
         </div>
-        <div class="scene-text">
-          <h2 data-i18n="fish_title">سمكة المحيط</h2>
-          <p data-i18n="fish_desc">طازجة من البحر، مُعدّة بإتقان.</p>
+        <div class="step-card reveal">
+          <div class="step-number">2</div>
+          <div class="step-title" data-i18n="step2">Add</div>
+          <div class="step-desc" data-i18n="step2d">Add meals to your cart.</div>
         </div>
-      </div>
-    </div>
-
-    <!-- مشهد البقرة -->
-    <div class="scene" style="background:radial-gradient(circle at 30% 50%, rgba(48,209,88,0.2), transparent);">
-      <div class="farm-bg"></div>
-      <div class="container scene-content">
-        <div class="scene-text">
-          <h2 data-i18n="cow_title">بقرة سعيدة</h2>
-          <p data-i18n="cow_desc">لحم طازج وجودة عالية.</p>
+        <div class="step-card reveal">
+          <div class="step-number">3</div>
+          <div class="step-title" data-i18n="step3">Order</div>
+          <div class="step-desc" data-i18n="step3d">Confirm and pay.</div>
         </div>
-        <div class="scene-visual">
-          <span class="character">🐄</span>
-          <span class="dish">🥩</span>
+        <div class="step-card reveal">
+          <div class="step-number">4</div>
+          <div class="step-title" data-i18n="step4">Driver</div>
+          <div class="step-desc" data-i18n="step4d">The driver picks up your food.</div>
         </div>
-      </div>
-    </div>
-
-    <!-- مشهد الخباز الإيطالي -->
-    <div class="scene" style="background:radial-gradient(circle at 50% 50%, rgba(191,90,242,0.2), transparent);">
-      <div class="container scene-content">
-        <div class="scene-visual">
-          <span class="character chef">👨‍🍳</span>
-          <span class="dish">🍕</span>
-        </div>
-        <div class="scene-text">
-          <h2 data-i18n="chef_title">خباز إيطالي</h2>
-          <p data-i18n="chef_desc">بيتزا نابولية أصلية من الفرن مباشرة.</p>
+        <div class="step-card reveal">
+          <div class="step-number">5</div>
+          <div class="step-title" data-i18n="step5">Track</div>
+          <div class="step-desc" data-i18n="step5d">Follow the delivery live.</div>
         </div>
       </div>
     </div>
   </section>
 
-  <section id="apps" class="container">
-    <h2 style="text-align:center;font-size:2.5rem;margin-bottom:2rem;" data-i18n="apps_title">أربعة تطبيقات متكاملة</h2>
-    <div class="features">
-      <div class="feature-card">
-        <div class="feature-icon">🛒</div>
-        <div class="feature-title" data-i18n="app_customer">العميل</div>
-        <div class="feature-desc" data-i18n="app_customer_desc">تصفح المطاعم وتتبع طلبك.</div>
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <div class="section-label" data-i18n="feat_label">Features</div>
+        <h2 class="section-title" data-i18n="feat_title">Built for Immediate Launch</h2>
+        <p class="section-subtitle" data-i18n="feat_subtitle">A robust structure with a modern design ready for expansion and future development.</p>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🏪</div>
-        <div class="feature-title" data-i18n="app_restaurant">المطعم</div>
-        <div class="feature-desc" data-i18n="app_restaurant_desc">أدر الطلبات والمنيو.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🛵</div>
-        <div class="feature-title" data-i18n="app_driver">السائق</div>
-        <div class="feature-desc" data-i18n="app_driver_desc">استلم التوصيلات واربح.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-title" data-i18n="app_admin">الإدارة</div>
-        <div class="feature-desc" data-i18n="app_admin_desc">راقب الأداء والحسابات.</div>
+      <div class="steps-grid" style="grid-template-columns: repeat(3,1fr);">
+        <div class="step-card reveal">
+          <div class="step-number" style="background: var(--accent);">🌑</div>
+          <div class="step-title" data-i18n="feat1t">OLED Design</div>
+          <div class="step-desc" data-i18n="feat1d">True black with neon accents and glass effects.</div>
+        </div>
+        <div class="step-card reveal">
+          <div class="step-number" style="background: var(--accent);">⚡</div>
+          <div class="step-title" data-i18n="feat2t">Fast Experience</div>
+          <div class="step-desc" data-i18n="feat2d">Smooth navigation between all apps.</div>
+        </div>
+        <div class="step-card reveal">
+          <div class="step-number" style="background: var(--accent);">🌍</div>
+          <div class="step-title" data-i18n="feat3t">Multilingual</div>
+          <div class="step-desc" data-i18n="feat3d">Arabic, English, and German supported.</div>
+        </div>
       </div>
     </div>
   </section>
 
-  <div class="container cta">
-    <h2 data-i18n="cta_title">ابدأ تجربتك الآن</h2>
-    <p data-i18n="cta_desc">اختر التطبيق المناسب وابدأ رحلتك مع Fairfood.</p>
-    <div class="hero-actions" style="justify-content:center;">
-      <a href="customer/" class="btn btn-primary" data-i18n="cta_customer_btn">📱 العميل</a>
-      <a href="restaurant/" class="btn btn-outline" data-i18n="cta_restaurant_btn">🏪 المطعم</a>
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-card reveal">
+        <h2 class="cta-title" data-i18n="cta_title">Start Using Fairfood Now</h2>
+        <p class="cta-desc" data-i18n="cta_desc">Choose the app that suits you and start the experience. The platform is ready for immediate use with customization options.</p>
+        <div class="cta-actions">
+          <a href="customer/" class="btn btn-primary" data-i18n="cta_btn1">📱 Open Customer App</a>
+          <a href="restaurant/" class="btn btn-outline" data-i18n="cta_btn2">🏪 Restaurant Portal</a>
+          <a href="driver/" class="btn btn-outline" data-i18n="cta_btn3">🛵 Driver App</a>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 
   <footer class="container footer">
-    <div>© <span id="year"></span> Fairfood Price</div>
+    <div>© <span id="year"></span> Fairfood Price — <span data-i18n="rights">All rights reserved</span></div>
     <div class="footer-links">
       <a href="customer/">Customer</a>
       <a href="restaurant/">Restaurant</a>
@@ -377,57 +881,131 @@
   </footer>
 
   <script>
+    (function() {
+      const canvas = document.getElementById('rainCanvas');
+      const ctx = canvas.getContext('2d');
+      let width, height;
+      const drops = [];
+      const maxDrops = 120;
+
+      function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      for (let i = 0; i < maxDrops; i++) {
+        drops.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          length: Math.random() * 20 + 5,
+          speed: Math.random() * 3 + 2,
+          opacity: Math.random() * 0.3 + 0.1
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        ctx.strokeStyle = '#ff6b2b';
+        ctx.lineWidth = 1;
+        for (let i = 0; i < drops.length; i++) {
+          const d = drops[i];
+          ctx.globalAlpha = d.opacity;
+          ctx.beginPath();
+          ctx.moveTo(d.x, d.y);
+          ctx.lineTo(d.x, d.y + d.length);
+          ctx.stroke();
+          d.y += d.speed;
+          if (d.y > height) {
+            d.y = -d.length;
+            d.x = Math.random() * width;
+          }
+        }
+        ctx.globalAlpha = 1;
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
     const i18n = {
       ar: {
-        nav_story:'القصة', nav_apps:'التطبيقات', order_now:'اطلب الآن',
-        hero_title1:'طعامك المفضل', hero_title2:'بلمسة سحرية',
-        hero_desc:'منصة توصيل متكاملة بأربعة تطبيقات: العميل، المطعم، السائق، ولوحة الإدارة. جاهزة للانطلاق والتوسع.',
-        cta_customer:'📱 تطبيق العميل', cta_restaurant:'🏪 المطعم', cta_driver:'🛵 السائق',
-        chicken_title:'دجاجة طازجة', chicken_desc:'من المزرعة إلى طبقك، دجاج شهي ومقرمش.',
-        fish_title:'سمكة المحيط', fish_desc:'طازجة من البحر، مُعدّة بإتقان.',
-        cow_title:'بقرة سعيدة', cow_desc:'لحم طازج وجودة عالية.',
-        chef_title:'خباز إيطالي', chef_desc:'بيتزا نابولية أصلية من الفرن مباشرة.',
-        apps_title:'أربعة تطبيقات متكاملة',
-        app_customer:'العميل', app_customer_desc:'تصفح المطاعم وتتبع طلبك.',
-        app_restaurant:'المطعم', app_restaurant_desc:'أدر الطلبات والمنيو.',
-        app_driver:'السائق', app_driver_desc:'استلم التوصيلات واربح.',
-        app_admin:'الإدارة', app_admin_desc:'راقب الأداء والحسابات.',
-        cta_title:'ابدأ تجربتك الآن', cta_desc:'اختر التطبيق المناسب وابدأ رحلتك مع Fairfood.',
-        cta_customer_btn:'📱 العميل', cta_restaurant_btn:'🏪 المطعم'
+        nav_apps: 'التطبيقات', nav_how: 'كيف تعمل', nav_features: 'المميزات', order_now: 'اطلب الآن',
+        hero_badge: 'المنصة متاحة للتجربة الآن',
+        hero_title1: 'توصيل طعام', hero_title2: 'بسرعة الضوء',
+        hero_desc: 'منصة متكاملة بأربعة تطبيقات: العميل، المطعم، السائق، ولوحة الإدارة. جاهزة للربط والتوسع.',
+        btn_customer: '📱 تطبيق العميل', btn_restaurant: '🏪 بوابة المطعم', btn_driver: '🛵 تطبيق السائق',
+        apps_label: 'تطبيقات المنصة', apps_title: 'أربعة تطبيقات متكاملة', apps_subtitle: 'كل تطبيق بواجهة احترافية وتجربة مستخدم متكاملة.',
+        app1_name: 'العميل', app1_desc: 'تصفح المطاعم وقوائم الطعام، أضف إلى السلة وتتبع طلبك حتى يصلك.',
+        app2_name: 'المطعم', app2_desc: 'استقبل الطلبات، أدر قائمة الطعام، وتابع أرباحك.',
+        app3_name: 'السائق', app3_desc: 'استلم التوصيلات، تنقل بالخريطة، وتابع أرباحك.',
+        app4_name: 'الإدارة', app4_desc: 'لوحة تحكم شاملة لمراقبة المنصة وإدارة الحسابات.',
+        open_app: 'افتح التطبيق ←',
+        how_label: 'كيف تعمل', how_title: 'تجربة طلب بسيطة وسريعة', how_subtitle: 'خمس خطوات من اختيار المطعم حتى الاستلام.',
+        step1: 'اختر', step1d: 'تصفح المطاعم المتاحة.',
+        step2: 'أضف', step2d: 'أضف الوجبات إلى السلة.',
+        step3: 'اطلب', step3d: 'أكد الطلب وادفع.',
+        step4: 'السائق', step4d: 'السائق يستلم طلبك.',
+        step5: 'تتبع', step5d: 'تابع التوصيل مباشرة.',
+        feat_label: 'المميزات', feat_title: 'مصممة للانطلاق الفوري', feat_subtitle: 'بنية قوية وتصميم عصري جاهز للتوسع.',
+        feat1t: 'تصميم OLED', feat1d: 'أسود حقيقي مع لمسات نيونية.',
+        feat2t: 'تجربة سريعة', feat2d: 'تنقل سلس بين التطبيقات.',
+        feat3t: 'متعدد اللغات', feat3d: 'العربية، الإنجليزية، الألمانية.',
+        cta_title: 'ابدأ باستخدام Fairfood الآن', cta_desc: 'اختر التطبيق المناسب لك وابدأ التجربة.',
+        cta_btn1: '📱 افتح تطبيق العميل', cta_btn2: '🏪 بوابة المطعم', cta_btn3: '🛵 تطبيق السائق',
+        rights: 'جميع الحقوق محفوظة'
       },
       en: {
-        nav_story:'Story', nav_apps:'Apps', order_now:'Order now',
-        hero_title1:'Your favorite food', hero_title2:'with a magical touch',
-        hero_desc:'An integrated delivery platform with four apps: Customer, Restaurant, Driver, and Admin. Ready to launch and scale.',
-        cta_customer:'📱 Customer App', cta_restaurant:'🏪 Restaurant', cta_driver:'🛵 Driver',
-        chicken_title:'Fresh Chicken', chicken_desc:'From farm to plate, crispy and delicious.',
-        fish_title:'Ocean Fish', fish_desc:'Fresh from the sea, prepared with care.',
-        cow_title:'Happy Cow', cow_desc:'Fresh meat, highest quality.',
-        chef_title:'Italian Chef', chef_desc:'Authentic Neapolitan pizza straight from the oven.',
-        apps_title:'Four Integrated Apps',
-        app_customer:'Customer', app_customer_desc:'Browse restaurants and track your order.',
-        app_restaurant:'Restaurant', app_restaurant_desc:'Manage orders and menu.',
-        app_driver:'Driver', app_driver_desc:'Accept deliveries and earn.',
-        app_admin:'Admin', app_admin_desc:'Monitor performance and accounts.',
-        cta_title:'Start your journey', cta_desc:'Choose your app and begin with Fairfood.',
-        cta_customer_btn:'📱 Customer', cta_restaurant_btn:'🏪 Restaurant'
+        nav_apps: 'Apps', nav_how: 'How it works', nav_features: 'Features', order_now: 'Order now',
+        hero_badge: 'Platform available for trial',
+        hero_title1: 'Food delivery', hero_title2: 'at light speed',
+        hero_desc: 'An integrated platform with four separate apps: Customer, Restaurant, Driver, and Admin. Ready to connect and scale.',
+        btn_customer: '📱 Customer App', btn_restaurant: '🏪 Restaurant Portal', btn_driver: '🛵 Driver App',
+        apps_label: 'Platform Apps', apps_title: 'Four Integrated Apps', apps_subtitle: 'Each app with a professional interface and complete user experience.',
+        app1_name: 'Customer', app1_desc: 'Browse restaurants and menus, add to cart and track your order until it arrives.',
+        app2_name: 'Restaurant', app2_desc: 'Receive orders, manage your menu, and track earnings.',
+        app3_name: 'Driver', app3_desc: 'Accept deliveries, navigate with maps, and track earnings.',
+        app4_name: 'Admin', app4_desc: 'A comprehensive dashboard to monitor the platform and manage accounts.',
+        open_app: 'Open App →',
+        how_label: 'How It Works', how_title: 'Simple and Fast Ordering', how_subtitle: 'Five steps from choosing a restaurant to receiving your order.',
+        step1: 'Choose', step1d: 'Browse available restaurants.',
+        step2: 'Add', step2d: 'Add meals to your cart.',
+        step3: 'Order', step3d: 'Confirm and pay.',
+        step4: 'Driver', step4d: 'Driver picks up your food.',
+        step5: 'Track', step5d: 'Follow the delivery live.',
+        feat_label: 'Features', feat_title: 'Built for Immediate Launch', feat_subtitle: 'A robust structure with a modern design ready for expansion.',
+        feat1t: 'OLED Design', feat1d: 'True black with neon accents.',
+        feat2t: 'Fast Experience', feat2d: 'Smooth navigation between apps.',
+        feat3t: 'Multilingual', feat3d: 'Arabic, English, and German.',
+        cta_title: 'Start Using Fairfood Now', cta_desc: 'Choose the app that suits you and start the experience.',
+        cta_btn1: '📱 Open Customer App', cta_btn2: '🏪 Restaurant Portal', cta_btn3: '🛵 Driver App',
+        rights: 'All rights reserved'
       },
       de: {
-        nav_story:'Geschichte', nav_apps:'Apps', order_now:'Jetzt bestellen',
-        hero_title1:'Dein Lieblingsessen', hero_title2:'mit einem magischen Touch',
-        hero_desc:'Eine integrierte Plattform mit vier Apps: Kunde, Restaurant, Fahrer und Admin. Bereit zum Starten und Skalieren.',
-        cta_customer:'📱 Kunden-App', cta_restaurant:'🏪 Restaurant', cta_driver:'🛵 Fahrer',
-        chicken_title:'Frisches Hühnchen', chicken_desc:'Vom Bauernhof auf den Teller, knusprig und lecker.',
-        fish_title:'Ozeanfisch', fish_desc:'Frisch aus dem Meer, sorgfältig zubereitet.',
-        cow_title:'Glückliche Kuh', cow_desc:'Frisches Fleisch, höchste Qualität.',
-        chef_title:'Italienischer Koch', chef_desc:'Authentische neapolitanische Pizza direkt aus dem Ofen.',
-        apps_title:'Vier integrierte Apps',
-        app_customer:'Kunde', app_customer_desc:'Restaurants durchsuchen und Bestellung verfolgen.',
-        app_restaurant:'Restaurant', app_restaurant_desc:'Bestellungen und Menü verwalten.',
-        app_driver:'Fahrer', app_driver_desc:'Lieferungen annehmen und verdienen.',
-        app_admin:'Admin', app_admin_desc:'Leistung und Konten überwachen.',
-        cta_title:'Starte deine Reise', cta_desc:'Wähle deine App und starte mit Fairfood.',
-        cta_customer_btn:'📱 Kunde', cta_restaurant_btn:'🏪 Restaurant'
+        nav_apps: 'Apps', nav_how: 'Funktionsweise', nav_features: 'Funktionen', order_now: 'Jetzt bestellen',
+        hero_badge: 'Plattform verfügbar zum Testen',
+        hero_title1: 'Lebensmittellieferung', hero_title2: 'in Lichtgeschwindigkeit',
+        hero_desc: 'Eine integrierte Plattform mit vier Apps: Kunde, Restaurant, Fahrer und Admin. Bereit zur Anbindung und Skalierung.',
+        btn_customer: '📱 Kunden-App', btn_restaurant: '🏪 Restaurant-Portal', btn_driver: '🛵 Fahrer-App',
+        apps_label: 'Plattform-Apps', apps_title: 'Vier integrierte Apps', apps_subtitle: 'Jede App mit professioneller Oberfläche und vollständiger Benutzererfahrung.',
+        app1_name: 'Kunde', app1_desc: 'Restaurants und Menüs durchsuchen, in den Warenkorb legen und Bestellung verfolgen.',
+        app2_name: 'Restaurant', app2_desc: 'Bestellungen empfangen, Menü verwalten und Einnahmen einsehen.',
+        app3_name: 'Fahrer', app3_desc: 'Lieferungen annehmen, mit Karte navigieren und Verdienst einsehen.',
+        app4_name: 'Admin', app4_desc: 'Ein umfassendes Dashboard zur Überwachung der Plattform und Kontoverwaltung.',
+        open_app: 'App öffnen →',
+        how_label: 'Funktionsweise', how_title: 'Einfache und schnelle Bestellung', how_subtitle: 'Fünf Schritte von der Auswahl des Restaurants bis zur Lieferung.',
+        step1: 'Wählen', step1d: 'Verfügbare Restaurants durchsuchen.',
+        step2: 'Hinzufügen', step2d: 'Gerichte in den Warenkorb legen.',
+        step3: 'Bestellen', step3d: 'Bestätigen und bezahlen.',
+        step4: 'Fahrer', step4d: 'Fahrer holt das Essen ab.',
+        step5: 'Verfolgen', step5d: 'Lieferung live verfolgen.',
+        feat_label: 'Funktionen', feat_title: 'Bereit für den sofortigen Start', feat_subtitle: 'Eine robuste Struktur mit modernem Design, bereit für Erweiterungen.',
+        feat1t: 'OLED-Design', feat1d: 'Echtes Schwarz mit Neonakzenten.',
+        feat2t: 'Schnelle Erfahrung', feat2d: 'Reibungslose Navigation zwischen Apps.',
+        feat3t: 'Mehrsprachig', feat3d: 'Arabisch, Englisch, Deutsch.',
+        cta_title: 'Starten Sie jetzt mit Fairfood', cta_desc: 'Wählen Sie die passende App und starten Sie die Erfahrung.',
+        cta_btn1: '📱 Kunden-App öffnen', cta_btn2: '🏪 Restaurant-Portal', cta_btn3: '🛵 Fahrer-App',
+        rights: 'Alle Rechte vorbehalten'
       }
     };
 
@@ -442,16 +1020,33 @@
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.dataset.i18n;
         if (i18n[lang]?.[key]) el.textContent = i18n[lang][key];
+        else if (i18n.en[key]) el.textContent = i18n.en[key];
       });
     }
 
     document.querySelectorAll('.lang-btn').forEach(b => b.addEventListener('click', () => translate(b.dataset.lang)));
 
     document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-      const links = document.querySelector('.nav-links');
-      links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
+
+    // Mobile menu toggle
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    const navLinks = document.querySelector('.nav-links');
+    mobileBtn.addEventListener('click', () => {
+      navLinks.style.display = navLinks.style.display === 'flex' ? 'none' : 'flex';
     });
+
+    // Reveal on scroll
+    const revealEls = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+    revealEls.forEach(el => observer.observe(el));
 
     translate(currentLang);
   </script>
