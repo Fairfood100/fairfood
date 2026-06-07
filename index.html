@@ -1,7 +1,760 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fairfood</title><link rel="stylesheet" href="../assets/fairfood.css"></head><body>
-<header class="top"><div class="logo">🍽️ Fairfood</div><a class="btn" href="../customer/">Order now</a></header>
-<main class="page"><div class="hero-img" style="background-image:url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1400')"></div>
-<h1 style="font-size:54px">Fairfood</h1><p class="meta">منصة طلبات مطاعم جاهزة للإطلاق الخفيف: زبون، مطعم، سائق، وإدارة.</p>
-<div class="grid"><a class="panel" href="../customer/"><h2>Customer</h2><p>عرض مطاعم ومنيو وطلب.</p></a><a class="panel" href="../restaurant/"><h2>Restaurant</h2><p>استقبال وتحضير وطباعة الطلبات.</p></a><a class="panel" href="../driver/"><h2>Driver</h2><p>قبول التوصيل وفتح الملاحة.</p></a><a class="panel" href="../admin/"><h2>Admin</h2><p>مراقبة، وثائق، تحليلات.</p></a></div>
-<section class="panel"><h2>API</h2><p>https://fairfood.fairfood100.workers.dev</p></section></main></body></html>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Fairfood Price</title>
+  <meta name="theme-color" content="#000000" />
+  <style>
+    :root{
+      --bg:#000;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.1);
+      --line:rgba(255,255,255,.12);
+      --text:#fff;
+      --muted:rgba(255,255,255,.68);
+      --orange:#ff8a00;
+      --gold:#ffc107;
+      --green:#22c55e;
+      --red:#ef4444;
+      --shadow:0 30px 90px rgba(255,138,0,.18);
+      --radius:28px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      background:
+        radial-gradient(circle at 15% 10%,rgba(255,138,0,.22),transparent 32%),
+        radial-gradient(circle at 85% 8%,rgba(255,193,7,.16),transparent 30%),
+        radial-gradient(circle at 50% 95%,rgba(34,197,94,.12),transparent 28%),
+        #000;
+      color:var(--text);
+      overflow-x:hidden;
+    }
+
+    a{text-decoration:none;color:inherit}
+    .wrap{width:min(1180px,92vw);margin:auto}
+
+    .nav{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter:blur(22px);
+      background:rgba(0,0,0,.66);
+      border-bottom:1px solid var(--line);
+    }
+
+    .nav-inner{
+      height:74px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:18px;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:900;
+      letter-spacing:.3px;
+      font-size:22px;
+    }
+
+    .logo{
+      width:46px;
+      height:46px;
+      display:grid;
+      place-items:center;
+      border-radius:16px;
+      background:linear-gradient(135deg,var(--orange),var(--gold));
+      box-shadow:0 0 34px rgba(255,138,0,.5);
+      color:#111;
+      font-size:24px;
+    }
+
+    .links{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      color:var(--muted);
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .links a:hover{color:#fff}
+
+    .btn{
+      border:1px solid var(--line);
+      background:var(--card);
+      color:#fff;
+      padding:13px 18px;
+      border-radius:999px;
+      font-weight:900;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      transition:.25s;
+      cursor:pointer;
+    }
+
+    .btn:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,255,255,.25);
+      background:rgba(255,255,255,.12);
+    }
+
+    .btn-primary{
+      background:linear-gradient(135deg,var(--orange),var(--gold));
+      color:#141414;
+      border:none;
+      box-shadow:var(--shadow);
+    }
+
+    .hero{
+      position:relative;
+      min-height:calc(100vh - 74px);
+      display:grid;
+      align-items:center;
+      padding:70px 0 40px;
+    }
+
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.02fr .98fr;
+      gap:48px;
+      align-items:center;
+    }
+
+    .eyebrow{
+      display:inline-flex;
+      gap:10px;
+      align-items:center;
+      padding:10px 14px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      border-radius:999px;
+      color:var(--muted);
+      font-weight:800;
+      margin-bottom:22px;
+    }
+
+    .pulse{
+      width:10px;height:10px;
+      border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 22px var(--green);
+    }
+
+    h1{
+      font-size:clamp(46px,7vw,92px);
+      line-height:.95;
+      margin:0 0 22px;
+      letter-spacing:-3px;
+    }
+
+    .grad{
+      background:linear-gradient(135deg,#fff,var(--gold),var(--orange));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+
+    .lead{
+      color:var(--muted);
+      font-size:clamp(17px,2vw,22px);
+      line-height:1.8;
+      margin:0 0 32px;
+      max-width:680px;
+    }
+
+    .hero-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      margin-bottom:32px;
+    }
+
+    .mini-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      color:var(--muted);
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .mini-row span{
+      padding:10px 13px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+    }
+
+    .phone-stage{
+      position:relative;
+      min-height:650px;
+      display:grid;
+      place-items:center;
+    }
+
+    .orb{
+      position:absolute;
+      width:420px;
+      height:420px;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(255,138,0,.38),rgba(255,138,0,.08),transparent 68%);
+      filter:blur(4px);
+      animation:float 5s ease-in-out infinite;
+    }
+
+    .phone{
+      position:relative;
+      width:min(390px,86vw);
+      border-radius:44px;
+      padding:14px;
+      background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.2);
+      box-shadow:0 40px 130px rgba(0,0,0,.8),0 0 80px rgba(255,138,0,.18);
+      backdrop-filter:blur(22px);
+      transform:rotate(-3deg);
+    }
+
+    .phone-screen{
+      border-radius:34px;
+      overflow:hidden;
+      background:#050505;
+      border:1px solid rgba(255,255,255,.12);
+    }
+
+    .food-hero{
+      height:250px;
+      background:
+        linear-gradient(to top,rgba(0,0,0,.8),transparent 55%),
+        url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&auto=format&fit=crop") center/cover;
+    }
+
+    .app-ui{padding:18px}
+    .search{
+      height:44px;
+      border-radius:16px;
+      background:rgba(255,255,255,.09);
+      border:1px solid var(--line);
+      display:flex;
+      align-items:center;
+      padding:0 14px;
+      color:var(--muted);
+      margin-bottom:16px;
+    }
+
+    .restaurant{
+      display:grid;
+      grid-template-columns:62px 1fr auto;
+      gap:12px;
+      align-items:center;
+      padding:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      border-radius:22px;
+      margin-bottom:12px;
+    }
+
+    .restaurant .img{
+      width:62px;height:62px;
+      border-radius:18px;
+      background:center/cover;
+    }
+
+    .restaurant h3{margin:0 0 5px;font-size:15px}
+    .restaurant p{margin:0;color:var(--muted);font-size:12px}
+    .price{font-weight:900;color:var(--gold)}
+
+    .floating-card{
+      position:absolute;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.62);
+      backdrop-filter:blur(20px);
+      border-radius:22px;
+      padding:14px 16px;
+      box-shadow:0 20px 80px rgba(0,0,0,.55);
+      font-weight:900;
+    }
+
+    .fc1{left:0;top:96px}
+    .fc2{right:0;bottom:110px}
+
+    section{padding:82px 0}
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      gap:20px;
+      align-items:end;
+      margin-bottom:28px;
+    }
+
+    h2{
+      margin:0;
+      font-size:clamp(30px,4vw,54px);
+      letter-spacing:-1.5px;
+    }
+
+    .section-head p{
+      margin:0;
+      color:var(--muted);
+      max-width:470px;
+      line-height:1.7;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:16px;
+    }
+
+    .stat,.card,.step,.feature{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
+      border-radius:var(--radius);
+      padding:24px;
+      box-shadow:0 20px 70px rgba(0,0,0,.3);
+    }
+
+    .stat strong{
+      font-size:38px;
+      display:block;
+      color:var(--gold);
+      margin-bottom:8px;
+    }
+
+    .stat span{color:var(--muted);font-weight:800}
+
+    .apps{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:18px;
+    }
+
+    .card{
+      min-height:220px;
+      transition:.25s;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .card:hover{transform:translateY(-7px);border-color:rgba(255,138,0,.45)}
+    .card:before{
+      content:"";
+      position:absolute;
+      inset:auto -30% -40% -30%;
+      height:130px;
+      background:radial-gradient(circle,rgba(255,138,0,.28),transparent 65%);
+    }
+
+    .icon{
+      font-size:42px;
+      margin-bottom:18px;
+    }
+
+    .card h3{font-size:24px;margin:0 0 10px}
+    .card p{margin:0 0 22px;color:var(--muted);line-height:1.7}
+
+    .steps{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:14px;
+      counter-reset:step;
+    }
+
+    .step{
+      position:relative;
+      min-height:170px;
+    }
+
+    .step:before{
+      counter-increment:step;
+      content:counter(step);
+      width:38px;height:38px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:linear-gradient(135deg,var(--orange),var(--gold));
+      color:#111;
+      font-weight:950;
+      margin-bottom:18px;
+    }
+
+    .step h3{margin:0 0 8px}
+    .step p{margin:0;color:var(--muted);line-height:1.6}
+
+    .tracking{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:24px;
+      align-items:center;
+    }
+
+    .map-card{
+      min-height:430px;
+      border-radius:34px;
+      border:1px solid var(--line);
+      background:
+        linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px),
+        linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+        radial-gradient(circle at 45% 45%,rgba(255,138,0,.22),transparent 35%),
+        #050505;
+      background-size:42px 42px,42px 42px,100% 100%;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .route{
+      position:absolute;
+      inset:60px;
+      border:3px dashed rgba(255,193,7,.55);
+      border-left-color:transparent;
+      border-bottom-color:transparent;
+      border-radius:50%;
+      animation:spin 14s linear infinite;
+    }
+
+    .pin{
+      position:absolute;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(0,0,0,.72);
+      border:1px solid var(--line);
+      font-weight:900;
+    }
+
+    .pin.r{top:70px;left:70px}
+    .pin.d{top:210px;right:90px}
+    .pin.c{bottom:80px;left:120px}
+
+    .features{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:16px;
+    }
+
+    .feature h3{margin:0 0 8px;font-size:22px}
+    .feature p{margin:0;color:var(--muted);line-height:1.7}
+
+    .cta{
+      text-align:center;
+      padding:80px 24px;
+      border:1px solid rgba(255,138,0,.25);
+      background:
+        radial-gradient(circle at 50% 0,rgba(255,138,0,.28),transparent 42%),
+        rgba(255,255,255,.05);
+      border-radius:42px;
+      box-shadow:var(--shadow);
+    }
+
+    .cta p{color:var(--muted);font-size:19px;line-height:1.8}
+
+    footer{
+      padding:36px 0;
+      color:var(--muted);
+      border-top:1px solid var(--line);
+    }
+
+    .footer-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    .footer-links{
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+    }
+
+    @keyframes float{
+      0%,100%{transform:translateY(0)}
+      50%{transform:translateY(-18px)}
+    }
+
+    @keyframes spin{
+      to{transform:rotate(360deg)}
+    }
+
+    @media(max-width:920px){
+      .links{display:none}
+      .hero-grid,.tracking{grid-template-columns:1fr}
+      .phone-stage{min-height:560px}
+      .stats,.apps,.features{grid-template-columns:1fr 1fr}
+      .steps{grid-template-columns:1fr}
+      h1{letter-spacing:-1.5px}
+    }
+
+    @media(max-width:560px){
+      .stats,.apps,.features{grid-template-columns:1fr}
+      .hero{padding-top:42px}
+      .phone{transform:none}
+      .floating-card{display:none}
+      .section-head{display:block}
+      .btn{width:100%}
+      .hero-actions{display:grid}
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="#">
+        <span class="logo">🍽️</span>
+        <span>Fairfood</span>
+      </a>
+
+      <div class="links">
+        <a href="#apps">Apps</a>
+        <a href="#how">How it works</a>
+        <a href="#tracking">Tracking</a>
+        <a href="#features">Features</a>
+      </div>
+
+      <a class="btn btn-primary" href="../customer/">Order now</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="eyebrow"><span class="pulse"></span> Premium Food Delivery Platform</div>
+        <h1>Order food with <span class="grad">OLED speed</span></h1>
+        <p class="lead">
+          منصة توصيل مطاعم حديثة بتصميم OLED فاخر: عميل، مطعم، سائق، ولوحة إدارة — جاهزة للربط مع Backend الحالي والتوسع لاحقًا.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="../customer/">ابدأ الطلب</a>
+          <a class="btn" href="../restaurant/">انضم كمطعم</a>
+          <a class="btn" href="../driver/">سائق توصيل</a>
+        </div>
+
+        <div class="mini-row">
+          <span>⚡ Fast Checkout</span>
+          <span>🌍 AR / EN / DE</span>
+          <span>🛵 Driver App</span>
+          <span>📊 Admin Center</span>
+        </div>
+      </div>
+
+      <div class="phone-stage">
+        <div class="orb"></div>
+
+        <div class="floating-card fc1">🔥 Live Orders</div>
+        <div class="floating-card fc2">🛵 Driver on the way</div>
+
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="food-hero"></div>
+            <div class="app-ui">
+              <div class="search">🔍 Search burgers, pizza, sushi…</div>
+
+              <div class="restaurant">
+                <div class="img" style="background-image:url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&auto=format&fit=crop')"></div>
+                <div>
+                  <h3>Burger House</h3>
+                  <p>⭐ 4.9 · 18 min · Free delivery</p>
+                </div>
+                <div class="price">€12</div>
+              </div>
+
+              <div class="restaurant">
+                <div class="img" style="background-image:url('https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&auto=format&fit=crop')"></div>
+                <div>
+                  <h3>Pizza Italia</h3>
+                  <p>⭐ 4.8 · 22 min · Hot deals</p>
+                </div>
+                <div class="price">€9</div>
+              </div>
+
+              <div class="restaurant">
+                <div class="img" style="background-image:url('https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&auto=format&fit=crop')"></div>
+                <div>
+                  <h3>Sushi Tokyo</h3>
+                  <p>⭐ 4.7 · 25 min · Premium</p>
+                </div>
+                <div class="price">€18</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <div class="wrap stats">
+      <div class="stat"><strong data-count="120000">0</strong><span>Orders delivered</span></div>
+      <div class="stat"><strong data-count="3200">0</strong><span>Restaurants</span></div>
+      <div class="stat"><strong data-count="8500">0</strong><span>Drivers</span></div>
+      <div class="stat"><strong data-count="99">0</strong><span>Success rate %</span></div>
+    </div>
+  </section>
+
+  <section id="apps">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Four powerful apps</h2>
+        <p>كل جزء في المنصة له صفحة خاصة: العميل، المطعم، السائق، والإدارة.</p>
+      </div>
+
+      <div class="apps">
+        <a class="card" href="../customer/">
+          <div class="icon">🛒</div>
+          <h3>Customer</h3>
+          <p>عرض المطاعم، المنيو، السلة، وتأكيد الطلب.</p>
+          <span class="btn">Open</span>
+        </a>
+
+        <a class="card" href="../restaurant/">
+          <div class="icon">🏪</div>
+          <h3>Restaurant</h3>
+          <p>استقبال الطلبات، تحضيرها، وإدارة المنيو.</p>
+          <span class="btn">Open</span>
+        </a>
+
+        <a class="card" href="../driver/">
+          <div class="icon">🛵</div>
+          <h3>Driver</h3>
+          <p>قبول الطلبات، الملاحة، والمحفظة.</p>
+          <span class="btn">Open</span>
+        </a>
+
+        <a class="card" href="../admin/">
+          <div class="icon">📊</div>
+          <h3>Admin</h3>
+          <p>مراقبة المنصة، المستخدمين، الطلبات، والتحليلات.</p>
+          <span class="btn">Open</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>How it works</h2>
+        <p>تجربة طلب مختصرة وواضحة من اختيار المطعم حتى التوصيل.</p>
+      </div>
+
+      <div class="steps">
+        <div class="step"><h3>Choose</h3><p>اختر مطعمك المفضل.</p></div>
+        <div class="step"><h3>Add</h3><p>أضف الوجبات للسلة.</p></div>
+        <div class="step"><h3>Order</h3><p>أكد الطلب والدفع.</p></div>
+        <div class="step"><h3>Driver</h3><p>السائق يستلم الطلب.</p></div>
+        <div class="step"><h3>Track</h3><p>تابع الطلب حتى الوصول.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tracking">
+    <div class="wrap tracking">
+      <div>
+        <div class="section-head" style="display:block">
+          <h2>Live tracking ready</h2>
+          <p>
+            الواجهة جاهزة بصريًا للتتبع المباشر. ربط Realtime وGPS يتم لاحقًا حسب خطة Backend.
+          </p>
+        </div>
+
+        <div class="features">
+          <div class="feature"><h3>🛵 Driver</h3><p>ظهور السائق على الخريطة لاحقًا.</p></div>
+          <div class="feature"><h3>🏪 Restaurant</h3><p>تحديث حالة الطلب من المطعم.</p></div>
+          <div class="feature"><h3>🔔 Push</h3><p>تنبيهات فورية لاحقًا.</p></div>
+        </div>
+      </div>
+
+      <div class="map-card">
+        <div class="route"></div>
+        <div class="pin r">🏪 Restaurant</div>
+        <div class="pin d">🛵 Driver</div>
+        <div class="pin c">📍 Customer</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <div class="section-head">
+        <h2>Built for launch</h2>
+        <p>تصميم قوي للانطباع الأول، مع بنية قابلة للتوسع لاحقًا.</p>
+      </div>
+
+      <div class="features">
+        <div class="feature"><h3>🌑 OLED Design</h3><p>أسود حقيقي، توهج، وزجاجية حديثة.</p></div>
+        <div class="feature"><h3>⚡ Fast UX</h3><p>روابط مباشرة لكل تطبيق.</p></div>
+        <div class="feature"><h3>🌍 Multilingual</h3><p>مناسب للغات AR / EN / DE.</p></div>
+        <div class="feature"><h3>💳 Payments Ready</h3><p>Stripe لاحقًا حسب الخطة.</p></div>
+        <div class="feature"><h3>📦 Orders</h3><p>Customer / Restaurant / Driver flow.</p></div>
+        <div class="feature"><h3>🛡️ Admin</h3><p>لوحة إدارة جاهزة للتوسيع.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta">
+        <h2>Start ordering with Fairfood</h2>
+        <p>واجهة واحدة تقود المستخدمين إلى تطبيق العميل، المطعم، السائق، أو الإدارة.</p>
+        <div class="hero-actions" style="justify-content:center;margin-bottom:0">
+          <a class="btn btn-primary" href="../customer/">Order now</a>
+          <a class="btn" href="../restaurant/">Restaurant portal</a>
+          <a class="btn" href="../driver/">Driver app</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap footer-inner">
+      <div>© <span id="year"></span> Fairfood Price</div>
+      <div class="footer-links">
+        <a href="../customer/">Customer</a>
+        <a href="../restaurant/">Restaurant</a>
+        <a href="../driver/">Driver</a>
+        <a href="../admin/">Admin</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    const counters = document.querySelectorAll("[data-count]");
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const el = entry.target;
+        const target = Number(el.dataset.count || 0);
+        let current = 0;
+        const step = Math.max(1, Math.floor(target / 80));
+        const timer = setInterval(() => {
+          current += step;
+          if (current >= target) {
+            current = target;
+            clearInterval(timer);
+          }
+          el.textContent = target >= 1000 ? current.toLocaleString() + "+" : current + (target === 99 ? ".8%" : "+");
+        }, 18);
+        io.unobserve(el);
+      });
+    }, { threshold: .4 });
+
+    counters.forEach(c => io.observe(c));
+  </script>
+</body>
+</html>
