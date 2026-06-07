@@ -5,38 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Fairfood Price — منصة توصيل الطعام الذكية</title>
   <meta name="description" content="منصة توصيل مطاعم حديثة: عميل، مطعم، سائق، ولوحة إدارة." />
-  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="theme-color" content="#050505" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #0a0a0a;
-      --surface: rgba(255, 255, 255, 0.03);
-      --surface-hover: rgba(255, 255, 255, 0.06);
-      --border: rgba(255, 255, 255, 0.08);
-      --border-hover: rgba(255, 255, 255, 0.15);
+      --bg: #050505;
+      --surface: rgba(255, 255, 255, 0.025);
+      --surface-hover: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.06);
+      --border-hover: rgba(255, 255, 255, 0.12);
       --text: #ffffff;
       --text-secondary: rgba(255, 255, 255, 0.6);
-      --text-tertiary: rgba(255, 255, 255, 0.4);
-      --accent: #ff6b2b;
-      --accent-glow: rgba(255, 107, 43, 0.3);
+      --text-tertiary: rgba(255, 255, 255, 0.35);
+      --accent: #ff5e2c;
+      --accent-soft: #ff8a5c;
+      --accent-glow: rgba(255, 94, 44, 0.35);
       --accent-secondary: #ffb800;
       --green: #22c55e;
-      --green-glow: rgba(34, 197, 94, 0.3);
-      --radius-sm: 12px;
-      --radius: 20px;
-      --radius-lg: 32px;
-      --radius-xl: 48px;
-      --shadow-glow: 0 0 80px rgba(255, 107, 43, 0.12);
-      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --green-glow: rgba(34, 197, 94, 0.25);
+      --blue: #3b82f6;
+      --blue-glow: rgba(59, 130, 246, 0.2);
+      --radius-sm: 14px;
+      --radius: 22px;
+      --radius-lg: 36px;
+      --radius-xl: 56px;
+      --shadow-glow: 0 0 100px rgba(255, 94, 44, 0.1);
+      --transition: 0.35s cubic-bezier(0.25, 0.8, 0.25, 1.2);
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     html {
       scroll-behavior: smooth;
@@ -50,6 +49,7 @@
       color: var(--text);
       line-height: 1.6;
       overflow-x: hidden;
+      position: relative;
     }
 
     body::before {
@@ -57,9 +57,10 @@
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(255, 107, 43, 0.08), transparent),
-        radial-gradient(ellipse 60% 40% at 80% 5%, rgba(255, 184, 0, 0.06), transparent),
-        radial-gradient(ellipse 50% 60% at 50% 90%, rgba(34, 197, 94, 0.04), transparent);
+        radial-gradient(ellipse 70% 50% at 15% 5%, rgba(255, 94, 44, 0.06), transparent 35%),
+        radial-gradient(ellipse 50% 40% at 85% 10%, rgba(255, 184, 0, 0.05), transparent 30%),
+        radial-gradient(ellipse 40% 60% at 50% 90%, rgba(34, 197, 94, 0.03), transparent 30%),
+        radial-gradient(ellipse 60% 50% at 50% 50%, rgba(59, 130, 246, 0.02), transparent 40%);
       pointer-events: none;
       z-index: 0;
     }
@@ -78,16 +79,16 @@
       left: 0;
       right: 0;
       z-index: 100;
-      background: rgba(10, 10, 10, 0.75);
-      backdrop-filter: blur(24px) saturate(180%);
-      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      background: rgba(5, 5, 5, 0.7);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
       border-bottom: 1px solid var(--border);
       transition: var(--transition);
     }
 
     .nav.scrolled {
-      background: rgba(10, 10, 10, 0.9);
-      box-shadow: 0 1px 20px rgba(0, 0, 0, 0.4);
+      background: rgba(5, 5, 5, 0.88);
+      box-shadow: 0 2px 30px rgba(0, 0, 0, 0.6);
     }
 
     .nav-inner {
@@ -112,19 +113,19 @@
     .logo {
       width: 42px;
       height: 42px;
-      border-radius: 13px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 21px;
-      box-shadow: 0 8px 28px var(--accent-glow);
+      box-shadow: 0 8px 30px var(--accent-glow);
       transition: var(--transition);
     }
 
     .brand:hover .logo {
       transform: scale(1.05);
-      box-shadow: 0 12px 36px var(--accent-glow);
+      box-shadow: 0 12px 40px var(--accent-glow);
     }
 
     .nav-controls {
@@ -153,8 +154,8 @@
 
     .lang-btn.active {
       color: var(--accent);
-      border-color: var(--accent);
-      background: var(--accent-glow);
+      border-color: rgba(255, 94, 44, 0.4);
+      background: rgba(255, 94, 44, 0.1);
     }
 
     .nav-links {
@@ -181,18 +182,18 @@
     .nav-cta {
       padding: 10px 20px;
       border-radius: 100px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-      color: #111;
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #0a0a0a;
       text-decoration: none;
       font-weight: 700;
       font-size: 14px;
       transition: var(--transition);
-      box-shadow: 0 4px 18px var(--accent-glow);
+      box-shadow: 0 6px 24px var(--accent-glow);
     }
 
     .nav-cta:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 30px var(--accent-glow);
+      box-shadow: 0 10px 32px var(--accent-glow);
     }
 
     .mobile-menu-btn {
@@ -210,7 +211,7 @@
       min-height: 100vh;
       display: flex;
       align-items: center;
-      padding: 120px 0 60px;
+      padding: 130px 0 60px;
       position: relative;
     }
 
@@ -236,7 +237,7 @@
       color: var(--text-secondary);
       font-size: 13px;
       font-weight: 600;
-      margin-bottom: 26px;
+      margin-bottom: 28px;
     }
 
     .hero-badge .dot {
@@ -244,25 +245,25 @@
       height: 8px;
       border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 12px var(--green-glow);
+      box-shadow: 0 0 14px var(--green-glow);
       animation: pulse-dot 2s ease-in-out infinite;
     }
 
     @keyframes pulse-dot {
       0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+      50% { opacity: 0.35; }
     }
 
     .hero-title {
-      font-size: clamp(46px, 6vw, 78px);
+      font-size: clamp(48px, 6vw, 82px);
       font-weight: 900;
-      line-height: 0.95;
-      letter-spacing: -2.5px;
-      margin-bottom: 22px;
+      line-height: 0.92;
+      letter-spacing: -2.8px;
+      margin-bottom: 24px;
     }
 
     .hero-title .gradient {
-      background: linear-gradient(135deg, var(--text) 20%, var(--accent-secondary), var(--accent));
+      background: linear-gradient(135deg, #fff 10%, var(--accent-secondary), var(--accent), var(--accent-soft));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
@@ -272,8 +273,8 @@
     .hero-description {
       color: var(--text-secondary);
       font-size: clamp(15px, 1.4vw, 19px);
-      line-height: 1.8;
-      margin-bottom: 34px;
+      line-height: 1.85;
+      margin-bottom: 36px;
       max-width: 520px;
     }
 
@@ -281,14 +282,14 @@
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      margin-bottom: 36px;
+      margin-bottom: 38px;
     }
 
     .btn {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 13px 22px;
+      padding: 14px 24px;
       border-radius: 100px;
       font-weight: 700;
       font-size: 14px;
@@ -300,14 +301,14 @@
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-      color: #111;
-      box-shadow: 0 8px 28px var(--accent-glow);
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #0a0a0a;
+      box-shadow: 0 10px 32px var(--accent-glow);
     }
 
     .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 36px var(--accent-glow);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 44px var(--accent-glow);
     }
 
     .btn-outline {
@@ -319,7 +320,7 @@
     .btn-outline:hover {
       background: var(--surface-hover);
       border-color: var(--border-hover);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
     }
 
     .hero-tags {
@@ -347,54 +348,54 @@
 
     .phone-glow {
       position: absolute;
-      width: 340px;
-      height: 340px;
+      width: 380px;
+      height: 380px;
       border-radius: 50%;
-      background: radial-gradient(circle, var(--accent-glow), transparent 65%);
-      filter: blur(40px);
+      background: radial-gradient(circle, rgba(255, 94, 44, 0.2), transparent 60%);
+      filter: blur(50px);
       animation: float 6s ease-in-out infinite;
       pointer-events: none;
     }
 
     @keyframes float {
       0%, 100% { transform: translateY(0) scale(1); }
-      50% { transform: translateY(-20px) scale(1.05); }
+      50% { transform: translateY(-24px) scale(1.04); }
     }
 
     .phone-frame {
       position: relative;
-      width: 340px;
-      height: 680px;
-      border-radius: 44px;
+      width: 350px;
+      height: 700px;
+      border-radius: 48px;
       padding: 12px;
-      background: linear-gradient(160deg, rgba(255,255,255,0.15), rgba(255,255,255,0.03));
-      border: 1px solid rgba(255,255,255,0.15);
+      background: linear-gradient(160deg, rgba(255,255,255,0.18), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.14);
       box-shadow:
-        0 40px 120px rgba(0,0,0,0.6),
-        0 0 60px var(--accent-glow);
-      backdrop-filter: blur(20px);
+        0 50px 140px rgba(0,0,0,0.7),
+        0 0 70px var(--accent-glow);
+      backdrop-filter: blur(22px);
       transform: rotate(-2deg);
       transition: var(--transition);
     }
 
     .phone-frame:hover {
-      transform: rotate(0deg) translateY(-8px);
+      transform: rotate(0deg) translateY(-10px);
     }
 
     .phone-screen {
       width: 100%;
       height: 100%;
-      border-radius: 34px;
+      border-radius: 38px;
       overflow: hidden;
-      background: #0d0d0d;
-      border: 1px solid rgba(255,255,255,0.08);
+      background: #0b0b0b;
+      border: 1px solid rgba(255,255,255,0.07);
     }
 
     .phone-header {
       height: 200px;
       background:
-        linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)),
-        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="%231a1a1a"/><circle cx="100" cy="80" r="60" fill="%23ff6b2b" opacity="0.3"/><circle cx="300" cy="120" r="80" fill="%23ffb800" opacity="0.2"/><circle cx="200" cy="60" r="40" fill="%2322c55e" opacity="0.2"/></svg>');
+        linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.85)),
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="%23121212"/><circle cx="80" cy="70" r="65" fill="%23ff5e2c" opacity="0.25"/><circle cx="320" cy="130" r="90" fill="%23ffb800" opacity="0.18"/><circle cx="200" cy="50" r="45" fill="%2322c55e" opacity="0.15"/><circle cx="260" cy="80" r="35" fill="%233b82f6" opacity="0.12"/></svg>');
       background-size: cover;
       background-position: center;
       position: relative;
@@ -416,7 +417,7 @@
     .phone-search {
       height: 44px;
       border-radius: 16px;
-      background: rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
       display: flex;
       align-items: center;
@@ -432,9 +433,14 @@
       gap: 14px;
       padding: 14px;
       border-radius: 20px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.05);
       margin-bottom: 10px;
+      transition: var(--transition);
+    }
+
+    .phone-card:hover {
+      background: rgba(255,255,255,0.06);
     }
 
     .phone-card .thumb {
@@ -468,26 +474,20 @@
 
     .floating-badge {
       position: absolute;
-      padding: 12px 16px;
-      border-radius: 20px;
-      background: rgba(10,10,10,0.85);
-      backdrop-filter: blur(16px);
+      padding: 14px 18px;
+      border-radius: 22px;
+      background: rgba(5,5,5,0.85);
+      backdrop-filter: blur(18px);
       border: 1px solid var(--border);
       font-weight: 700;
       font-size: 13px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      box-shadow: 0 24px 70px rgba(0,0,0,0.6);
       pointer-events: none;
+      transition: transform 0.3s;
     }
 
-    .floating-badge.left {
-      left: -40px;
-      top: 140px;
-    }
-
-    .floating-badge.right {
-      right: -30px;
-      bottom: 200px;
-    }
+    .floating-badge.left { left: -50px; top: 150px; }
+    .floating-badge.right { right: -40px; bottom: 220px; }
 
     /* Sections */
     .section {
@@ -496,12 +496,12 @@
 
     .section-header {
       text-align: center;
-      margin-bottom: 64px;
+      margin-bottom: 70px;
     }
 
     .section-label {
       display: inline-block;
-      padding: 8px 18px;
+      padding: 8px 20px;
       border-radius: 100px;
       border: 1px solid var(--border);
       background: var(--surface);
@@ -509,15 +509,16 @@
       font-weight: 700;
       font-size: 13px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 20px;
+      letter-spacing: 1.5px;
+      margin-bottom: 22px;
     }
 
     .section-title {
-      font-size: clamp(32px, 4vw, 56px);
+      font-size: clamp(34px, 4.5vw, 60px);
       font-weight: 900;
-      letter-spacing: -1.5px;
+      letter-spacing: -1.8px;
       margin-bottom: 16px;
+      line-height: 1.1;
     }
 
     .section-subtitle {
@@ -525,20 +526,20 @@
       font-size: 18px;
       max-width: 600px;
       margin: 0 auto;
-      line-height: 1.7;
+      line-height: 1.75;
     }
 
     /* Stats */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
+      gap: 18px;
     }
 
     .stat-card {
-      padding: 32px 24px;
+      padding: 36px 24px;
       border-radius: var(--radius);
-      background: var(--surface);
+      background: linear-gradient(180deg, var(--surface), transparent);
       border: 1px solid var(--border);
       text-align: center;
       transition: var(--transition);
@@ -550,47 +551,49 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.04), transparent 60%);
+      background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05), transparent 65%);
       opacity: 0;
       transition: var(--transition);
     }
 
-    .stat-card:hover::before {
-      opacity: 1;
-    }
-
+    .stat-card:hover::before { opacity: 1; }
     .stat-card:hover {
       border-color: var(--border-hover);
-      transform: translateY(-4px);
+      transform: translateY(-5px);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
     }
 
     .stat-value {
-      font-size: 44px;
+      font-size: 48px;
       font-weight: 900;
       background: linear-gradient(135deg, var(--text), var(--accent-secondary));
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .stat-label {
       color: var(--text-secondary);
       font-weight: 600;
-      font-size: 14px;
+      font-size: 15px;
     }
 
     /* Apps Grid */
     .apps-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
+      gap: 22px;
     }
 
     .app-card {
-      padding: 36px 28px;
+      padding: 40px 30px;
       border-radius: var(--radius);
-      background: var(--surface);
+      background: linear-gradient(180deg, var(--surface), rgba(255,255,255,0.01));
       border: 1px solid var(--border);
       text-decoration: none;
       color: var(--text);
@@ -605,42 +608,39 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 60%);
+      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 70%);
       opacity: 0;
       transition: opacity 0.4s;
     }
 
-    .app-card:hover::after {
-      opacity: 1;
-    }
-
+    .app-card:hover::after { opacity: 1; }
     .app-card:hover {
       border-color: var(--border-hover);
-      transform: translateY(-6px);
-      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+      transform: translateY(-8px);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.5);
     }
 
     .app-icon {
-      font-size: 48px;
-      margin-bottom: 24px;
+      font-size: 52px;
+      margin-bottom: 26px;
       transition: var(--transition);
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));
     }
 
-    .app-card:hover .app-icon {
-      transform: scale(1.1);
-    }
+    .app-card:hover .app-icon { transform: scale(1.1); }
 
     .app-name {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 800;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
     }
 
     .app-desc {
       color: var(--text-secondary);
       font-size: 14px;
-      line-height: 1.7;
-      margin-bottom: 24px;
+      line-height: 1.75;
+      margin-bottom: 26px;
       flex: 1;
     }
 
@@ -654,55 +654,52 @@
       transition: var(--transition);
     }
 
-    .app-link .arrow {
-      transition: var(--transition);
-    }
-
-    .app-card:hover .app-link .arrow {
-      transform: translateX(-4px);
-    }
+    .app-link .arrow { transition: var(--transition); }
+    .app-card:hover .app-link .arrow { transform: translateX(-4px); }
 
     /* Features */
     .features-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
+      gap: 22px;
     }
 
     .feature-card {
-      padding: 32px;
+      padding: 36px;
       border-radius: var(--radius);
-      background: var(--surface);
+      background: linear-gradient(180deg, var(--surface), transparent);
       border: 1px solid var(--border);
       transition: var(--transition);
     }
 
     .feature-card:hover {
       border-color: var(--border-hover);
-      transform: translateY(-4px);
+      transform: translateY(-5px);
+      box-shadow: 0 24px 50px rgba(0,0,0,0.3);
     }
 
     .feature-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
       background: var(--surface-hover);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
-      margin-bottom: 20px;
+      font-size: 30px;
+      margin-bottom: 22px;
+      border: 1px solid var(--border);
     }
 
     .feature-title {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 800;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .feature-desc {
       color: var(--text-secondary);
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.7;
     }
 
@@ -710,13 +707,13 @@
     .steps-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 16px;
+      gap: 18px;
     }
 
     .step-card {
-      padding: 32px 24px;
+      padding: 36px 26px;
       border-radius: var(--radius);
-      background: var(--surface);
+      background: linear-gradient(180deg, var(--surface), transparent);
       border: 1px solid var(--border);
       text-align: center;
       transition: var(--transition);
@@ -725,33 +722,34 @@
 
     .step-card:hover {
       border-color: var(--border-hover);
-      transform: translateY(-4px);
+      transform: translateY(-5px);
     }
 
     .step-number {
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
-      color: #111;
+      background: linear-gradient(135deg, var(--accent), var(--accent-soft));
+      color: #0a0a0a;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      font-size: 20px;
-      margin: 0 auto 20px;
+      font-size: 22px;
+      margin: 0 auto 22px;
+      box-shadow: 0 10px 28px var(--accent-glow);
     }
 
     .step-title {
       font-weight: 800;
-      font-size: 18px;
-      margin-bottom: 8px;
+      font-size: 20px;
+      margin-bottom: 10px;
     }
 
     .step-desc {
       color: var(--text-secondary);
       font-size: 14px;
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
     /* CTA */
@@ -760,40 +758,41 @@
     }
 
     .cta-card {
-      padding: 80px 48px;
+      padding: 90px 56px;
       border-radius: var(--radius-xl);
       background:
-        radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 45%),
-        var(--surface);
+        radial-gradient(circle at 50% 0%, rgba(255, 94, 44, 0.15), transparent 45%),
+        linear-gradient(180deg, var(--surface), rgba(255,255,255,0.01));
       border: 1px solid var(--border);
       text-align: center;
       box-shadow: var(--shadow-glow);
     }
 
     .cta-title {
-      font-size: clamp(32px, 4vw, 48px);
+      font-size: clamp(36px, 4.5vw, 54px);
       font-weight: 900;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
+      letter-spacing: -1.5px;
     }
 
     .cta-desc {
       color: var(--text-secondary);
-      font-size: 18px;
-      max-width: 600px;
-      margin: 0 auto 36px;
-      line-height: 1.7;
+      font-size: 19px;
+      max-width: 640px;
+      margin: 0 auto 42px;
+      line-height: 1.8;
     }
 
     .cta-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 12px;
+      gap: 14px;
       justify-content: center;
     }
 
     /* Footer */
     .footer {
-      padding: 40px 0;
+      padding: 44px 0;
       border-top: 1px solid var(--border);
     }
 
@@ -812,7 +811,7 @@
 
     .footer-links {
       display: flex;
-      gap: 20px;
+      gap: 22px;
       flex-wrap: wrap;
     }
 
@@ -824,9 +823,7 @@
       transition: var(--transition);
     }
 
-    .footer-link:hover {
-      color: var(--text);
-    }
+    .footer-link:hover { color: var(--text); }
 
     /* Mobile Menu */
     #mobileMenu {
@@ -834,97 +831,42 @@
       position: fixed;
       inset: 0;
       z-index: 99;
-      background: rgba(10,10,10,0.98);
-      backdrop-filter: blur(20px);
-      padding: 100px 24px 40px;
+      background: rgba(5,5,5,0.97);
+      backdrop-filter: blur(30px);
+      padding: 110px 24px 40px;
     }
 
     /* Responsive */
-    @media (max-width: 1024px) {
-      .hero-content {
-        grid-template-columns: 1fr;
-        gap: 40px;
-      }
-      .phone-wrapper {
-        order: -1;
-      }
-      .phone-frame {
-        width: 280px;
-        height: 560px;
-      }
-      .floating-badge {
-        display: none;
-      }
-      .apps-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .features-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .steps-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-      .nav-links {
-        display: none;
-      }
-      .mobile-menu-btn {
-        display: block;
-      }
+    @media (max-width: 1080px) {
+      .hero-content { grid-template-columns: 1fr; gap: 50px; }
+      .phone-wrapper { order: -1; }
+      .phone-frame { width: 300px; height: 600px; }
+      .floating-badge { display: none; }
+      .apps-grid { grid-template-columns: repeat(2, 1fr); }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .steps-grid { grid-template-columns: repeat(3, 1fr); }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-links { display: none; }
+      .mobile-menu-btn { display: block; }
     }
 
     @media (max-width: 768px) {
-      .hero {
-        padding: 100px 0 40px;
-      }
-      .hero-title {
-        letter-spacing: -1px;
-      }
-      .apps-grid,
-      .features-grid,
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-      .steps-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-      .section {
-        padding: 60px 0;
-      }
-      .cta-card {
-        padding: 48px 24px;
-      }
-      .hero-actions {
-        flex-direction: column;
-      }
-      .btn {
-        justify-content: center;
-      }
-      .phone-frame {
-        width: 260px;
-        height: 520px;
-      }
+      .hero { padding: 110px 0 50px; }
+      .hero-title { letter-spacing: -1.2px; }
+      .apps-grid, .features-grid, .stats-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr 1fr; }
+      .section { padding: 70px 0; }
+      .cta-card { padding: 56px 28px; }
+      .hero-actions { flex-direction: column; }
+      .btn { justify-content: center; }
+      .phone-frame { width: 270px; height: 540px; }
     }
 
     @media (max-width: 480px) {
-      .steps-grid {
-        grid-template-columns: 1fr;
-      }
-      .footer-inner {
-        flex-direction: column;
-        text-align: center;
-      }
-      .phone-frame {
-        width: 240px;
-        height: 480px;
-        border-radius: 36px;
-        padding: 10px;
-      }
-      .phone-screen {
-        border-radius: 28px;
-      }
+      .steps-grid { grid-template-columns: 1fr; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .phone-frame { width: 240px; height: 480px; border-radius: 40px; padding: 10px; }
+      .phone-screen { border-radius: 32px; }
     }
   </style>
 </head>
@@ -994,7 +936,7 @@
             <div class="phone-content">
               <div class="phone-search" data-i18n="phone_search">🔍 Search restaurants or dishes…</div>
               <div class="phone-card">
-                <div class="thumb" style="background: linear-gradient(135deg, #ff6b2b, #ffb800);"></div>
+                <div class="thumb" style="background: linear-gradient(135deg, #ff5e2c, #ffb800);"></div>
                 <div class="info">
                   <div class="name" data-i18n="phone_r1_name">Burger House</div>
                   <div class="meta" data-i18n="phone_r1_meta">⭐ 4.9 · 18 min · Free delivery</div>
@@ -1099,31 +1041,11 @@
         <p class="section-subtitle" data-i18n="how_subtitle">Just five steps from choosing a restaurant to receiving your order at your door.</p>
       </div>
       <div class="steps-grid">
-        <div class="step-card">
-          <div class="step-number">1</div>
-          <div class="step-title" data-i18n="step_1_title">Choose</div>
-          <div class="step-desc" data-i18n="step_1_desc">Browse available restaurants and pick what suits your taste.</div>
-        </div>
-        <div class="step-card">
-          <div class="step-number">2</div>
-          <div class="step-title" data-i18n="step_2_title">Add</div>
-          <div class="step-desc" data-i18n="step_2_desc">Add meals and drinks to your shopping cart.</div>
-        </div>
-        <div class="step-card">
-          <div class="step-number">3</div>
-          <div class="step-title" data-i18n="step_3_title">Order</div>
-          <div class="step-desc" data-i18n="step_3_desc">Confirm the order and choose your payment method.</div>
-        </div>
-        <div class="step-card">
-          <div class="step-number">4</div>
-          <div class="step-title" data-i18n="step_4_title">Driver</div>
-          <div class="step-desc" data-i18n="step_4_desc">The driver picks up your order from the restaurant.</div>
-        </div>
-        <div class="step-card">
-          <div class="step-number">5</div>
-          <div class="step-title" data-i18n="step_5_title">Track</div>
-          <div class="step-desc" data-i18n="step_5_desc">Follow the driver's route until your order arrives.</div>
-        </div>
+        <div class="step-card"><div class="step-number">1</div><div class="step-title" data-i18n="step_1_title">Choose</div><div class="step-desc" data-i18n="step_1_desc">Browse available restaurants and pick what suits your taste.</div></div>
+        <div class="step-card"><div class="step-number">2</div><div class="step-title" data-i18n="step_2_title">Add</div><div class="step-desc" data-i18n="step_2_desc">Add meals and drinks to your shopping cart.</div></div>
+        <div class="step-card"><div class="step-number">3</div><div class="step-title" data-i18n="step_3_title">Order</div><div class="step-desc" data-i18n="step_3_desc">Confirm the order and choose your payment method.</div></div>
+        <div class="step-card"><div class="step-number">4</div><div class="step-title" data-i18n="step_4_title">Driver</div><div class="step-desc" data-i18n="step_4_desc">The driver picks up your order from the restaurant.</div></div>
+        <div class="step-card"><div class="step-number">5</div><div class="step-title" data-i18n="step_5_title">Track</div><div class="step-desc" data-i18n="step_5_desc">Follow the driver's route until your order arrives.</div></div>
       </div>
     </div>
   </section>
@@ -1137,36 +1059,12 @@
         <p class="section-subtitle" data-i18n="features_subtitle">A robust structure with a modern design ready for expansion and future development.</p>
       </div>
       <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🌑</div>
-          <div class="feature-title" data-i18n="feat_oled_title">OLED Design</div>
-          <div class="feature-desc" data-i18n="feat_oled_desc">True black background with modern glassmorphism effects for all devices.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">⚡</div>
-          <div class="feature-title" data-i18n="feat_fast_title">Fast Experience</div>
-          <div class="feature-desc" data-i18n="feat_fast_desc">Smooth navigation between the four apps with direct links and a unified interface.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🌍</div>
-          <div class="feature-title" data-i18n="feat_i18n_title">Multilingual</div>
-          <div class="feature-desc" data-i18n="feat_i18n_desc">Full support for Arabic, English, and German in all applications.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">💳</div>
-          <div class="feature-title" data-i18n="feat_pay_title">Flexible Payment</div>
-          <div class="feature-desc" data-i18n="feat_pay_desc">Ready for integration with Stripe and credit card gateways.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📦</div>
-          <div class="feature-title" data-i18n="feat_orders_title">Order Management</div>
-          <div class="feature-desc" data-i18n="feat_orders_desc">Complete order flow from customer to restaurant to driver with live tracking.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🛡️</div>
-          <div class="feature-title" data-i18n="feat_admin_title">Admin Panel</div>
-          <div class="feature-desc" data-i18n="feat_admin_desc">Integrated dashboard for performance monitoring and account management.</div>
-        </div>
+        <div class="feature-card"><div class="feature-icon">🌑</div><div class="feature-title" data-i18n="feat_oled_title">OLED Design</div><div class="feature-desc" data-i18n="feat_oled_desc">True black background with modern glassmorphism effects for all devices.</div></div>
+        <div class="feature-card"><div class="feature-icon">⚡</div><div class="feature-title" data-i18n="feat_fast_title">Fast Experience</div><div class="feature-desc" data-i18n="feat_fast_desc">Smooth navigation between the four apps with direct links and a unified interface.</div></div>
+        <div class="feature-card"><div class="feature-icon">🌍</div><div class="feature-title" data-i18n="feat_i18n_title">Multilingual</div><div class="feature-desc" data-i18n="feat_i18n_desc">Full support for Arabic, English, and German in all applications.</div></div>
+        <div class="feature-card"><div class="feature-icon">💳</div><div class="feature-title" data-i18n="feat_pay_title">Flexible Payment</div><div class="feature-desc" data-i18n="feat_pay_desc">Ready for integration with Stripe and credit card gateways.</div></div>
+        <div class="feature-card"><div class="feature-icon">📦</div><div class="feature-title" data-i18n="feat_orders_title">Order Management</div><div class="feature-desc" data-i18n="feat_orders_desc">Complete order flow from customer to restaurant to driver with live tracking.</div></div>
+        <div class="feature-card"><div class="feature-icon">🛡️</div><div class="feature-title" data-i18n="feat_admin_title">Admin Panel</div><div class="feature-desc" data-i18n="feat_admin_desc">Integrated dashboard for performance monitoring and account management.</div></div>
       </div>
     </div>
   </section>
@@ -1176,9 +1074,7 @@
     <div class="container">
       <div class="cta-card">
         <h2 class="cta-title" data-i18n="cta_title">Start Using Fairfood Now</h2>
-        <p class="cta-desc" data-i18n="cta_desc">
-          Choose the app that suits you and start the experience. The platform is ready for immediate use with customization options.
-        </p>
+        <p class="cta-desc" data-i18n="cta_desc">Choose the app that suits you and start the experience. The platform is ready for immediate use with customization options.</p>
         <div class="cta-actions">
           <a href="customer/" class="btn btn-primary" data-i18n="cta_customer">Open Customer App</a>
           <a href="restaurant/" class="btn btn-outline" data-i18n="cta_restaurant">Restaurant Portal</a>
@@ -1214,7 +1110,6 @@
   </div>
 
   <script>
-    // i18n Data
     const i18n = {
       ar: {
         nav_apps: 'التطبيقات', nav_how: 'كيف تعمل', nav_features: 'المميزات', nav_stats: 'الإحصائيات',
@@ -1350,7 +1245,6 @@
         else if (i18n.en[key]) el.textContent = i18n.en[key];
       });
 
-      // Update phone card arrow direction
       const arrows = document.querySelectorAll('.app-link .arrow');
       arrows.forEach(a => { a.textContent = lang === 'ar' ? '←' : '→'; });
     }
@@ -1359,21 +1253,15 @@
       btn.addEventListener('click', () => translate(btn.dataset.lang));
     });
 
-    // Year
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // Navbar scroll effect
     const navbar = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
-      const currentScroll = window.pageYOffset;
-      navbar.classList.toggle('scrolled', currentScroll > 50);
+      navbar.classList.toggle('scrolled', window.pageYOffset > 50);
     });
 
-    // Mobile menu
     const mobileMenu = document.getElementById('mobileMenu');
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-
-    mobileMenuBtn.addEventListener('click', () => {
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
       mobileMenu.style.display = 'block';
     });
 
@@ -1381,18 +1269,14 @@
       mobileMenu.style.display = 'none';
     };
 
-    // Mouse tracking for app cards
     document.querySelectorAll('.app-card').forEach(card => {
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        card.style.setProperty('--mouse-x', x + '%');
-        card.style.setProperty('--mouse-y', y + '%');
+        card.style.setProperty('--mouse-x', ((e.clientX - rect.left) / rect.width) * 100 + '%');
+        card.style.setProperty('--mouse-y', ((e.clientY - rect.top) / rect.height) * 100 + '%');
       });
     });
 
-    // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       anchor.addEventListener('click', function(e) {
         e.preventDefault();
@@ -1404,7 +1288,6 @@
       });
     });
 
-    // Init language
     translate(currentLang);
   </script>
 </body>
