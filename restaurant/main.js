@@ -591,7 +591,7 @@
   }
 
   async function loadBootstrap() {
-    const data = await apiRequest('/restaurant/me');
+    const data = await apiRequest('/restaurants/me');
     state.restaurant = data.restaurant || data;
     state.restaurantId = state.restaurant.id || state.restaurant._id || state.restaurantId;
     state.currency = state.restaurant.currency || CONFIG.defaultCurrency || '€';
@@ -604,7 +604,7 @@
 
   async function loadDashboard() {
     if (!state.restaurantId) return;
-    const data = await apiRequest(`/restaurant/${state.restaurantId}/orders`);
+    const data = await apiRequest(`/orders/list?restaurantId=${encodeURIComponent(state.restaurantId)}`);
     const orders = data.orders || data || [];
     state.orders = Array.isArray(orders) ? orders : [];
     state.newOrders = state.orders.filter((o) =>
@@ -620,7 +620,7 @@
 
   async function loadMenu() {
     if (!state.restaurantId) return;
-    const data = await apiRequest(`/restaurant/${state.restaurantId}/menu`);
+    const data = await apiRequest(`/menus/list?restaurantId=${encodeURIComponent(state.restaurantId)}`);
     state.menuItems = data.items || data.menu || data || [];
     state.categories = data.categories || buildCategoriesFromMenu(state.menuItems);
     renderMenuCategories();
@@ -629,7 +629,7 @@
 
   async function loadEarnings() {
     if (!state.restaurantId) return;
-    const data = await apiRequest(`/restaurant/${state.restaurantId}/earnings`);
+    const data = await apiRequest(`/restaurants/earnings?restaurantId=${encodeURIComponent(state.restaurantId)}`);
     state.earnings = data || null;
     renderEarnings();
   }
@@ -747,11 +747,15 @@
       const prepInput = document.querySelector(`[data-prep-for="${CSS.escape(orderId)}"]`);
       const prepTime = prepInput ? Number(prepInput.value || 20) : undefined;
       const endpointMap = {
-        accept: `/restaurant/orders/${orderId}/accept`,
-        reject: `/restaurant/orders/${orderId}/reject`,
-        ready: `/restaurant/orders/${orderId}/ready`
+        accept: '/orders/accept',
+        reject: '/orders/reject',
+        ready: '/orders/ready'
       };
-      await apiRequest(endpointMap[action], { method: 'POST', body: JSON.stringify({ prepTime }) });
+
+      await apiRequest(endpointMap[action], {
+        method: 'POST',
+        body: JSON.stringify({ orderId, prepTime })
+      });
       const msgMap = { accept: t('order_accepted'), reject: t('order_rejected'), ready: t('order_ready') };
       showToast(msgMap[action] || t('saved_successfully'), 'success');
       await loadDashboard();
@@ -794,7 +798,10 @@
     const orderId = dom.driverHandoffContent?.dataset.orderId;
     if (!orderId) return;
     try {
-      await apiRequest(`/restaurant/orders/${orderId}/handoff`, { method: 'POST' });
+      await apiRequest('/orders/handoff', {
+        method: 'POST',
+        body: JSON.stringify({ orderId })
+      });
       closeModal(dom.driverHandoffModal);
       playSound(dom.soundPickupConfirmed);
       showToast(t('handoff_confirmed'), 'success');
@@ -893,9 +900,11 @@
         formData.append('image', dom.itemImage.files[0]);
       }
       const id = state.currentEditingItemId;
-      const path = id
-        ? `/restaurant/${state.restaurantId}/menu/${id}`
-        : `/restaurant/${state.restaurantId}/menu`;
+      const path = id ? '/menus/update' : '/menus/create';
+
+      if (id) formData.append('itemId', id);
+      formData.append('restaurantId', state.restaurantId);
+
       await apiRequest(path, { method: id ? 'PUT' : 'POST', body: formData });
       closeModal(dom.menuItemModal);
       showToast(t('item_saved'), 'success');
@@ -908,7 +917,10 @@
   async function deleteMenuItem(itemId) {
     if (!itemId) return;
     try {
-      await apiRequest(`/restaurant/${state.restaurantId}/menu/${itemId}`, { method: 'DELETE' });
+      await apiRequest('/menus/delete', {
+        method: 'POST',
+        body: JSON.stringify({ itemId, restaurantId: state.restaurantId })
+      });
       showToast(t('item_deleted'), 'success');
       await loadMenu();
     } catch (err) {
@@ -918,9 +930,13 @@
 
   async function toggleMenuItem(itemId, available) {
     try {
-      await apiRequest(`/restaurant/${state.restaurantId}/menu/${itemId}/availability`, {
-        method: 'PATCH',
-        body: JSON.stringify({ available })
+      await apiRequest('/menus/update', {
+        method: 'PUT',
+        body: JSON.stringify({
+          itemId,
+          restaurantId: state.restaurantId,
+          available
+        })
       });
     } catch (err) {
       showToast(err.message || t('network_error'), 'error');
@@ -1004,7 +1020,7 @@
           driverArrived: dom.notifyDriverArrived.checked
         }
       };
-      const data = await apiRequest(`/restaurant/${state.restaurantId}`, {
+      const data = await apiRequest('/restaurants/update', {
         method: 'PUT',
         body: JSON.stringify(payload)
       });
