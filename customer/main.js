@@ -1,16 +1,6 @@
-/**
- * Fairfood Price – Customer Application (Final Production v6)
- * No mock data. Fully operational: i18n, Auth, GPS, Map, Socket, Checkout.
- * All strings translated, safe rendering, no placeholder coordinates,
- * real reverse geocoding via backend, map initializes only with valid location,
- * currency from config, persistent cart with restaurant, quote-based checkout.
- */
 (function () {
   'use strict';
 
-  /* ===========================================================
-     1. INTERNATIONALIZATION (i18n) – AR / EN / DE
-     =========================================================== */
   const I18n = {
     _lang: localStorage.getItem('app_lang') || 'ar',
     _data: {
@@ -247,9 +237,6 @@
     }
   };
 
-  /* ===========================================================
-     2. SANITIZATION & UTILS
-     =========================================================== */
   const SafeHTML = {
     escape(str) {
       const div = document.createElement('div');
@@ -258,9 +245,6 @@
     }
   };
 
-  /* ===========================================================
-     3. API CLIENT (with timeout, retry & CSRF)
-     =========================================================== */
   class ApiClient {
     constructor(baseURL = '/api/v1') {
       this.base = baseURL;
@@ -275,11 +259,9 @@
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
       };
-      const token = localStorage.getItem('token');
-      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      const csrfMeta = document.querySelector('meta[name="csrf-token"]');
-      if (csrfMeta) headers['X-CSRF-Token'] = csrfMeta.content;
+      const token = localStorage.getItem('token') || localStorage.getItem('ff_token');
+      if (token) headers.Authorization = `Bearer ${token}`;
 
       try {
         const res = await fetch(url, {
@@ -288,26 +270,26 @@
           body: body ? JSON.stringify(body) : null,
           signal: controller.signal
         });
+
         clearTimeout(timeout);
+
+        const payload = await res.json().catch(() => ({}));
 
         if (res.status === 401) {
           localStorage.removeItem('token');
-          App.auth.logout();
+          localStorage.removeItem('ff_token');
           throw new Error('Session expired');
         }
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.message || `HTTP ${res.status}`);
+        if (!res.ok || payload.success === false) {
+          throw new Error(payload.message || payload.error?.message || `HTTP ${res.status}`);
         }
 
-        return await res.json();
+        return payload.data || payload;
       } catch (err) {
         clearTimeout(timeout);
         if (err.name === 'AbortError') throw new Error('Request timeout');
-        if (retries > 0 && method === 'GET') {
-          return this.request(method, path, body, retries - 1);
-        }
+        if (retries > 0 && method === 'GET') return this.request(method, path, body, retries - 1);
         throw err;
       }
     }
@@ -320,15 +302,12 @@
 
   const api = new ApiClient(window.APP_CONFIG?.apiBaseUrl || '/api/v1');
 
-  /* ===========================================================
-     4. APPLICATION STATE (Store) – persistent cart + restaurant
-     =========================================================== */
   const CART_KEY = 'app_cart';
   const RESTAURANT_KEY = 'app_restaurant_id';
 
   const Store = {
     user: null,
-    token: localStorage.getItem('token') || null,
+    token: localStorage.getItem('token') || localStorage.getItem('ff_token') || null,
     addresses: [],
     restaurants: [],
     categories: [],
@@ -355,7 +334,6 @@
     }
   }
 
-  // When adding first item from a restaurant, set the current restaurant
   function setRestaurantIfNeeded(restaurantId) {
     if (!Store.currentRestaurant || Store.cart.length === 0) {
       Store.currentRestaurant = restaurantId;
@@ -363,9 +341,6 @@
     }
   }
 
-  /* ===========================================================
-     5. ROUTER
-     =========================================================== */
   class Router {
     constructor() {
       this.current = 'home';
@@ -418,9 +393,6 @@
     }
   }
 
-  /* ===========================================================
-     6. UI HELPERS
-     =========================================================== */
   const UI = {
     showToast(msg, type = 'success') {
       const container = document.getElementById('toastContainer');
@@ -499,9 +471,6 @@
     }
   };
 
-  /* ===========================================================
-     7. AUTH SERVICE
-     =========================================================== */
   const Auth = {
     async login(email, password) {
       const res = await api.post('/auth/login', { email, password });
@@ -535,16 +504,13 @@
     async fetchUser() {
       if (Store.token) {
         try {
-          const res = await api.get('/profile/me');
+          const res = await api.get('/customer?action=me');
           Store.user = res.data || res;
-        } catch (e) { /* ignore */ }
+        } catch (e) { }
       }
     }
   };
 
-  /* ===========================================================
-     8. GPS & LOCATION SERVICE
-     =========================================================== */
   const GPSService = {
     getCurrentPosition() {
       return new Promise((resolve, reject) => {
@@ -589,9 +555,6 @@
     }
   };
 
-  /* ===========================================================
-     9. MAP SERVICE
-     =========================================================== */
   const MapService = {
     init(lat, lng) {
       if (Store.map) return;
@@ -630,11 +593,9 @@
     }
   };
 
-  /* ===========================================================
-     10. SOCKET SERVICE
-     =========================================================== */
   const SocketService = {
     init(orderId) {
+      if (!window.io) return;
       if (Store.socket) Store.socket.disconnect();
       const socketUrl = window.APP_CONFIG?.socketUrl || window.location.origin;
       Store.socket = io(socketUrl, {
@@ -664,19 +625,16 @@
     }
   };
 
-  /* ===========================================================
-     11. SCREENS
-     =========================================================== */
   const Screens = {
     async home() {
       UI.showLoading();
       try {
         const [restRes, catRes] = await Promise.all([
-          api.get('/restaurants'),
-          api.get('/categories')
+          api.get('/catalog?action=restaurants'),
+          api.get('/catalog?action=categories')
         ]);
-        Store.restaurants = restRes.data || [];
-        Store.categories = catRes.data || [];
+        Store.restaurants = restRes.restaurants || restRes.items || restRes.data || restRes || [];
+        Store.categories = catRes.categories || catRes.data || catRes || [];
 
         const catSelect = document.getElementById('categorySelect');
         catSelect.innerHTML = `<option value="">${I18n.t('all_categories')}</option>`;
@@ -745,10 +703,10 @@
     async restaurant(restaurantId) {
       UI.showLoading();
       try {
-        const res = await api.get(`/restaurants/${restaurantId}/menu`);
+        const res = await api.get(`/catalog?action=menu&restaurantId=${encodeURIComponent(restaurantId)}`);
         Store.currentRestaurant = restaurantId;
         persistCartAndRestaurant();
-        Store.menu = res.data || [];
+        Store.menu = res.items || res.menu || res.data || res || [];
 
         const currency = window.APP_CONFIG?.defaultCurrency || '€';
         const container = document.getElementById('appContent');
@@ -881,9 +839,6 @@
     }
   };
 
-  /* ===========================================================
-     12. CART MANAGEMENT
-     =========================================================== */
   const Cart = {
     add(item) {
       const existing = Store.cart.find(i => i.id === item.id);
@@ -914,14 +869,13 @@
     _updateBadge() {
       const badge = document.getElementById('cartBadge');
       const count = Store.cart.reduce((sum, i) => sum + i.quantity, 0);
-      badge.textContent = count;
-      badge.classList.toggle('hidden', count === 0);
+      if (badge) {
+        badge.textContent = count;
+        badge.classList.toggle('hidden', count === 0);
+      }
     }
   };
 
-  /* ===========================================================
-     13. CHECKOUT (quote-based)
-     =========================================================== */
   const Checkout = {
     isPlacing: false,
     currentQuote: null,
@@ -929,15 +883,16 @@
     async render() {
       try {
         const [addrRes] = await Promise.all([
-          api.get('/profile/addresses')
+          api.get('/customer?action=addresses')
         ]);
-        Store.addresses = addrRes.data || [];
+        Store.addresses = addrRes.data || addrRes || [];
         const select = document.getElementById('checkoutAddressSelect');
         select.innerHTML = Store.addresses.map(a => `<option value="${a.id}">${SafeHTML.escape(a.name)}</option>`).join('');
 
-        const quoteRes = await api.post('/orders/quote', {
-          restaurant_id: Store.currentRestaurant,
-          items: Store.cart.map(i => ({ menu_item_id: i.id, quantity: i.quantity }))
+        const quoteRes = await api.post('/orders/customer', {
+          action: 'quote',
+          restaurantId: Store.currentRestaurant,
+          items: Store.cart.map(i => ({ menuItemId: i.id, quantity: i.quantity }))
         });
         this.currentQuote = quoteRes.data || quoteRes;
         const currency = window.APP_CONFIG?.defaultCurrency || '€';
@@ -980,19 +935,14 @@
       const notes = document.getElementById('orderNotes').value;
       const coupon = document.getElementById('couponCode').value;
 
-      if (!this.currentQuote || !this.currentQuote.quoteId) {
-        UI.showToast(I18n.t('invalid_quote'), 'error');
-        return;
-      }
-
       const orderData = {
-        restaurant_id: Store.currentRestaurant,
-        items: Store.cart.map(i => ({ menu_item_id: i.id, quantity: i.quantity })),
-        address_id: addressId,
-        payment_method: payment,
+        action: 'create',
+        restaurantId: Store.currentRestaurant,
+        deliveryAddress: Store.userAddress || document.getElementById('newAddressDetails')?.value || '',
+        paymentMethod: payment,
         notes,
-        coupon_code: coupon || null,
-        quote_id: this.currentQuote.quoteId
+        couponCode: coupon || null,
+        items: Store.cart.map(i => ({ menuItemId: i.id, quantity: i.quantity }))
       };
 
       const confirmBtn = document.getElementById('confirmOrderBtn');
@@ -1001,7 +951,7 @@
       this.isPlacing = true;
 
       try {
-        const res = await api.post('/orders', orderData);
+        const res = await api.post('/orders/customer', orderData);
         Store.currentOrder = res.data || res;
         Store.cart = [];
         Store.currentRestaurant = null;
@@ -1010,7 +960,7 @@
         UI.closeSheet('checkoutSheet');
         UI.showToast(I18n.t('order_success'), 'success');
         App.router.navigate('tracking');
-        SocketService.init(Store.currentOrder.id);
+        SocketService.init(Store.currentOrder.id || Store.currentOrder.orderId || Store.currentOrder.order?.id);
       } catch (e) {
         UI.showToast(e.message, 'error');
       } finally {
@@ -1021,9 +971,6 @@
     }
   };
 
-  /* ===========================================================
-     14. APPLICATION INITIALIZATION
-     =========================================================== */
   const App = {
     router: null,
     screens: Screens,
@@ -1105,7 +1052,7 @@
         const name = document.getElementById('newAddressName').value;
         const details = document.getElementById('newAddressDetails').value;
         try {
-          await api.post('/profile/addresses', { name, details });
+          await api.post('/customer', { action: 'address', name, details });
           UI.closeSheet('newAddressSheet');
           UI.showToast(I18n.t('address_saved'), 'success');
         } catch (e) {
