@@ -1,591 +1,974 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Fairfood Price</title>
-  <meta name="theme-color" content="#000000" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Fairfood Price — منصة توصيل الطعام الذكية</title>
+  <meta name="description" content="منصة توصيل مطاعم حديثة بتصميم OLED فاخر: عميل، مطعم، سائق، ولوحة إدارة." />
+  <meta name="theme-color" content="#0a0a0a" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
   <style>
-    :root{
-      --bg:#000;
-      --card:rgba(255,255,255,.06);
-      --card2:rgba(255,255,255,.1);
-      --line:rgba(255,255,255,.12);
-      --text:#fff;
-      --muted:rgba(255,255,255,.68);
-      --orange:#ff8a00;
-      --gold:#ffc107;
-      --green:#22c55e;
-      --red:#ef4444;
-      --shadow:0 30px 90px rgba(255,138,0,.18);
-      --radius:28px;
+    :root {
+      --bg: #0a0a0a;
+      --surface: rgba(255, 255, 255, 0.03);
+      --surface-hover: rgba(255, 255, 255, 0.06);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.6);
+      --text-tertiary: rgba(255, 255, 255, 0.4);
+      --accent: #ff6b2b;
+      --accent-glow: rgba(255, 107, 43, 0.3);
+      --accent-secondary: #ffb800;
+      --green: #22c55e;
+      --green-glow: rgba(34, 197, 94, 0.3);
+      --red: #ef4444;
+      --radius-sm: 12px;
+      --radius: 20px;
+      --radius-lg: 32px;
+      --radius-xl: 48px;
+      --shadow-glow: 0 0 80px rgba(255, 107, 43, 0.12);
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{
-      margin:0;
-      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: 'Inter', 'Cairo', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
       background:
-        radial-gradient(circle at 15% 10%,rgba(255,138,0,.22),transparent 32%),
-        radial-gradient(circle at 85% 8%,rgba(255,193,7,.16),transparent 30%),
-        radial-gradient(circle at 50% 95%,rgba(34,197,94,.12),transparent 28%),
-        #000;
-      color:var(--text);
-      overflow-x:hidden;
+        radial-gradient(ellipse 80% 50% at 20% 10%, rgba(255, 107, 43, 0.08), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 5%, rgba(255, 184, 0, 0.06), transparent),
+        radial-gradient(ellipse 50% 60% at 50% 90%, rgba(34, 197, 94, 0.04), transparent);
+      pointer-events: none;
+      z-index: 0;
     }
 
-    a{text-decoration:none;color:inherit}
-    .wrap{width:min(1180px,92vw);margin:auto}
-
-    .nav{
-      position:sticky;
-      top:0;
-      z-index:50;
-      backdrop-filter:blur(22px);
-      background:rgba(0,0,0,.66);
-      border-bottom:1px solid var(--line);
+    .container {
+      width: min(1280px, 90vw);
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
     }
 
-    .nav-inner{
-      height:74px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
+    /* Navigation */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(10, 10, 10, 0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      transition: var(--transition);
     }
 
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      font-weight:900;
-      letter-spacing:.3px;
-      font-size:22px;
+    .nav.scrolled {
+      background: rgba(10, 10, 10, 0.9);
+      box-shadow: 0 1px 20px rgba(0, 0, 0, 0.4);
     }
 
-    .logo{
-      width:46px;
-      height:46px;
-      display:grid;
-      place-items:center;
-      border-radius:16px;
-      background:linear-gradient(135deg,var(--orange),var(--gold));
-      box-shadow:0 0 34px rgba(255,138,0,.5);
-      color:#111;
-      font-size:24px;
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      gap: 24px;
     }
 
-    .links{
-      display:flex;
-      align-items:center;
-      gap:14px;
-      color:var(--muted);
-      font-weight:700;
-      font-size:14px;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.3px;
     }
 
-    .links a:hover{color:#fff}
-
-    .btn{
-      border:1px solid var(--line);
-      background:var(--card);
-      color:#fff;
-      padding:13px 18px;
-      border-radius:999px;
-      font-weight:900;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      transition:.25s;
-      cursor:pointer;
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 8px 32px var(--accent-glow);
+      transition: var(--transition);
     }
 
-    .btn:hover{
-      transform:translateY(-2px);
-      border-color:rgba(255,255,255,.25);
-      background:rgba(255,255,255,.12);
+    .brand:hover .logo {
+      transform: scale(1.05);
+      box-shadow: 0 12px 40px var(--accent-glow);
     }
 
-    .btn-primary{
-      background:linear-gradient(135deg,var(--orange),var(--gold));
-      color:#141414;
-      border:none;
-      box-shadow:var(--shadow);
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .hero{
-      position:relative;
-      min-height:calc(100vh - 74px);
-      display:grid;
-      align-items:center;
-      padding:70px 0 40px;
+    .nav-link {
+      padding: 8px 16px;
+      border-radius: 100px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: var(--transition);
     }
 
-    .hero-grid{
-      display:grid;
-      grid-template-columns:1.02fr .98fr;
-      gap:48px;
-      align-items:center;
+    .nav-link:hover {
+      color: var(--text);
+      background: var(--surface-hover);
     }
 
-    .eyebrow{
-      display:inline-flex;
-      gap:10px;
-      align-items:center;
-      padding:10px 14px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.06);
-      border-radius:999px;
-      color:var(--muted);
-      font-weight:800;
-      margin-bottom:22px;
+    .nav-cta {
+      padding: 10px 22px;
+      border-radius: 100px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      color: #111;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 14px;
+      transition: var(--transition);
+      box-shadow: 0 4px 20px var(--accent-glow);
     }
 
-    .pulse{
-      width:10px;height:10px;
-      border-radius:50%;
-      background:var(--green);
-      box-shadow:0 0 22px var(--green);
+    .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px var(--accent-glow);
     }
 
-    h1{
-      font-size:clamp(46px,7vw,92px);
-      line-height:.95;
-      margin:0 0 22px;
-      letter-spacing:-3px;
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 28px;
+      cursor: pointer;
+      padding: 8px;
     }
 
-    .grad{
-      background:linear-gradient(135deg,#fff,var(--gold),var(--orange));
-      -webkit-background-clip:text;
-      background-clip:text;
-      color:transparent;
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 0 60px;
+      position: relative;
     }
 
-    .lead{
-      color:var(--muted);
-      font-size:clamp(17px,2vw,22px);
-      line-height:1.8;
-      margin:0 0 32px;
-      max-width:680px;
+    .hero-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
     }
 
-    .hero-actions{
-      display:flex;
-      flex-wrap:wrap;
-      gap:14px;
-      margin-bottom:32px;
+    .hero-text {
+      max-width: 600px;
     }
 
-    .mini-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:12px;
-      color:var(--muted);
-      font-weight:700;
-      font-size:14px;
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 28px;
     }
 
-    .mini-row span{
-      padding:10px 13px;
-      border-radius:999px;
-      background:rgba(255,255,255,.06);
-      border:1px solid var(--line);
+    .hero-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px var(--green-glow);
+      animation: pulse-dot 2s ease-in-out infinite;
     }
 
-    .phone-stage{
-      position:relative;
-      min-height:650px;
-      display:grid;
-      place-items:center;
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
     }
 
-    .orb{
-      position:absolute;
-      width:420px;
-      height:420px;
-      border-radius:50%;
-      background:radial-gradient(circle,rgba(255,138,0,.38),rgba(255,138,0,.08),transparent 68%);
-      filter:blur(4px);
-      animation:float 5s ease-in-out infinite;
+    .hero-title {
+      font-size: clamp(48px, 6vw, 80px);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -2.5px;
+      margin-bottom: 24px;
     }
 
-    .phone{
-      position:relative;
-      width:min(390px,86vw);
-      border-radius:44px;
-      padding:14px;
-      background:linear-gradient(160deg,rgba(255,255,255,.22),rgba(255,255,255,.04));
-      border:1px solid rgba(255,255,255,.2);
-      box-shadow:0 40px 130px rgba(0,0,0,.8),0 0 80px rgba(255,138,0,.18);
-      backdrop-filter:blur(22px);
-      transform:rotate(-3deg);
+    .hero-title .gradient {
+      background: linear-gradient(135deg, var(--text) 20%, var(--accent-secondary), var(--accent));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline;
     }
 
-    .phone-screen{
-      border-radius:34px;
-      overflow:hidden;
-      background:#050505;
-      border:1px solid rgba(255,255,255,.12);
+    .hero-description {
+      color: var(--text-secondary);
+      font-size: clamp(16px, 1.5vw, 20px);
+      line-height: 1.8;
+      margin-bottom: 36px;
+      max-width: 520px;
     }
 
-    .food-hero{
-      height:250px;
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 24px;
+      border-radius: 100px;
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+      border: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      color: #111;
+      box-shadow: 0 8px 32px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px var(--accent-glow);
+    }
+
+    .btn-outline {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .btn-outline:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+
+    .hero-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .tag {
+      padding: 8px 14px;
+      border-radius: 100px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    /* Phone Mockup */
+    .phone-wrapper {
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+
+    .phone-glow {
+      position: absolute;
+      width: 340px;
+      height: 340px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow), transparent 65%);
+      filter: blur(40px);
+      animation: float 6s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-20px) scale(1.05); }
+    }
+
+    .phone-frame {
+      position: relative;
+      width: 340px;
+      height: 680px;
+      border-radius: 44px;
+      padding: 12px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.15), rgba(255,255,255,0.03));
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow:
+        0 40px 120px rgba(0,0,0,0.6),
+        0 0 60px var(--accent-glow);
+      backdrop-filter: blur(20px);
+      transform: rotate(-2deg);
+      transition: var(--transition);
+    }
+
+    .phone-frame:hover {
+      transform: rotate(0deg) translateY(-8px);
+    }
+
+    .phone-screen {
+      width: 100%;
+      height: 100%;
+      border-radius: 34px;
+      overflow: hidden;
+      background: #0d0d0d;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .phone-header {
+      height: 200px;
       background:
-        linear-gradient(to top,rgba(0,0,0,.8),transparent 55%),
-        url("https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&auto=format&fit=crop") center/cover;
+        linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8)),
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><rect width="400" height="200" fill="%231a1a1a"/><circle cx="100" cy="80" r="60" fill="%23ff6b2b" opacity="0.3"/><circle cx="300" cy="120" r="80" fill="%23ffb800" opacity="0.2"/><circle cx="200" cy="60" r="40" fill="%2322c55e" opacity="0.2"/></svg>');
+      background-size: cover;
+      background-position: center;
+      position: relative;
     }
 
-    .app-ui{padding:18px}
-    .search{
-      height:44px;
-      border-radius:16px;
-      background:rgba(255,255,255,.09);
-      border:1px solid var(--line);
-      display:flex;
-      align-items:center;
-      padding:0 14px;
-      color:var(--muted);
-      margin-bottom:16px;
+    .phone-header .status-bar {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
     }
 
-    .restaurant{
-      display:grid;
-      grid-template-columns:62px 1fr auto;
-      gap:12px;
-      align-items:center;
-      padding:12px;
-      border:1px solid var(--line);
-      background:rgba(255,255,255,.06);
-      border-radius:22px;
-      margin-bottom:12px;
+    .phone-content {
+      padding: 20px;
     }
 
-    .restaurant .img{
-      width:62px;height:62px;
-      border-radius:18px;
-      background:center/cover;
+    .phone-search {
+      height: 44px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      color: var(--text-tertiary);
+      font-size: 14px;
+      margin-bottom: 16px;
     }
 
-    .restaurant h3{margin:0 0 5px;font-size:15px}
-    .restaurant p{margin:0;color:var(--muted);font-size:12px}
-    .price{font-weight:900;color:var(--gold)}
-
-    .floating-card{
-      position:absolute;
-      border:1px solid var(--line);
-      background:rgba(0,0,0,.62);
-      backdrop-filter:blur(20px);
-      border-radius:22px;
-      padding:14px 16px;
-      box-shadow:0 20px 80px rgba(0,0,0,.55);
-      font-weight:900;
+    .phone-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 10px;
     }
 
-    .fc1{left:0;top:96px}
-    .fc2{right:0;bottom:110px}
-
-    section{padding:82px 0}
-    .section-head{
-      display:flex;
-      justify-content:space-between;
-      gap:20px;
-      align-items:end;
-      margin-bottom:28px;
+    .phone-card .thumb {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      flex-shrink: 0;
     }
 
-    h2{
-      margin:0;
-      font-size:clamp(30px,4vw,54px);
-      letter-spacing:-1.5px;
+    .phone-card .info {
+      flex: 1;
+      min-width: 0;
     }
 
-    .section-head p{
-      margin:0;
-      color:var(--muted);
-      max-width:470px;
-      line-height:1.7;
+    .phone-card .name {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 3px;
     }
 
-    .stats{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:16px;
+    .phone-card .meta {
+      font-size: 11px;
+      color: var(--text-tertiary);
     }
 
-    .stat,.card,.step,.feature{
-      border:1px solid var(--line);
-      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
-      border-radius:var(--radius);
-      padding:24px;
-      box-shadow:0 20px 70px rgba(0,0,0,.3);
+    .phone-card .price {
+      font-weight: 800;
+      color: var(--accent-secondary);
+      font-size: 15px;
     }
 
-    .stat strong{
-      font-size:38px;
-      display:block;
-      color:var(--gold);
-      margin-bottom:8px;
+    .floating-badge {
+      position: absolute;
+      padding: 12px 16px;
+      border-radius: 20px;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 13px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      pointer-events: none;
     }
 
-    .stat span{color:var(--muted);font-weight:800}
-
-    .apps{
-      display:grid;
-      grid-template-columns:repeat(4,1fr);
-      gap:18px;
+    .floating-badge.left {
+      left: -40px;
+      top: 140px;
     }
 
-    .card{
-      min-height:220px;
-      transition:.25s;
-      position:relative;
-      overflow:hidden;
+    .floating-badge.right {
+      right: -30px;
+      bottom: 200px;
     }
 
-    .card:hover{transform:translateY(-7px);border-color:rgba(255,138,0,.45)}
-    .card:before{
-      content:"";
-      position:absolute;
-      inset:auto -30% -40% -30%;
-      height:130px;
-      background:radial-gradient(circle,rgba(255,138,0,.28),transparent 65%);
+    /* Sections */
+    .section {
+      padding: 100px 0;
     }
 
-    .icon{
-      font-size:42px;
-      margin-bottom:18px;
+    .section-header {
+      text-align: center;
+      margin-bottom: 64px;
     }
 
-    .card h3{font-size:24px;margin:0 0 10px}
-    .card p{margin:0 0 22px;color:var(--muted);line-height:1.7}
-
-    .steps{
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:14px;
-      counter-reset:step;
+    .section-label {
+      display: inline-block;
+      padding: 8px 18px;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
     }
 
-    .step{
-      position:relative;
-      min-height:170px;
+    .section-title {
+      font-size: clamp(32px, 4vw, 56px);
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      margin-bottom: 16px;
     }
 
-    .step:before{
-      counter-increment:step;
-      content:counter(step);
-      width:38px;height:38px;
-      display:grid;
-      place-items:center;
-      border-radius:50%;
-      background:linear-gradient(135deg,var(--orange),var(--gold));
-      color:#111;
-      font-weight:950;
-      margin-bottom:18px;
+    .section-subtitle {
+      color: var(--text-secondary);
+      font-size: 18px;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
     }
 
-    .step h3{margin:0 0 8px}
-    .step p{margin:0;color:var(--muted);line-height:1.6}
-
-    .tracking{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:24px;
-      align-items:center;
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
     }
 
-    .map-card{
-      min-height:430px;
-      border-radius:34px;
-      border:1px solid var(--line);
+    .stat-card {
+      padding: 32px 24px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.04), transparent 60%);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover::before {
+      opacity: 1;
+    }
+
+    .stat-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+    }
+
+    .stat-value {
+      font-size: 44px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--text), var(--accent-secondary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .stat-label {
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    /* Apps Grid */
+    .apps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .app-card {
+      padding: 36px 28px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--text);
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .app-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.06), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .app-card:hover::after {
+      opacity: 1;
+    }
+
+    .app-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.4);
+    }
+
+    .app-icon {
+      font-size: 48px;
+      margin-bottom: 24px;
+      transition: var(--transition);
+    }
+
+    .app-card:hover .app-icon {
+      transform: scale(1.1);
+    }
+
+    .app-name {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .app-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.7;
+      margin-bottom: 24px;
+      flex: 1;
+    }
+
+    .app-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--accent);
+      transition: var(--transition);
+    }
+
+    .app-link .arrow {
+      transition: var(--transition);
+    }
+
+    .app-card:hover .app-link .arrow {
+      transform: translateX(-4px);
+    }
+
+    /* Features */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature-card {
+      padding: 32px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: var(--transition);
+    }
+
+    .feature-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: var(--surface-hover);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .feature-title {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    /* How it works */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+    }
+
+    .step-card {
+      padding: 32px 24px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .step-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-4px);
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 20px;
+      margin: 0 auto 20px;
+    }
+
+    .step-title {
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* CTA */
+    .cta-section {
+      padding: 80px 0;
+    }
+
+    .cta-card {
+      padding: 80px 48px;
+      border-radius: var(--radius-xl);
       background:
-        linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px),
-        linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
-        radial-gradient(circle at 45% 45%,rgba(255,138,0,.22),transparent 35%),
-        #050505;
-      background-size:42px 42px,42px 42px,100% 100%;
-      position:relative;
-      overflow:hidden;
+        radial-gradient(circle at 50% 0%, var(--accent-glow), transparent 45%),
+        var(--surface);
+      border: 1px solid var(--border);
+      text-align: center;
+      box-shadow: var(--shadow-glow);
     }
 
-    .route{
-      position:absolute;
-      inset:60px;
-      border:3px dashed rgba(255,193,7,.55);
-      border-left-color:transparent;
-      border-bottom-color:transparent;
-      border-radius:50%;
-      animation:spin 14s linear infinite;
+    .cta-title {
+      font-size: clamp(32px, 4vw, 48px);
+      font-weight: 900;
+      margin-bottom: 16px;
     }
 
-    .pin{
-      position:absolute;
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding:10px 12px;
-      border-radius:999px;
-      background:rgba(0,0,0,.72);
-      border:1px solid var(--line);
-      font-weight:900;
+    .cta-desc {
+      color: var(--text-secondary);
+      font-size: 18px;
+      max-width: 600px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
     }
 
-    .pin.r{top:70px;left:70px}
-    .pin.d{top:210px;right:90px}
-    .pin.c{bottom:80px;left:120px}
-
-    .features{
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:16px;
+    .cta-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
     }
 
-    .feature h3{margin:0 0 8px;font-size:22px}
-    .feature p{margin:0;color:var(--muted);line-height:1.7}
-
-    .cta{
-      text-align:center;
-      padding:80px 24px;
-      border:1px solid rgba(255,138,0,.25);
-      background:
-        radial-gradient(circle at 50% 0,rgba(255,138,0,.28),transparent 42%),
-        rgba(255,255,255,.05);
-      border-radius:42px;
-      box-shadow:var(--shadow);
+    /* Footer */
+    .footer {
+      padding: 40px 0;
+      border-top: 1px solid var(--border);
     }
 
-    .cta p{color:var(--muted);font-size:19px;line-height:1.8}
-
-    footer{
-      padding:36px 0;
-      color:var(--muted);
-      border-top:1px solid var(--line);
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
     }
 
-    .footer-inner{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:16px;
-      flex-wrap:wrap;
+    .footer-copy {
+      color: var(--text-tertiary);
+      font-size: 14px;
     }
 
-    .footer-links{
-      display:flex;
-      gap:16px;
-      flex-wrap:wrap;
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
     }
 
-    @keyframes float{
-      0%,100%{transform:translateY(0)}
-      50%{transform:translateY(-18px)}
+    .footer-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      transition: var(--transition);
     }
 
-    @keyframes spin{
-      to{transform:rotate(360deg)}
+    .footer-link:hover {
+      color: var(--text);
     }
 
-    @media(max-width:920px){
-      .links{display:none}
-      .hero-grid,.tracking{grid-template-columns:1fr}
-      .phone-stage{min-height:560px}
-      .stats,.apps,.features{grid-template-columns:1fr 1fr}
-      .steps{grid-template-columns:1fr}
-      h1{letter-spacing:-1.5px}
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+      .phone-wrapper {
+        order: -1;
+      }
+      .phone-frame {
+        width: 280px;
+        height: 560px;
+      }
+      .floating-badge {
+        display: none;
+      }
+      .apps-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .steps-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
 
-    @media(max-width:560px){
-      .stats,.apps,.features{grid-template-columns:1fr}
-      .hero{padding-top:42px}
-      .phone{transform:none}
-      .floating-card{display:none}
-      .section-head{display:block}
-      .btn{width:100%}
-      .hero-actions{display:grid}
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+      .hero {
+        padding: 100px 0 40px;
+      }
+      .hero-title {
+        letter-spacing: -1px;
+      }
+      .apps-grid,
+      .features-grid,
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .steps-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .section {
+        padding: 60px 0;
+      }
+      .cta-card {
+        padding: 48px 24px;
+      }
+      .hero-actions {
+        flex-direction: column;
+      }
+      .btn {
+        justify-content: center;
+      }
+      .phone-frame {
+        width: 260px;
+        height: 520px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .steps-grid {
+        grid-template-columns: 1fr;
+      }
+      .footer-inner {
+        flex-direction: column;
+        text-align: center;
+      }
+      .phone-frame {
+        width: 240px;
+        height: 480px;
+        border-radius: 36px;
+        padding: 10px;
+      }
+      .phone-screen {
+        border-radius: 28px;
+      }
     }
   </style>
 </head>
-
 <body>
-  <nav class="nav">
-    <div class="wrap nav-inner">
-      <a class="brand" href="#">
+  <!-- Navigation -->
+  <nav class="nav" id="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="brand">
         <span class="logo">🍽️</span>
         <span>Fairfood</span>
       </a>
-
-      <div class="links">
-        <a href="#apps">Apps</a>
-        <a href="#how">How it works</a>
-        <a href="#tracking">Tracking</a>
-        <a href="#features">Features</a>
+      <div class="nav-links">
+        <a href="#apps" class="nav-link">التطبيقات</a>
+        <a href="#how" class="nav-link">كيف تعمل</a>
+        <a href="#features" class="nav-link">المميزات</a>
+        <a href="#stats" class="nav-link">الإحصائيات</a>
       </div>
-
-      <a class="btn btn-primary" href="../customer/">Order now</a>
+      <a href="customer/" class="nav-cta">اطلب الآن</a>
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="القائمة">☰</button>
     </div>
   </nav>
 
-  <header class="hero">
-    <div class="wrap hero-grid">
-      <div>
-        <div class="eyebrow"><span class="pulse"></span> Premium Food Delivery Platform</div>
-        <h1>Order food with <span class="grad">OLED speed</span></h1>
-        <p class="lead">
-          منصة توصيل مطاعم حديثة بتصميم OLED فاخر: عميل، مطعم، سائق، ولوحة إدارة — جاهزة للربط مع Backend الحالي والتوسع لاحقًا.
-        </p>
-
-        <div class="hero-actions">
-          <a class="btn btn-primary" href="../customer/">ابدأ الطلب</a>
-          <a class="btn" href="../restaurant/">انضم كمطعم</a>
-          <a class="btn" href="../driver/">سائق توصيل</a>
+  <!-- Hero -->
+  <section class="hero">
+    <div class="container hero-content">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span class="dot"></span>
+          المنصة متاحة للتجربة الآن
         </div>
-
-        <div class="mini-row">
-          <span>⚡ Fast Checkout</span>
-          <span>🌍 AR / EN / DE</span>
-          <span>🛵 Driver App</span>
-          <span>📊 Admin Center</span>
+        <h1 class="hero-title">
+          توصيل طعام <span class="gradient">بسرعة الضوء</span>
+        </h1>
+        <p class="hero-description">
+          منصة توصيل مطاعم متكاملة بأربعة تطبيقات منفصلة: العميل، المطعم، السائق، ولوحة الإدارة. جاهزة للربط مع البنية الخلفية والتوسع المستقبلي.
+        </p>
+        <div class="hero-actions">
+          <a href="customer/" class="btn btn-primary">📱 تطبيق العميل</a>
+          <a href="restaurant/" class="btn btn-outline">🏪 بوابة المطعم</a>
+          <a href="driver/" class="btn btn-outline">🛵 تطبيق السائق</a>
+        </div>
+        <div class="hero-tags">
+          <span class="tag">⚡ دفع سريع</span>
+          <span class="tag">🌍 AR / EN / DE</span>
+          <span class="tag">🛵 تتبع مباشر</span>
+          <span class="tag">📊 تقارير ذكية</span>
         </div>
       </div>
 
-      <div class="phone-stage">
-        <div class="orb"></div>
-
-        <div class="floating-card fc1">🔥 Live Orders</div>
-        <div class="floating-card fc2">🛵 Driver on the way</div>
-
-        <div class="phone">
+      <div class="phone-wrapper">
+        <div class="phone-glow"></div>
+        <div class="floating-badge left">🔥 طلبات مباشرة</div>
+        <div class="floating-badge right">🛵 السائق في الطريق</div>
+        <div class="phone-frame">
           <div class="phone-screen">
-            <div class="food-hero"></div>
-            <div class="app-ui">
-              <div class="search">🔍 Search burgers, pizza, sushi…</div>
-
-              <div class="restaurant">
-                <div class="img" style="background-image:url('https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=300&auto=format&fit=crop')"></div>
-                <div>
-                  <h3>Burger House</h3>
-                  <p>⭐ 4.9 · 18 min · Free delivery</p>
+            <div class="phone-header">
+              <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 🔋</span>
+              </div>
+            </div>
+            <div class="phone-content">
+              <div class="phone-search">🔍 ابحث عن مطعم أو وجبة…</div>
+              <div class="phone-card">
+                <div class="thumb" style="background: linear-gradient(135deg, #ff6b2b, #ffb800);"></div>
+                <div class="info">
+                  <div class="name">برجر هاوس</div>
+                  <div class="meta">⭐ 4.9 · 18 دقيقة · توصيل مجاني</div>
                 </div>
                 <div class="price">€12</div>
               </div>
-
-              <div class="restaurant">
-                <div class="img" style="background-image:url('https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?w=300&auto=format&fit=crop')"></div>
-                <div>
-                  <h3>Pizza Italia</h3>
-                  <p>⭐ 4.8 · 22 min · Hot deals</p>
+              <div class="phone-card">
+                <div class="thumb" style="background: linear-gradient(135deg, #22c55e, #16a34a);"></div>
+                <div class="info">
+                  <div class="name">بيتزا إيطاليا</div>
+                  <div class="meta">⭐ 4.8 · 22 دقيقة · عروض حصرية</div>
                 </div>
                 <div class="price">€9</div>
               </div>
-
-              <div class="restaurant">
-                <div class="img" style="background-image:url('https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300&auto=format&fit=crop')"></div>
-                <div>
-                  <h3>Sushi Tokyo</h3>
-                  <p>⭐ 4.7 · 25 min · Premium</p>
+              <div class="phone-card">
+                <div class="thumb" style="background: linear-gradient(135deg, #3b82f6, #2563eb);"></div>
+                <div class="info">
+                  <div class="name">سوشي طوكيو</div>
+                  <div class="meta">⭐ 4.7 · 25 دقيقة · ممتاز</div>
                 </div>
                 <div class="price">€18</div>
               </div>
@@ -594,167 +977,263 @@
         </div>
       </div>
     </div>
-  </header>
-
-  <section>
-    <div class="wrap stats">
-      <div class="stat"><strong data-count="120000">0</strong><span>Orders delivered</span></div>
-      <div class="stat"><strong data-count="3200">0</strong><span>Restaurants</span></div>
-      <div class="stat"><strong data-count="8500">0</strong><span>Drivers</span></div>
-      <div class="stat"><strong data-count="99">0</strong><span>Success rate %</span></div>
-    </div>
   </section>
 
-  <section id="apps">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Four powerful apps</h2>
-        <p>كل جزء في المنصة له صفحة خاصة: العميل، المطعم، السائق، والإدارة.</p>
+  <!-- Stats -->
+  <section class="section" id="stats">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">المنصة في أرقام</div>
+        <h2 class="section-title">ننمو بسرعة وثقة</h2>
+        <p class="section-subtitle">إحصائيات المنصة يتم تحديثها تلقائياً من النظام الخلفي عند الربط الكامل.</p>
       </div>
-
-      <div class="apps">
-        <a class="card" href="../customer/">
-          <div class="icon">🛒</div>
-          <h3>Customer</h3>
-          <p>عرض المطاعم، المنيو، السلة، وتأكيد الطلب.</p>
-          <span class="btn">Open</span>
-        </a>
-
-        <a class="card" href="../restaurant/">
-          <div class="icon">🏪</div>
-          <h3>Restaurant</h3>
-          <p>استقبال الطلبات، تحضيرها، وإدارة المنيو.</p>
-          <span class="btn">Open</span>
-        </a>
-
-        <a class="card" href="../driver/">
-          <div class="icon">🛵</div>
-          <h3>Driver</h3>
-          <p>قبول الطلبات، الملاحة، والمحفظة.</p>
-          <span class="btn">Open</span>
-        </a>
-
-        <a class="card" href="../admin/">
-          <div class="icon">📊</div>
-          <h3>Admin</h3>
-          <p>مراقبة المنصة، المستخدمين، الطلبات، والتحليلات.</p>
-          <span class="btn">Open</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <section id="how">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>How it works</h2>
-        <p>تجربة طلب مختصرة وواضحة من اختيار المطعم حتى التوصيل.</p>
-      </div>
-
-      <div class="steps">
-        <div class="step"><h3>Choose</h3><p>اختر مطعمك المفضل.</p></div>
-        <div class="step"><h3>Add</h3><p>أضف الوجبات للسلة.</p></div>
-        <div class="step"><h3>Order</h3><p>أكد الطلب والدفع.</p></div>
-        <div class="step"><h3>Driver</h3><p>السائق يستلم الطلب.</p></div>
-        <div class="step"><h3>Track</h3><p>تابع الطلب حتى الوصول.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section id="tracking">
-    <div class="wrap tracking">
-      <div>
-        <div class="section-head" style="display:block">
-          <h2>Live tracking ready</h2>
-          <p>
-            الواجهة جاهزة بصريًا للتتبع المباشر. ربط Realtime وGPS يتم لاحقًا حسب خطة Backend.
-          </p>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" id="statOrders">--</div>
+          <div class="stat-label">طلب مكتمل</div>
         </div>
-
-        <div class="features">
-          <div class="feature"><h3>🛵 Driver</h3><p>ظهور السائق على الخريطة لاحقًا.</p></div>
-          <div class="feature"><h3>🏪 Restaurant</h3><p>تحديث حالة الطلب من المطعم.</p></div>
-          <div class="feature"><h3>🔔 Push</h3><p>تنبيهات فورية لاحقًا.</p></div>
+        <div class="stat-card">
+          <div class="stat-value" id="statRestaurants">--</div>
+          <div class="stat-label">مطعم مسجل</div>
         </div>
-      </div>
-
-      <div class="map-card">
-        <div class="route"></div>
-        <div class="pin r">🏪 Restaurant</div>
-        <div class="pin d">🛵 Driver</div>
-        <div class="pin c">📍 Customer</div>
-      </div>
-    </div>
-  </section>
-
-  <section id="features">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Built for launch</h2>
-        <p>تصميم قوي للانطباع الأول، مع بنية قابلة للتوسع لاحقًا.</p>
-      </div>
-
-      <div class="features">
-        <div class="feature"><h3>🌑 OLED Design</h3><p>أسود حقيقي، توهج، وزجاجية حديثة.</p></div>
-        <div class="feature"><h3>⚡ Fast UX</h3><p>روابط مباشرة لكل تطبيق.</p></div>
-        <div class="feature"><h3>🌍 Multilingual</h3><p>مناسب للغات AR / EN / DE.</p></div>
-        <div class="feature"><h3>💳 Payments Ready</h3><p>Stripe لاحقًا حسب الخطة.</p></div>
-        <div class="feature"><h3>📦 Orders</h3><p>Customer / Restaurant / Driver flow.</p></div>
-        <div class="feature"><h3>🛡️ Admin</h3><p>لوحة إدارة جاهزة للتوسيع.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="wrap">
-      <div class="cta">
-        <h2>Start ordering with Fairfood</h2>
-        <p>واجهة واحدة تقود المستخدمين إلى تطبيق العميل، المطعم، السائق، أو الإدارة.</p>
-        <div class="hero-actions" style="justify-content:center;margin-bottom:0">
-          <a class="btn btn-primary" href="../customer/">Order now</a>
-          <a class="btn" href="../restaurant/">Restaurant portal</a>
-          <a class="btn" href="../driver/">Driver app</a>
+        <div class="stat-card">
+          <div class="stat-value" id="statDrivers">--</div>
+          <div class="stat-label">سائق نشط</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statSatisfaction">--</div>
+          <div class="stat-label">نسبة الرضا</div>
         </div>
       </div>
     </div>
   </section>
 
-  <footer>
-    <div class="wrap footer-inner">
-      <div>© <span id="year"></span> Fairfood Price</div>
+  <!-- Apps -->
+  <section class="section" id="apps">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">تطبيقات المنصة</div>
+        <h2 class="section-title">أربعة تطبيقات متكاملة</h2>
+        <p class="section-subtitle">كل جزء من المنصة له تطبيق مستقل بواجهة احترافية وتجربة مستخدم متكاملة.</p>
+      </div>
+      <div class="apps-grid">
+        <a href="customer/" class="app-card" id="appCustomer">
+          <div class="app-icon">🛒</div>
+          <div class="app-name">العميل</div>
+          <div class="app-desc">تصفح المطاعم وقوائم الطعام، أضف إلى السلة وأكد الطلب بسهولة. تتبع طلبك حتى يصل إليك.</div>
+          <span class="app-link">افتح التطبيق <span class="arrow">←</span></span>
+        </a>
+        <a href="restaurant/" class="app-card" id="appRestaurant">
+          <div class="app-icon">🏪</div>
+          <div class="app-name">المطعم</div>
+          <div class="app-desc">استقبل الطلبات الجديدة، أدر قائمة الطعام، تابع الأرباح والتقارير اليومية.</div>
+          <span class="app-link">افتح التطبيق <span class="arrow">←</span></span>
+        </a>
+        <a href="driver/" class="app-card" id="appDriver">
+          <div class="app-icon">🛵</div>
+          <div class="app-name">السائق</div>
+          <div class="app-desc">استلم طلبات التوصيل، تنقل باستخدام الخريطة، وتابع أرباحك ومحفظتك.</div>
+          <span class="app-link">افتح التطبيق <span class="arrow">←</span></span>
+        </a>
+        <a href="admin/" class="app-card" id="appAdmin">
+          <div class="app-icon">📊</div>
+          <div class="app-name">الإدارة</div>
+          <div class="app-desc">لوحة تحكم شاملة لمراقبة المنصة، إدارة المستخدمين، الطلبات، والإعدادات العامة.</div>
+          <span class="app-link">افتح التطبيق <span class="arrow">←</span></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="section" id="how">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">كيف تعمل المنصة</div>
+        <h2 class="section-title">تجربة طلب بسيطة وسريعة</h2>
+        <p class="section-subtitle">خمس خطوات فقط من اختيار المطعم حتى استلام طلبك على الباب.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">1</div>
+          <div class="step-title">اختر</div>
+          <div class="step-desc">تصفح المطاعم المتاحة واختر ما يناسب ذوقك.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">2</div>
+          <div class="step-title">أضف</div>
+          <div class="step-desc">أضف الوجبات والمشروبات إلى سلة التسوق.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">3</div>
+          <div class="step-title">اطلب</div>
+          <div class="step-desc">أكد الطلب واختر طريقة الدفع المناسبة.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">4</div>
+          <div class="step-title">السائق</div>
+          <div class="step-desc">يستلم السائق طلبك من المطعم ويتجه إليك.</div>
+        </div>
+        <div class="step-card">
+          <div class="step-number">5</div>
+          <div class="step-title">تتبع</div>
+          <div class="step-desc">تابع مسار السائق مباشرة حتى يصل طلبك.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-label">المميزات</div>
+        <h2 class="section-title">مصممة للانطلاق الفوري</h2>
+        <p class="section-subtitle">بنية قوية وتصميم عصري جاهز للتوسع والتطوير المستقبلي.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🌑</div>
+          <div class="feature-title">تصميم OLED</div>
+          <div class="feature-desc">خلفية سوداء حقيقية مع توهجات زجاجية عصرية تناسب جميع الأجهزة.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-title">تجربة سريعة</div>
+          <div class="feature-desc">تنقل سلس بين التطبيقات الأربعة مع روابط مباشرة وواجهة موحدة.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🌍</div>
+          <div class="feature-title">متعدد اللغات</div>
+          <div class="feature-desc">دعم كامل للغات العربية والإنجليزية والألمانية في جميع التطبيقات.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">💳</div>
+          <div class="feature-title">دفع مرن</div>
+          <div class="feature-desc">جاهز للتكامل مع بوابات الدفع مثل Stripe وبطاقات الائتمان.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📦</div>
+          <div class="feature-title">إدارة الطلبات</div>
+          <div class="feature-desc">تدفق كامل للطلب من العميل إلى المطعم فالسائق مع تتبع مباشر.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-title">لوحة تحكم</div>
+          <div class="feature-desc">لوحة إدارة متكاملة لمراقبة الأداء وإدارة الحسابات والإعدادات.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="container">
+      <div class="cta-card">
+        <h2 class="cta-title">ابدأ باستخدام Fairfood الآن</h2>
+        <p class="cta-desc">
+          اختر التطبيق المناسب لك وابدأ التجربة. المنصة جاهزة للاستخدام الفوري مع إمكانية التوسع والتخصيص.
+        </p>
+        <div class="cta-actions">
+          <a href="customer/" class="btn btn-primary">📱 افتح تطبيق العميل</a>
+          <a href="restaurant/" class="btn btn-outline">🏪 بوابة المطعم</a>
+          <a href="driver/" class="btn btn-outline">🛵 تطبيق السائق</a>
+          <a href="admin/" class="btn btn-outline">📊 لوحة الإدارة</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="footer-copy">© <span id="year"></span> Fairfood Price — جميع الحقوق محفوظة</div>
       <div class="footer-links">
-        <a href="../customer/">Customer</a>
-        <a href="../restaurant/">Restaurant</a>
-        <a href="../driver/">Driver</a>
-        <a href="../admin/">Admin</a>
+        <a href="customer/" class="footer-link">العميل</a>
+        <a href="restaurant/" class="footer-link">المطعم</a>
+        <a href="driver/" class="footer-link">السائق</a>
+        <a href="admin/" class="footer-link">الإدارة</a>
       </div>
     </div>
   </footer>
 
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" style="display:none;position:fixed;inset:0;z-index:99;background:rgba(10,10,10,0.98);backdrop-filter:blur(20px);padding:100px 24px 40px;">
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <a href="#apps" class="nav-link" style="font-size:20px;padding:16px;" onclick="closeMobileMenu()">التطبيقات</a>
+      <a href="#how" class="nav-link" style="font-size:20px;padding:16px;" onclick="closeMobileMenu()">كيف تعمل</a>
+      <a href="#features" class="nav-link" style="font-size:20px;padding:16px;" onclick="closeMobileMenu()">المميزات</a>
+      <a href="#stats" class="nav-link" style="font-size:20px;padding:16px;" onclick="closeMobileMenu()">الإحصائيات</a>
+      <a href="customer/" class="btn btn-primary" style="margin-top:16px;justify-content:center;">اطلب الآن</a>
+    </div>
+  </div>
+
   <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    const counters = document.querySelectorAll("[data-count]");
-    const io = new IntersectionObserver((entries) => {
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      navbar.classList.toggle('scrolled', currentScroll > 50);
+      lastScroll = currentScroll;
+    });
+
+    // Mobile menu
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.style.display = 'block';
+    });
+
+    function closeMobileMenu() {
+      mobileMenu.style.display = 'none';
+    }
+
+    // Stats animation
+    const statElements = document.querySelectorAll('.stat-value');
+    const statsObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (!entry.isIntersecting) return;
-        const el = entry.target;
-        const target = Number(el.dataset.count || 0);
-        let current = 0;
-        const step = Math.max(1, Math.floor(target / 80));
-        const timer = setInterval(() => {
-          current += step;
-          if (current >= target) {
-            current = target;
-            clearInterval(timer);
-          }
-          el.textContent = target >= 1000 ? current.toLocaleString() + "+" : current + (target === 99 ? ".8%" : "+");
-        }, 18);
-        io.unobserve(el);
+        if (entry.isIntersecting) {
+          // Placeholder values - will be replaced by API later
+          const values = ['120,000+', '3,200+', '8,500+', '99.8%'];
+          statElements.forEach((el, i) => {
+            el.textContent = values[i] || '--';
+          });
+          statsObserver.unobserve(entry.target);
+        }
       });
-    }, { threshold: .4 });
+    }, { threshold: 0.3 });
 
-    counters.forEach(c => io.observe(c));
+    if (statElements.length) {
+      statsObserver.observe(statElements[0].parentElement);
+    }
+
+    // Mouse tracking for app cards
+    document.querySelectorAll('.app-card').forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        card.style.setProperty('--mouse-x', x + '%');
+        card.style.setProperty('--mouse-y', y + '%');
+      });
+    });
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          closeMobileMenu();
+        }
+      });
+    });
   </script>
 </body>
 </html>
