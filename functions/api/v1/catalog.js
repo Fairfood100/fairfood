@@ -1,4 +1,4 @@
-import { ok, error, onOptions } from "../../utils/response.js";
+import { ok, error, onOptions } from "../../../utils/response.js";
 
 export const onRequestOptions = onOptions;
 
