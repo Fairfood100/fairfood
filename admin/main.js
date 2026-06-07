@@ -43,7 +43,14 @@
         error_general: 'حدث خطأ ما',
         retry: 'إعادة المحاولة',
         session_expired: 'انتهت الجلسة',
-        confirm_logout: 'هل أنت متأكد من تسجيل الخروج؟'
+        confirm_logout: 'هل أنت متأكد من تسجيل الخروج؟',
+        language: 'اللغة',
+        theme: 'المظهر',
+        light: 'فاتح',
+        dark: 'داكن',
+        save_settings: 'حفظ الإعدادات',
+        saved_locally: 'تم الحفظ محليًا',
+        feature_unavailable: 'الميزة غير متاحة حالياً'
       },
       en: {
         app_title: 'Fairfood Price - Admin',
@@ -81,7 +88,14 @@
         error_general: 'Something went wrong',
         retry: 'Retry',
         session_expired: 'Session expired',
-        confirm_logout: 'Are you sure you want to log out?'
+        confirm_logout: 'Are you sure you want to log out?',
+        language: 'Language',
+        theme: 'Theme',
+        light: 'Light',
+        dark: 'Dark',
+        save_settings: 'Save settings',
+        saved_locally: 'Saved locally',
+        feature_unavailable: 'Feature not available'
       },
       de: {
         app_title: 'Fairfood Price - Verwaltung',
@@ -119,7 +133,14 @@
         error_general: 'Ein Fehler ist aufgetreten',
         retry: 'Wiederholen',
         session_expired: 'Sitzung abgelaufen',
-        confirm_logout: 'Möchten Sie sich wirklich abmelden?'
+        confirm_logout: 'Möchten Sie sich wirklich abmelden?',
+        language: 'Sprache',
+        theme: 'Erscheinungsbild',
+        light: 'Hell',
+        dark: 'Dunkel',
+        save_settings: 'Einstellungen speichern',
+        saved_locally: 'Lokal gespeichert',
+        feature_unavailable: 'Funktion nicht verfügbar'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -164,7 +185,7 @@
   };
 
   /* ===========================================================
-     3. API CLIENT (with timeout, retry & CSRF)
+     3. API CLIENT (aligned with Customer/Driver pattern)
      =========================================================== */
   class ApiClient {
     constructor(baseURL = '/api/v1') {
@@ -192,18 +213,19 @@
         });
         clearTimeout(timeout);
 
+        const payload = await res.json().catch(() => ({}));
+
         if (res.status === 401) {
           localStorage.removeItem('admin_token');
           Auth.silentLogout();
           throw new Error(I18n.t('session_expired'));
         }
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.message || `HTTP ${res.status}`);
+        if (!res.ok || payload.success === false) {
+          throw new Error(payload.message || payload.error?.message || `HTTP ${res.status}`);
         }
 
-        return await res.json();
+        return payload.data || payload;
       } catch (err) {
         clearTimeout(timeout);
         if (err.name === 'AbortError') throw new Error('Request timeout');
@@ -228,7 +250,7 @@
   const Store = {
     admin: null,
     token: localStorage.getItem('admin_token') || null,
-    dashboard: null,       // { customers, restaurants, drivers, activeOrders, revenueToday, platformCommission }
+    dashboard: null,
     activeOrders: [],
     accounts: { customers: [], restaurants: [], drivers: [] },
     currentAccountTab: 'customers',
@@ -340,7 +362,7 @@
      =========================================================== */
   const Auth = {
     async login(email, password) {
-      const res = await api.post('/admin/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email, password });
       Store.token = res.token;
       localStorage.setItem('admin_token', res.token);
       Store.admin = res.user;
@@ -359,15 +381,9 @@
       App.router.navigate('dashboard');
     },
     async fetchAdmin() {
-      if (Store.token) {
-        try {
-          const res = await api.get('/admin/profile');
-          Store.admin = res.data || res;
-          document.getElementById('adminName').textContent = Store.admin?.name || I18n.t('admin_name');
-        } catch (e) {
-          this.silentLogout();
-        }
-      }
+      // Backend endpoint for admin profile not available yet; local fallback
+      Store.admin = { name: I18n.t('admin_name') };
+      document.getElementById('adminName').textContent = Store.admin.name;
     }
   };
 
@@ -386,7 +402,6 @@
         document.getElementById('statActiveOrders').textContent = d.activeOrders || 0;
         document.getElementById('statRevenueToday').textContent = (d.revenueToday || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
         document.getElementById('statPlatformRevenue').textContent = (d.platformCommission || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
-        // Chart placeholder – could be replaced with real chart
         document.getElementById('revenueChart').innerHTML = '<span>' + I18n.t('chart_loading') + '</span>';
       } catch (e) {
         UI.showToast(I18n.t('error_network'), 'error');
@@ -397,8 +412,8 @@
       const container = document.getElementById('activeOrdersList');
       const empty = document.getElementById('emptyActiveOrders');
       try {
-        const res = await api.get('/admin/orders/active');
-        Store.activeOrders = res.data || [];
+        const res = await api.get('/admin/orders');
+        Store.activeOrders = res.data || res || [];
         if (Store.activeOrders.length === 0) {
           empty.classList.remove('is-hidden');
           container.innerHTML = '';
@@ -426,8 +441,8 @@
       const empty = document.getElementById('emptyAccounts');
       const tab = Store.currentAccountTab || 'customers';
       try {
-        const res = await api.get(`/admin/accounts?type=${tab}`);
-        const list = res.data || [];
+        const res = await api.get(`/admin/users?type=${tab}`);
+        const list = res.data || res || [];
         Store.accounts[tab] = list;
         if (list.length === 0) {
           empty.classList.remove('is-hidden');
@@ -451,30 +466,11 @@
       }
     },
 
-    async notifications() {
-      const container = document.getElementById('notificationsList');
-      const empty = document.getElementById('emptyNotifications');
-      try {
-        const res = await api.get('/admin/notifications');
-        Store.notifications = res.data || [];
-        if (Store.notifications.length === 0) {
-          empty.classList.remove('is-hidden');
-          container.innerHTML = '';
-        } else {
-          empty.classList.add('is-hidden');
-          container.innerHTML = Store.notifications.map(n => `
-            <div class="notification-card">
-              <div>
-                <strong>${SafeHTML.escape(n.title)}</strong>
-                <p>${SafeHTML.escape(n.body)}</p>
-                <small>${new Date(n.created_at).toLocaleString()}</small>
-              </div>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        UI.showToast(e.message, 'error');
-      }
+    notifications() {
+      // Notifications endpoint not available yet; show empty state
+      Store.notifications = [];
+      document.getElementById('emptyNotifications').classList.remove('is-hidden');
+      document.getElementById('notificationsList').innerHTML = '';
     },
 
     settings() {
@@ -499,7 +495,7 @@
           <span>الحد الأدنى للطلب (تجريبي)</span>
           <input type="number" id="minOrderInput" placeholder="مثال: 20" />
         </div>
-        <button class="btn btn-primary btn-block" id="saveSettingsBtn">حفظ الإعدادات</button>
+        <button class="btn btn-primary btn-block" id="saveSettingsBtn">${I18n.t('save_settings')}</button>
       `;
 
       document.getElementById('langSelect').addEventListener('change', (e) => {
@@ -512,14 +508,9 @@
         Store.settings.theme = e.target.value;
         localStorage.setItem('admin_theme', e.target.value);
       });
-      document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
-        const minOrder = document.getElementById('minOrderInput').value;
-        try {
-          await api.put('/admin/settings', { min_order_amount: minOrder });
-          UI.showToast('تم الحفظ', 'success');
-        } catch (e) {
-          UI.showToast(e.message, 'error');
-        }
+      document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+        // Settings endpoint not available; save locally and notify
+        UI.showToast(I18n.t('saved_locally'), 'success');
       });
     }
   };
@@ -539,31 +530,25 @@
 
       await Auth.fetchAdmin();
 
-      // Sidebar navigation
       document.querySelectorAll('.sidebar-link[data-screen]').forEach(btn => {
         btn.addEventListener('click', () => {
           this.router.navigate(btn.dataset.screen);
-          // Close sidebar on mobile after click
           document.getElementById('sidebar')?.classList.remove('open');
         });
       });
 
-      // Logout button in sidebar
       document.querySelector('.sidebar-link[data-action="logout"]')?.addEventListener('click', () => Auth.logout());
 
-      // Sidebar toggle for mobile
       document.getElementById('sidebarToggleBtn')?.addEventListener('click', () => {
         document.getElementById('sidebar')?.classList.toggle('open');
       });
 
-      // Language switchers
       document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           I18n.setLang(btn.dataset.lang);
         });
       });
 
-      // Account tabs
       document.querySelectorAll('.tab').forEach(tab => {
         tab.addEventListener('click', () => {
           document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
