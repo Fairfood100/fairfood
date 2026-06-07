@@ -2,6 +2,7 @@ import { verifyJwt } from "./jwt.js";
 
 export async function hashPassword(password) {
   const salt = crypto.randomUUID();
+
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(password),
@@ -68,6 +69,10 @@ export async function requireAuth(request, env) {
   if (!payload) return null;
 
   return payload;
+}
+
+export async function verifyAuth(request, env) {
+  return requireAuth(request, env);
 }
 
 export function requireRole(user, roles = []) {
