@@ -245,7 +245,7 @@
 
         const payload = await res.json().catch(() => ({}));
 
-        if (res.status === 401) {
+        if (res.status === 401 && !path.includes('/auth/login')) {
           localStorage.removeItem('driver_token');
           Auth.silentLogout();
           throw new Error(I18n.t('session_expired'));

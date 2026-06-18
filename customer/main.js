@@ -275,7 +275,7 @@
 
         const payload = await res.json().catch(() => ({}));
 
-        if (res.status === 401) {
+        if (res.status === 401 && !path.includes('/auth/login') && !path.includes('/auth/guest')) {
           localStorage.removeItem('token');
           localStorage.removeItem('ff_token');
           throw new Error('Session expired');

@@ -157,7 +157,7 @@ async function audit(env, actor, action, entityType = null, entityId = null, req
 }
 
 // الحد من سرعة الطلبات (Rate Limiting)
-async function rateLimit(request, env, limit = 180) {
+async function rateLimit(request, env, limit = 600) {
   const ip = request.headers.get("cf-connecting-ip") || "local";
   const key = "rl:" + ip;
   const now = Math.floor(Date.now() / 1000);
