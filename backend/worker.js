@@ -395,7 +395,7 @@ async function app(request, env) {
   // ================================================================
 
   // فحص صحة الخدمة
-  if (path === "/" || path === "/api/health") {
+  if (path === "/api/health") {
     return ok({ service: "Fairfood API v2.0", status: "ok", apiBase: env.PUBLIC_API_BASE }, env);
   }
 
