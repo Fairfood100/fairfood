@@ -291,6 +291,27 @@
       </div>
     </div>
 
+    <!-- شاشة تسجيل الدخول (تظهر عند عدم وجود توكن) -->
+    <div id="authSheet" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+      <div class="modal auth-modal">
+        <div class="sheet-header">
+          <h3 id="authTitle" data-i18n="driver_login">تسجيل دخول السائق</h3>
+        </div>
+        <div class="auth-form">
+          <div class="form-group">
+            <label data-i18n="email">البريد الإلكتروني</label>
+            <input type="email" id="authEmail" class="form-input" placeholder="driver@fairfood.local" />
+          </div>
+          <div class="form-group">
+            <label data-i18n="password">كلمة المرور</label>
+            <input type="password" id="authPassword" class="form-input" placeholder="Password123!" />
+          </div>
+          <button type="button" id="authLoginBtn" class="btn btn-primary btn-block" data-i18n="login">دخول</button>
+          <p id="authError" class="error-message is-hidden"></p>
+        </div>
+      </div>
+    </div>
+
     <!-- Bottom Sheet للتوصيل النشط -->
     <div id="activeDeliverySheet" class="bottom-sheet is-hidden" role="dialog" aria-modal="true" aria-labelledby="deliverySheetTitle">
       <div class="sheet-content">

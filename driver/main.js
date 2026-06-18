@@ -55,7 +55,12 @@
         transaction_debit: 'خصم',
         transaction_credit: 'إيداع',
         order_details: 'تفاصيل الطلب',
-        feature_unavailable: 'هذه الميزة غير متاحة حاليًا'
+        feature_unavailable: 'هذه الميزة غير متاحة حاليًا',
+        driver_login: 'تسجيل دخول السائق',
+        fill_fields: 'الرجاء تعبئة جميع الحقول',
+        email: 'البريد الإلكتروني',
+        password: 'كلمة المرور',
+        login: 'دخول'
       },
       en: {
         app_title: 'Fairfood Price - Driver', loading: 'Loading…', locating: 'Locating…',
@@ -105,7 +110,12 @@
         transaction_debit: 'Debit',
         transaction_credit: 'Credit',
         order_details: 'Order Details',
-        feature_unavailable: 'This feature is currently unavailable'
+        feature_unavailable: 'This feature is currently unavailable',
+        driver_login: 'Driver Login',
+        fill_fields: 'Please fill in all fields',
+        email: 'Email',
+        password: 'Password',
+        login: 'Login'
       },
       de: {
         app_title: 'Fairfood Price - Fahrer', loading: 'Lädt…', locating: 'Standort wird ermittelt…',
@@ -155,7 +165,12 @@
         transaction_debit: 'Belastung',
         transaction_credit: 'Gutschrift',
         order_details: 'Bestelldetails',
-        feature_unavailable: 'Diese Funktion ist derzeit nicht verfügbar'
+        feature_unavailable: 'Diese Funktion ist derzeit nicht verfügbar',
+        driver_login: 'Fahrer-Login',
+        fill_fields: 'Bitte füllen Sie alle Felder aus',
+        email: 'E-Mail',
+        password: 'Passwort',
+        login: 'Anmelden'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -511,18 +526,23 @@
      =========================================================== */
   const Auth = {
     async login(email, password) {
-      const res = await api.post('/auth/login', { email, password });
-      Store.token = res.token;
-      localStorage.setItem('driver_token', res.token);
-      Store.user = res.user;
-      UI.closeSheet('authSheet');
-      UI.showToast(I18n.t('auth_welcome'), 'success');
+      try {
+        const res = await api.post('/auth/login', { email, password });
+        Store.token = res.token;
+        localStorage.setItem('driver_token', res.token);
+        Store.user = res.user;
+        UI.closeSheet('authSheet');
+        document.getElementById('authError').classList.add('is-hidden');
+        UI.showToast(I18n.t('auth_welcome'), 'success');
+      } catch (e) {
+        const errEl = document.getElementById('authError');
+        errEl.textContent = e.message;
+        errEl.classList.remove('is-hidden');
+      }
     },
     logout() {
-      if (confirm(I18n.t('confirm_logout'))) {
-        this.silentLogout();
-        UI.showToast(I18n.t('logout'), 'success');
-      }
+      this.silentLogout();
+      UI.showToast(I18n.t('logout'), 'success');
     },
     silentLogout() {
       Store.token = null;
@@ -531,15 +551,19 @@
       Store.isOnline = false;
       localStorage.setItem('driver_online', 'false');
       App.router.navigate('home');
+      document.getElementById('authSheet')?.classList.remove('is-hidden');
     },
     async fetchUser() {
       if (Store.token) {
         try {
           const res = await api.get('/driver?action=profile');
           Store.user = res.data || res;
+          document.getElementById('authSheet')?.classList.add('is-hidden');
         } catch (e) {
           this.silentLogout();
         }
+      } else {
+        document.getElementById('authSheet')?.classList.remove('is-hidden');
       }
     }
   };
@@ -563,6 +587,7 @@
       try {
         const res = await api.get('/driver?action=available');
         Store.orders = res.data || res || [];
+        if (!Array.isArray(Store.orders)) Store.orders = [];
         UI.updateBadge('ordersBadge', Store.orders.length);
         if (Store.orders.length === 0) {
           emptyState.classList.remove('is-hidden');
@@ -692,6 +717,7 @@
 
         const tRes = await api.get('/finance?action=transactions');
         Store.transactions = tRes.data || tRes || [];
+        if (!Array.isArray(Store.transactions)) Store.transactions = [];
         const tContainer = document.getElementById('transactionsList');
         const emptyTrans = document.getElementById('emptyTransactions');
         if (Store.transactions.length === 0) {
@@ -852,6 +878,22 @@
 
       MapService.init();
       SocketService.init();
+
+      // ربط زر تسجيل الدخول
+      document.getElementById('authLoginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value;
+        if (!email || !password) {
+          document.getElementById('authError').textContent = I18n.t('fill_fields');
+          document.getElementById('authError').classList.remove('is-hidden');
+          return;
+        }
+        await Auth.login(email, password);
+      });
+      // السماح بالدخول بالضغط على Enter
+      document.getElementById('authPassword')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('authLoginBtn')?.click();
+      });
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
       this._updateOnlineBtn();

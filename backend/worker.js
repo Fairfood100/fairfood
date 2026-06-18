@@ -1655,6 +1655,102 @@ async function app(request, env) {
   }
 
   // ================================================================
+  // مسارات التوافق مع التطبيقات (Action-based routing)
+  // التطبيقات الجديدة تستخدم ?action= بدل المسارات
+  // ================================================================
+
+  // GET /api/driver?action=profile (ملف السائق)
+  // GET /api/driver?action=available (الطلبات المتاحة)
+  if ((path === "/api/driver" || path === "/api/v1/driver") && method === "GET") {
+    const action = url.searchParams.get("action");
+    if (action === "profile") {
+      const a = await requireAuth(request, env, "driver");
+      if (a.error) return a.error;
+      const d = await env.DB.prepare("SELECT * FROM drivers WHERE user_id=?").bind(a.user.id).first();
+      const mEarnings = d ? await env.DB.prepare("SELECT COALESCE(SUM(o.delivery_fee_cents),0) total FROM orders o WHERE o.driver_id=? AND o.status='completed' AND date(o.updated_at)=date('now')").bind(d.id).first() : { total: 0 };
+      const wEarnings = d ? await env.DB.prepare("SELECT COALESCE(SUM(o.delivery_fee_cents),0) total FROM orders o WHERE o.driver_id=? AND o.status='completed' AND o.updated_at >= datetime('now', '-7 days')").bind(d.id).first() : { total: 0 };
+      const userData = {
+        ...a.user, driver: d,
+        vehicle_plate: d?.plate_number || "", vehicle_model: d?.vehicle_model || "",
+        rating: d?.rating || 0, total_deliveries: d?.total_deliveries || 0,
+        today_earnings: mEarnings?.total || 0, weekly_earnings: wEarnings?.total || 0,
+        monthly_earnings: 0
+      };
+      delete userData.password_hash;
+      return ok({ data: userData }, env);
+    }
+    if (action === "available") {
+      const a = await requireAuth(request, env, "driver");
+      if (a.error) return a.error;
+      const rows = await env.DB.prepare("SELECT o.*, r.name AS restaurant_name, r.address AS restaurant_address, r.lat AS restaurant_lat, r.lng AS restaurant_lng FROM orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.status='ready_for_driver' AND o.driver_id IS NULL ORDER BY o.updated_at ASC LIMIT 50").all();
+      const orders = (rows.results || []).map(o => ({
+        ...o, estimated_earning: o.delivery_fee_cents || 0,
+        destination_lat: o.restaurant_lat, destination_lng: o.restaurant_lng
+      }));
+      return ok({ data: orders }, env);
+    }
+    return fail("Unknown action", 400, "UNKNOWN_ACTION", env);
+  }
+
+  // POST /api/driver (تحديث حالة السائق)
+  if ((path === "/api/driver" || path === "/api/v1/driver") && method === "POST") {
+    const b = await readBody(request);
+    if (b.action === "status") {
+      const a = await requireAuth(request, env, "driver");
+      if (a.error) return a.error;
+      const status = b.isOnline ? "online" : "offline";
+      await env.DB.prepare("UPDATE drivers SET status=?, updated_at=CURRENT_TIMESTAMP WHERE user_id=?").bind(status, a.user.id).run();
+      return ok({ status }, env);
+    }
+    return fail("Unknown action", 400, "UNKNOWN_ACTION", env);
+  }
+
+  // POST /api/driver-order (قبول/رفض طلب)
+  if ((path === "/api/driver-order" || path === "/api/v1/driver-order") && method === "POST") {
+    const b = await readBody(request);
+    const a = await requireAuth(request, env, "driver");
+    if (a.error) return a.error;
+    if (!b.orderId || !b.action) return fail("Missing orderId or action", 422, "MISSING_FIELDS", env);
+    if (b.action === "accept") {
+      const d = await env.DB.prepare("SELECT id FROM drivers WHERE user_id=?").bind(a.user.id).first();
+      if (!d) return fail("Driver not found", 404, "NOT_FOUND", env);
+      await env.DB.prepare("UPDATE orders SET driver_id=?, status='accepted_by_driver', updated_at=CURRENT_TIMESTAMP WHERE id=? AND driver_id IS NULL").bind(d.id, b.orderId).run();
+      await addEvent(env, b.orderId, "accepted_by_driver", "تم قبول الطلب من السائق");
+      broadcastToOrder(b.orderId, "order:status", { status: "accepted_by_driver", driverId: d.id });
+      return ok({ message: "Order accepted" }, env);
+    }
+    if (b.action === "reject") {
+      await env.DB.prepare("UPDATE orders SET status='new', updated_at=CURRENT_TIMESTAMP WHERE id=? AND driver_id IS NOT NULL").bind(b.orderId).run();
+      return ok({ message: "Order rejected" }, env);
+    }
+    return fail("Unknown action", 400, "UNKNOWN_ACTION", env);
+  }
+
+  // GET /api/finance?action=wallet (محفظة وأرباح السائق)
+  // GET /api/finance?action=transactions (حركات المحفظة)
+  if ((path === "/api/finance" || path === "/api/v1/finance") && method === "GET") {
+    const action = url.searchParams.get("action");
+    const a = await requireAuth(request, env, "driver");
+    if (a.error) return a.error;
+    const d = await env.DB.prepare("SELECT id FROM drivers WHERE user_id=?").bind(a.user.id).first();
+    if (!d) return fail("Driver not found", 404, "NOT_FOUND", env);
+    if (action === "wallet") {
+      const today = await env.DB.prepare("SELECT COALESCE(SUM(o.delivery_fee_cents),0) total FROM orders o WHERE o.driver_id=? AND o.status='completed' AND date(o.updated_at)=date('now')").bind(d.id).first();
+      const week = await env.DB.prepare("SELECT COALESCE(SUM(o.delivery_fee_cents),0) total FROM orders o WHERE o.driver_id=? AND o.status='completed' AND o.updated_at >= datetime('now', '-7 days')").bind(d.id).first();
+      const month = await env.DB.prepare("SELECT COALESCE(SUM(o.delivery_fee_cents),0) total FROM orders o WHERE o.driver_id=? AND o.status='completed' AND o.updated_at >= datetime('now', '-30 days')").bind(d.id).first();
+      const wallet = await env.DB.prepare("SELECT balance_cents, pending_cents FROM wallets WHERE owner_type='driver' AND owner_id=?").bind(d.id).first();
+      return ok({ data: { balance: wallet?.balance_cents || 0, balance_cents: wallet?.balance_cents || 0, pending_cents: wallet?.pending_cents || 0, today_earnings: today?.total || 0, weekly_earnings: week?.total || 0, monthly_earnings: month?.total || 0, today_deliveries: 0 } }, env);
+    }
+    if (action === "transactions") {
+      const wid = await createWalletIfMissing(env, "driver", d.id);
+      const tx = await env.DB.prepare("SELECT * FROM wallet_transactions WHERE wallet_id=? ORDER BY created_at DESC LIMIT 50").bind(wid).all();
+      const mapped = (tx.results || []).map(t => ({ description: t.note || "حركة مالية", created_at: t.created_at, type: t.type, amount: t.amount_cents }));
+      return ok({ data: mapped }, env);
+    }
+    return fail("Unknown action", 400, "UNKNOWN_ACTION", env);
+  }
+
+  // ================================================================
   // آخر شيء: المسار غير موجود
   // ================================================================
 

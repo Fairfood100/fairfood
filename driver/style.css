@@ -351,6 +351,12 @@ body[dir="ltr"] .back-btn .back-icon { transform: scaleX(-1); }
   border:1px solid var(--border); font-family:var(--font);
 }
 .support-modal-content, .about-modal-content { line-height: 1.8; }
+.auth-modal { background: var(--surface-glass); backdrop-filter: var(--glass-blur); border-radius: var(--radius-lg); padding: 24px; width: 90%; max-width: 360px; box-shadow: var(--shadow-xl); }
+.auth-form .form-group { margin-bottom: 16px; }
+.auth-form .form-group label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.9rem; }
+.auth-form .form-input { width: 100%; padding: 12px 16px; border-radius: var(--radius-full); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: var(--font); font-size: 1rem; }
+.auth-form .form-input:focus { outline: none; border-color: var(--accent); }
+.error-message { color: #ef4444; font-size: 0.85rem; margin-top: 8px; text-align: center; }
 
 /* ---------- Side Menu (animated) ---------- */
 .side-menu {
