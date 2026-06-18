@@ -54,7 +54,8 @@
         withdraw_request_sent: 'تم إرسال طلب السحب',
         transaction_debit: 'خصم',
         transaction_credit: 'إيداع',
-        order_details: 'تفاصيل الطلب'
+        order_details: 'تفاصيل الطلب',
+        feature_unavailable: 'هذه الميزة غير متاحة حاليًا'
       },
       en: {
         app_title: 'Fairfood Price - Driver', loading: 'Loading…', locating: 'Locating…',
@@ -103,7 +104,8 @@
         withdraw_request_sent: 'Withdrawal request sent',
         transaction_debit: 'Debit',
         transaction_credit: 'Credit',
-        order_details: 'Order Details'
+        order_details: 'Order Details',
+        feature_unavailable: 'This feature is currently unavailable'
       },
       de: {
         app_title: 'Fairfood Price - Fahrer', loading: 'Lädt…', locating: 'Standort wird ermittelt…',
@@ -152,7 +154,8 @@
         withdraw_request_sent: 'Auszahlungsantrag gesendet',
         transaction_debit: 'Belastung',
         transaction_credit: 'Gutschrift',
-        order_details: 'Bestelldetails'
+        order_details: 'Bestelldetails',
+        feature_unavailable: 'Diese Funktion ist derzeit nicht verfügbar'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -197,7 +200,7 @@
   };
 
   /* ===========================================================
-     3. API CLIENT (with timeout, retry & CSRF)
+     3. API CLIENT (modified to match backend response format)
      =========================================================== */
   class ApiClient {
     constructor(baseURL = '/api/v1') {
@@ -225,18 +228,19 @@
         });
         clearTimeout(timeout);
 
+        const payload = await res.json().catch(() => ({}));
+
         if (res.status === 401) {
           localStorage.removeItem('driver_token');
           Auth.silentLogout();
           throw new Error(I18n.t('session_expired'));
         }
 
-        if (!res.ok) {
-          const errorData = await res.json().catch(() => ({}));
-          throw new Error(errorData.message || `HTTP ${res.status}`);
+        if (!res.ok || payload.success === false) {
+          throw new Error(payload.message || payload.error?.message || `HTTP ${res.status}`);
         }
 
-        return await res.json();
+        return payload.data || payload;
       } catch (err) {
         clearTimeout(timeout);
         if (err.name === 'AbortError') throw new Error('Request timeout');
@@ -273,7 +277,7 @@
     settings: {
       language: localStorage.getItem('driver_lang') || 'ar',
       theme: localStorage.getItem('driver_theme') || 'light',
-      sounds: localStorage.getItem('driver_sounds') !== 'false' // default true if not set to 'false'
+      sounds: localStorage.getItem('driver_sounds') !== 'false'
     },
     map: null,
     socket: null,
@@ -468,6 +472,7 @@
      =========================================================== */
   const SocketService = {
     init() {
+      if (!window.io) return;
       if (!Store.token) return;
       if (Store.socket) Store.socket.disconnect();
       const socketUrl = window.APP_CONFIG?.socketUrl || window.location.origin;
@@ -506,7 +511,7 @@
      =========================================================== */
   const Auth = {
     async login(email, password) {
-      const res = await api.post('/driver/auth/login', { email, password });
+      const res = await api.post('/auth/login', { email, password });
       Store.token = res.token;
       localStorage.setItem('driver_token', res.token);
       Store.user = res.user;
@@ -530,10 +535,9 @@
     async fetchUser() {
       if (Store.token) {
         try {
-          const res = await api.get('/driver/profile');
+          const res = await api.get('/driver?action=profile');
           Store.user = res.data || res;
         } catch (e) {
-          // Silent logout if token invalid
           this.silentLogout();
         }
       }
@@ -557,8 +561,8 @@
       const container = document.getElementById('incomingOrdersList');
       const emptyState = document.getElementById('emptyOrders');
       try {
-        const res = await api.get('/driver/orders/new');
-        Store.orders = res.data || [];
+        const res = await api.get('/driver?action=available');
+        Store.orders = res.data || res || [];
         UI.updateBadge('ordersBadge', Store.orders.length);
         if (Store.orders.length === 0) {
           emptyState.classList.remove('is-hidden');
@@ -593,7 +597,7 @@
 
     async acceptOrder(orderId) {
       try {
-        await api.post(`/driver/orders/${orderId}/accept`);
+        await api.post('/driver-order', { action: 'accept', orderId });
         UI.showToast(I18n.t('order_accepted_message'), 'success');
         Store.orders = Store.orders.filter(o => o.id !== orderId);
         UI.updateBadge('ordersBadge', Store.orders.length);
@@ -605,7 +609,7 @@
 
     async rejectOrder(orderId) {
       try {
-        await api.post(`/driver/orders/${orderId}/reject`);
+        await api.post('/driver-order', { action: 'reject', orderId });
         UI.showToast(I18n.t('order_rejected_message'), 'info');
         Store.orders = Store.orders.filter(o => o.id !== orderId);
         UI.updateBadge('ordersBadge', Store.orders.length);
@@ -639,7 +643,7 @@
       document.getElementById('googleMapsBtn').href = googleMapsUrl;
       document.getElementById('wazeBtn').href = wazeUrl;
 
-      document.getElementById('callCustomerBtn').disabled = true; // Platform call not yet
+      document.getElementById('callCustomerBtn').disabled = true;
       document.getElementById('chatCustomerBtn').onclick = () => {
         UI.openModal('chatModal');
       };
@@ -656,8 +660,8 @@
     async earnings() {
       const container = document.getElementById('earningsContainer');
       try {
-        const res = await api.get('/driver/earnings');
-        const data = res.data || res;
+        const res = await api.get('/finance?action=wallet');
+        const data = res.data || res || {};
         Store.earnings = data;
         const currency = window.APP_CONFIG?.defaultCurrency || '';
         container.innerHTML = `
@@ -681,13 +685,13 @@
 
     async wallet() {
       try {
-        const res = await api.get('/driver/wallet');
-        Store.wallet = res.data || res;
+        const res = await api.get('/finance?action=wallet');
+        Store.wallet = res.data || res || {};
         const currency = window.APP_CONFIG?.defaultCurrency || '';
         document.getElementById('walletBalance').textContent = `${Store.wallet.balance || 0} ${currency}`;
 
-        const tRes = await api.get('/driver/wallet/transactions');
-        Store.transactions = tRes.data || [];
+        const tRes = await api.get('/finance?action=transactions');
+        Store.transactions = tRes.data || tRes || [];
         const tContainer = document.getElementById('transactionsList');
         const emptyTrans = document.getElementById('emptyTransactions');
         if (Store.transactions.length === 0) {
@@ -708,13 +712,8 @@
           `).join('');
         }
 
-        document.getElementById('withdrawBtn').onclick = async () => {
-          try {
-            await api.post('/driver/wallet/withdraw');
-            UI.showToast(I18n.t('withdraw_request_sent'), 'success');
-          } catch (e) {
-            UI.showToast(e.message, 'error');
-          }
+        document.getElementById('withdrawBtn').onclick = () => {
+          UI.showToast(I18n.t('feature_unavailable'), 'info');
         };
       } catch (e) {
         UI.showToast(e.message, 'error');
@@ -779,113 +778,28 @@
       document.getElementById('logoutBtn').addEventListener('click', () => Auth.logout());
     },
 
-    async documents() {
+    documents() {
       const container = document.getElementById('documentsContent');
-      try {
-        const res = await api.get('/driver/documents');
-        Store.documents = res.data || [];
-        if (Store.documents.length === 0) {
-          container.innerHTML = `<div class="empty-state">${I18n.t('no_documents')}</div>`;
-        } else {
-          container.innerHTML = Store.documents.map(doc => `
-            <div class="order-card">
-              <div>
-                <strong>${SafeHTML.escape(doc.name)}</strong>
-                <p>${doc.status}</p>
-              </div>
-              <button class="btn btn-sm btn-outline">${I18n.t('document_upload')}</button>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        UI.showToast(e.message, 'error');
-      }
+      container.innerHTML = `<div class="empty-state">${I18n.t('no_documents')}</div>`;
     },
 
-    async vehicleInfo() {
+    vehicleInfo() {
       const container = document.getElementById('vehicleInfoContent');
-      try {
-        const res = await api.get('/driver/vehicle');
-        Store.vehicleInfo = res.data || res;
-        if (!Store.vehicleInfo) {
-          container.innerHTML = `<div class="empty-state">${I18n.t('no_vehicle_info')}</div>`;
-        } else {
-          container.innerHTML = `
-            <div class="order-card">
-              <div>
-                <strong>${I18n.t('vehicle_plate')}</strong>
-                <p>${SafeHTML.escape(Store.vehicleInfo.plate_number || '---')}</p>
-              </div>
-            </div>
-            <div class="order-card">
-              <div>
-                <strong>${I18n.t('vehicle_model')}</strong>
-                <p>${SafeHTML.escape(Store.vehicleInfo.model || '---')}</p>
-              </div>
-            </div>
-          `;
-        }
-      } catch (e) {
-        UI.showToast(e.message, 'error');
-      }
+      container.innerHTML = `<div class="empty-state">${I18n.t('no_vehicle_info')}</div>`;
     },
 
-    async notifications() {
+    notifications() {
       const container = document.getElementById('notificationsList');
       const empty = document.getElementById('emptyNotifications');
-      try {
-        const res = await api.get('/driver/notifications');
-        Store.notifications = res.data || [];
-        if (Store.notifications.length === 0) {
-          empty.classList.remove('is-hidden');
-          container.innerHTML = '';
-        } else {
-          empty.classList.add('is-hidden');
-          container.innerHTML = Store.notifications.map(n => `
-            <div class="order-card">
-              <div>
-                <strong>${SafeHTML.escape(n.title)}</strong>
-                <p>${SafeHTML.escape(n.body)}</p>
-                <small>${new Date(n.created_at).toLocaleString()}</small>
-              </div>
-              <button class="btn btn-sm btn-outline">${I18n.t('notification_mark_read')}</button>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        UI.showToast(e.message, 'error');
-      }
+      empty.classList.remove('is-hidden');
+      container.innerHTML = '';
     },
 
-    async ordersHistory() {
+    ordersHistory() {
       const container = document.getElementById('ordersHistoryList');
       const empty = document.getElementById('emptyOrdersHistory');
-      try {
-        const res = await api.get('/driver/orders/history');
-        const orders = res.data || [];
-        if (orders.length === 0) {
-          empty.classList.remove('is-hidden');
-          container.innerHTML = '';
-        } else {
-          empty.classList.add('is-hidden');
-          const currency = window.APP_CONFIG?.defaultCurrency || '';
-          container.innerHTML = orders.map(order => `
-            <div class="order-card">
-              <div>
-                <h4>${SafeHTML.escape(order.restaurant_name)}</h4>
-                <p>${SafeHTML.escape(order.customer_name)}</p>
-                <p>${new Date(order.completed_at).toLocaleDateString()}</p>
-              </div>
-              <div>
-                <span>${order.amount} ${currency}</span>
-                <p>${order.status}</p>
-              </div>
-            </div>
-          `).join('');
-        }
-      } catch (e) {
-        UI.showToast(e.message, 'error');
-      }
+      empty.classList.remove('is-hidden');
+      container.innerHTML = '';
     },
 
     showIncomingModal(order) {
@@ -910,8 +824,8 @@
 
     async _loadQuickStats() {
       try {
-        const res = await api.get('/driver/earnings');
-        const data = res.data || res;
+        const res = await api.get('/finance?action=wallet');
+        const data = res.data || res || {};
         const currency = window.APP_CONFIG?.defaultCurrency || '';
         document.getElementById('quickStats').innerHTML = `
           <div class="stat-badge">💰 ${data.today_earnings || 0} ${currency}</div>
@@ -944,7 +858,7 @@
       toggleBtn.addEventListener('click', async () => {
         const newState = !Store.isOnline;
         try {
-          await api.post(newState ? '/driver/online' : '/driver/offline');
+          await api.post('/driver', { action: 'status', isOnline: newState });
           Store.isOnline = newState;
           localStorage.setItem('driver_online', newState);
           this._updateOnlineBtn();
@@ -961,18 +875,15 @@
         btn.addEventListener('click', () => this.router.navigate(btn.dataset.screen || 'home'));
       });
 
-      // زر الملف الشخصي في الهيدر يفتح شاشة Profile مباشرة
       document.getElementById('menuBtn')?.addEventListener('click', () => {
         this.router.navigate('profile');
       });
 
-      // أزرار الإغلاق للشيتات والمودالات
       document.getElementById('closeDeliverySheetBtn')?.addEventListener('click', () => UI.closeSheet('activeDeliverySheet'));
       document.getElementById('closeChatModalBtn')?.addEventListener('click', () => UI.closeModal('chatModal'));
       document.getElementById('closeSupportModalBtn')?.addEventListener('click', () => UI.closeModal('supportModal'));
       document.getElementById('closeAboutModalBtn')?.addEventListener('click', () => UI.closeModal('aboutModal'));
 
-      // أحداث قائمة Profile (menu items) التي تحتوي على data-action
       document.querySelectorAll('.menu-item[data-action]').forEach(item => {
         item.addEventListener('click', () => {
           const action = item.dataset.action;
@@ -993,19 +904,16 @@
         });
       });
 
-      // أحداث قائمة Profile (menu items) التي تحتوي على data-screen
       document.querySelectorAll('.menu-item[data-screen]').forEach(item => {
         item.addEventListener('click', () => {
           this.router.navigate(item.dataset.screen);
         });
       });
 
-      // Chat send placeholder
       document.getElementById('sendMessageBtn')?.addEventListener('click', () => {
         const input = document.getElementById('chatMessageInput');
         if (input.value.trim()) {
           input.value = '';
-          // سيتم ربطه لاحقاً
         }
       });
 
