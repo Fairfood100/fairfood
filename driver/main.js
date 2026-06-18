@@ -879,8 +879,10 @@
       MapService.init();
       SocketService.init();
 
-      // ربط زر تسجيل الدخول
+      // ربط زر تسجيل الدخول (مع منع الضغط المتكرر)
+      let loginInProgress = false;
       document.getElementById('authLoginBtn')?.addEventListener('click', async () => {
+        if (loginInProgress) return;
         const email = document.getElementById('authEmail').value.trim();
         const password = document.getElementById('authPassword').value;
         if (!email || !password) {
@@ -888,7 +890,14 @@
           document.getElementById('authError').classList.remove('is-hidden');
           return;
         }
+        loginInProgress = true;
+        const btn = document.getElementById('authLoginBtn');
+        btn.disabled = true;
+        btn.textContent = '...';
         await Auth.login(email, password);
+        btn.disabled = false;
+        btn.textContent = I18n.t('login');
+        loginInProgress = false;
       });
       // السماح بالدخول بالضغط على Enter
       document.getElementById('authPassword')?.addEventListener('keydown', (e) => {
