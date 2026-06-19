@@ -97,9 +97,17 @@
         <span data-i18n="nav_cart">السلة</span>
         <span id="cartBadge" class="badge hidden" aria-label="عدد العناصر">0</span>
       </button>
+      <button type="button" class="nav-btn" data-tab="orders" role="tab" aria-selected="false">
+        <i class="fas fa-clipboard-list" aria-hidden="true"></i>
+        <span data-i18n="nav_orders">طلباتي</span>
+      </button>
       <button type="button" class="nav-btn" data-tab="tracking" role="tab" aria-selected="false">
         <i class="fas fa-truck" aria-hidden="true"></i>
         <span data-i18n="nav_tracking">التتبع</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="wallet" role="tab" aria-selected="false">
+        <i class="fas fa-wallet" aria-hidden="true"></i>
+        <span data-i18n="nav_wallet">المحفظة</span>
       </button>
       <button type="button" class="nav-btn" data-tab="profile" role="tab" aria-selected="false">
         <i class="fas fa-user" aria-hidden="true"></i>
@@ -219,6 +227,17 @@
     </div>
   </section>
 
+  <!-- تفاصيل الطلب (لشاشة الطلبات السابقة) -->
+  <section id="orderDetailSheet" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="orderDetailTitle">
+    <div class="sheet-content">
+      <header class="sheet-header">
+        <h3 id="orderDetailTitle">تفاصيل الطلب</h3>
+        <button type="button" class="close-sheet" data-sheet="orderDetailSheet">&times;</button>
+      </header>
+      <div id="orderDetailContent"></div>
+    </div>
+  </section>
+
   <!-- حاوية التنبيهات -->
   <div id="toastContainer" class="toast-container" aria-live="assertive"></div>
 
@@ -231,13 +250,13 @@
       mapProvider: "leaflet",
       defaultLanguage: "ar",
       // العملة تُحدد من الخادم حسب الدولة
-      defaultCurrency: ""
+      defaultCurrency: "ر.س"
     };
   </script>
 
-  <!-- Vendor JS – انقلها إلى /assets/vendor/ قبل النشر النهائي -->
+  <!-- Vendor JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script src="config.js"></script>
   <script src="main.js" defer></script>
 </body>
 </html>

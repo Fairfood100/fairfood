@@ -5,211 +5,124 @@
     _lang: localStorage.getItem('app_lang') || 'ar',
     _data: {
       ar: {
-        app_title: 'Fairfood Price',
-        loading: 'جاري التحميل…',
-        locating: 'تحديد الموقع…',
-        nav_home: 'الرئيسية',
-        nav_cart: 'السلة',
-        nav_tracking: 'التتبع',
-        nav_profile: 'حسابي',
-        search_placeholder: 'ابحث عن مطعم أو وجبة…',
-        all_categories: 'جميع التصنيفات',
-        sort_rating: 'الأعلى تقييمًا',
-        sort_time: 'أسرع توصيل',
-        sort_fee: 'الأقل رسومًا',
-        no_results: 'لا توجد نتائج',
-        add_to_cart: 'أضف',
-        place_order: 'تأكيد الطلب',
-        empty_cart: 'السلة فارغة',
-        confirm_order: 'تأكيد الطلب',
-        delivery_address_label: 'عنوان التوصيل',
-        payment_method_label: 'طريقة الدفع',
-        order_notes_label: 'ملاحظات للمطعم',
-        order_notes_placeholder: 'مثال: بدون بصل، الرجاء الاتصال عند الوصول',
-        coupon_label: 'كود الخصم',
-        coupon_placeholder: 'أدخل الكود',
-        apply_coupon: 'تطبيق',
-        add_address: '+ إضافة عنوان جديد',
-        address_name_label: 'اسم العنوان',
-        address_name_placeholder: 'مثال: المنزل',
-        address_details_label: 'العنوان التفصيلي',
-        address_details_placeholder: 'الشارع، رقم المبنى، المدينة',
-        use_current_location: 'استخدام موقعي الحالي',
-        save_address: 'حفظ العنوان',
-        auth_title: 'تسجيل الدخول',
-        email_label: 'البريد الإلكتروني',
-        password_label: 'كلمة المرور',
-        login_btn: 'دخول',
-        guest_btn: 'متابعة كزائر',
-        no_active_order: 'لا يوجد طلب نشط',
-        tracking_placeholder: 'سيظهر التتبع هنا بعد تأكيد الطلب.',
-        error_network: 'خطأ في الاتصال بالخادم',
-        error_general: 'حدث خطأ ما',
-        retry: 'إعادة المحاولة',
-        logout: 'تسجيل الخروج',
-        order_success: 'تم تقديم طلبك بنجاح!',
-        free_delivery: 'توصيل مجاني',
-        back: 'رجوع',
-        total: 'الإجمالي',
-        added: 'تمت الإضافة',
-        order_status_pending: 'قيد الانتظار',
-        order_status_accepted: 'تم القبول',
-        order_status_preparing: 'قيد التحضير',
-        order_status_ready: 'جاهز',
-        order_status_picked_up: 'في الطريق',
-        order_status_delivered: 'تم التوصيل',
-        delivery_fee: 'رسوم التوصيل',
-        service_fee: 'رسوم الخدمة',
-        address_required: 'يرجى اختيار عنوان التوصيل',
-        cart_empty_error: 'السلة فارغة',
-        restaurant_missing: 'الرجاء اختيار مطعم أولاً',
-        order_placing: 'جارٍ تأكيد الطلب…',
-        location_denied: 'تعذر الوصول للموقع',
-        auth_welcome: 'أهلاً بك!',
-        guest_welcome: 'وضع الزائر',
-        address_saved: 'تم حفظ العنوان',
-        estimated_time: 'الوقت المقدر',
-        map_unavailable: 'الخريطة غير متاحة حاليًا',
-        address_unavailable: 'العنوان غير متاح',
-        invalid_quote: 'عرض سعر غير صالح، يرجى إعادة المحاولة'
+        app_title: 'Fairfood', loading: 'جاري التحميل…', locating: 'تحديد الموقع…',
+        nav_home: 'الرئيسية', nav_cart: 'السلة', nav_orders: 'طلباتي', nav_tracking: 'التتبع', nav_wallet: 'المحفظة', nav_profile: 'حسابي',
+        search_placeholder: 'ابحث عن مطعم…', all_categories: 'جميع التصنيفات',
+        sort_rating: 'الأعلى تقييمًا', sort_time: 'أسرع توصيل', sort_fee: 'الأقل رسومًا', no_results: 'لا توجد نتائج',
+        add_to_cart: 'أضف', place_order: 'تأكيد الطلب', empty_cart: 'السلة فارغة',
+        delivery_address_label: 'عنوان التوصيل', payment_method_label: 'طريقة الدفع',
+        order_notes_label: 'ملاحظات للمطعم', order_notes_placeholder: 'مثال: بدون بصل',
+        coupon_label: 'كود الخصم', coupon_placeholder: 'أدخل الكود', apply_coupon: 'تطبيق',
+        add_address: '+ إضافة عنوان جديد', address_name_label: 'اسم العنوان',
+        address_name_placeholder: 'مثال: المنزل', address_details_label: 'العنوان التفصيلي',
+        address_details_placeholder: 'الشارع، رقم المبنى، المدينة', use_current_location: 'استخدام موقعي الحالي',
+        save_address: 'حفظ العنوان', auth_title: 'تسجيل الدخول', email_label: 'البريد الإلكتروني',
+        password_label: 'كلمة المرور', login_btn: 'دخول', guest_btn: 'متابعة كزائر',
+        no_active_order: 'لا يوجد طلب نشط', tracking_placeholder: 'سيظهر التتبع هنا بعد تأكيد الطلب.',
+        error_network: 'خطأ في الاتصال بالخادم', error_general: 'حدث خطأ ما', retry: 'إعادة المحاولة',
+        logout: 'تسجيل الخروج', order_success: 'تم تقديم طلبك بنجاح!',
+        free_delivery: 'توصيل مجاني', back: 'رجوع', total: 'الإجمالي', added: 'تمت الإضافة',
+        order_status_pending: 'قيد الانتظار', order_status_accepted: 'تم القبول',
+        order_status_preparing: 'قيد التحضير', order_status_ready: 'جاهز',
+        order_status_picked_up: 'في الطريق', order_status_delivered: 'تم التوصيل',
+        order_status_cancelled: 'ملغي',
+        delivery_fee: 'رسوم التوصيل', service_fee: 'رسوم الخدمة',
+        address_required: 'يرجى اختيار عنوان التوصيل', cart_empty_error: 'السلة فارغة',
+        restaurant_missing: 'الرجاء اختيار مطعم أولاً', order_placing: 'جارٍ تأكيد الطلب…',
+        location_denied: 'تعذر الوصول للموقع', auth_welcome: 'أهلاً بك!',
+        guest_welcome: 'وضع الزائر', address_saved: 'تم حفظ العنوان',
+        estimated_time: 'الوقت المقدر', map_unavailable: 'الخريطة غير متاحة حاليًا',
+        address_unavailable: 'العنوان غير متاح', invalid_quote: 'عرض سعر غير صالح، يرجى إعادة المحاولة',
+        orders_empty: 'لا توجد طلبات سابقة', wallet_balance: 'الرصيد',
+        wallet_pending: 'معلق', wallet_empty: 'لا توجد حركات', order_date: 'التاريخ',
+        discount: 'خصم', coupon_applied: 'تم تطبيق الكود', coupon_invalid: 'الكود غير صالح',
+        pay_cash: 'كاش', pay_card: 'بطاقة', pay_wallet: 'محفظة', pay_stripe: 'Stripe',
+        confirm_cancel: 'هل تريد إلغاء الطلب؟', cancel: 'إلغاء', order_cancelled: 'تم إلغاء الطلب',
+        notifications: 'الإشعارات', no_notifications: 'لا توجد إشعارات',
+        orders_history: 'الطلبات السابقة', order_details: 'تفاصيل الطلب',
+        driver_location: 'موقع السائق', restaurant_name: 'المطعم',
+        total_paid: 'المدفوع', status: 'الحالة', min: 'دقيقة',
+        coupon_saved: 'تم توفير', items_count: 'أصناف'
       },
       en: {
-        app_title: 'Fairfood Price',
-        loading: 'Loading…',
-        locating: 'Locating…',
-        nav_home: 'Home',
-        nav_cart: 'Cart',
-        nav_tracking: 'Tracking',
-        nav_profile: 'Profile',
-        search_placeholder: 'Search restaurants or dishes…',
-        all_categories: 'All Categories',
-        sort_rating: 'Top Rated',
-        sort_time: 'Fastest Delivery',
-        sort_fee: 'Lowest Fee',
-        no_results: 'No results',
-        add_to_cart: 'Add',
-        place_order: 'Place Order',
-        empty_cart: 'Cart is empty',
-        confirm_order: 'Confirm Order',
-        delivery_address_label: 'Delivery Address',
-        payment_method_label: 'Payment Method',
-        order_notes_label: 'Notes for Restaurant',
-        order_notes_placeholder: 'e.g. No onions, please call on arrival',
-        coupon_label: 'Promo Code',
-        coupon_placeholder: 'Enter code',
-        apply_coupon: 'Apply',
-        add_address: '+ Add New Address',
-        address_name_label: 'Address Name',
-        address_name_placeholder: 'e.g. Home',
-        address_details_label: 'Full Address',
-        address_details_placeholder: 'Street, Building, City',
-        use_current_location: 'Use My Current Location',
-        save_address: 'Save Address',
-        auth_title: 'Sign In',
-        email_label: 'Email',
-        password_label: 'Password',
-        login_btn: 'Sign In',
-        guest_btn: 'Continue as Guest',
-        no_active_order: 'No Active Order',
-        tracking_placeholder: 'Tracking will appear after order confirmation.',
-        error_network: 'Network error',
-        error_general: 'Something went wrong',
-        retry: 'Retry',
-        logout: 'Log out',
-        order_success: 'Your order has been placed!',
-        free_delivery: 'Free delivery',
-        back: 'Back',
-        total: 'Total',
-        added: 'Added',
-        order_status_pending: 'Pending',
-        order_status_accepted: 'Accepted',
-        order_status_preparing: 'Preparing',
-        order_status_ready: 'Ready',
-        order_status_picked_up: 'On the way',
-        order_status_delivered: 'Delivered',
-        delivery_fee: 'Delivery fee',
-        service_fee: 'Service fee',
-        address_required: 'Please select a delivery address',
-        cart_empty_error: 'Cart is empty',
-        restaurant_missing: 'Please select a restaurant first',
-        order_placing: 'Placing order…',
-        location_denied: 'Location access denied',
-        auth_welcome: 'Welcome!',
-        guest_welcome: 'Guest mode',
-        address_saved: 'Address saved',
-        estimated_time: 'Estimated time',
-        map_unavailable: 'Map not available',
-        address_unavailable: 'Address unavailable',
-        invalid_quote: 'Invalid quote, please try again'
+        app_title: 'Fairfood', loading: 'Loading…', locating: 'Locating…',
+        nav_home: 'Home', nav_cart: 'Cart', nav_orders: 'My Orders', nav_tracking: 'Tracking', nav_wallet: 'Wallet', nav_profile: 'Profile',
+        search_placeholder: 'Search restaurants…', all_categories: 'All Categories',
+        sort_rating: 'Top Rated', sort_time: 'Fastest Delivery', sort_fee: 'Lowest Fee', no_results: 'No results',
+        add_to_cart: 'Add', place_order: 'Place Order', empty_cart: 'Cart is empty',
+        delivery_address_label: 'Delivery Address', payment_method_label: 'Payment Method',
+        order_notes_label: 'Notes for Restaurant', order_notes_placeholder: 'e.g. No onions',
+        coupon_label: 'Promo Code', coupon_placeholder: 'Enter code', apply_coupon: 'Apply',
+        add_address: '+ Add New Address', address_name_label: 'Address Name',
+        address_name_placeholder: 'e.g. Home', address_details_label: 'Full Address',
+        address_details_placeholder: 'Street, Building, City', use_current_location: 'Use My Current Location',
+        save_address: 'Save Address', auth_title: 'Sign In', email_label: 'Email',
+        password_label: 'Password', login_btn: 'Sign In', guest_btn: 'Continue as Guest',
+        no_active_order: 'No Active Order', tracking_placeholder: 'Tracking will appear after order confirmation.',
+        error_network: 'Network error', error_general: 'Something went wrong', retry: 'Retry',
+        logout: 'Log out', order_success: 'Your order has been placed!',
+        free_delivery: 'Free delivery', back: 'Back', total: 'Total', added: 'Added',
+        order_status_pending: 'Pending', order_status_accepted: 'Accepted',
+        order_status_preparing: 'Preparing', order_status_ready: 'Ready',
+        order_status_picked_up: 'On the way', order_status_delivered: 'Delivered',
+        order_status_cancelled: 'Cancelled',
+        delivery_fee: 'Delivery fee', service_fee: 'Service fee',
+        address_required: 'Please select a delivery address', cart_empty_error: 'Cart is empty',
+        restaurant_missing: 'Please select a restaurant first', order_placing: 'Placing order…',
+        location_denied: 'Location access denied', auth_welcome: 'Welcome!',
+        guest_welcome: 'Guest mode', address_saved: 'Address saved',
+        estimated_time: 'Estimated time', map_unavailable: 'Map not available',
+        address_unavailable: 'Address unavailable', invalid_quote: 'Invalid quote, please try again',
+        orders_empty: 'No past orders', wallet_balance: 'Balance',
+        wallet_pending: 'Pending', wallet_empty: 'No transactions', order_date: 'Date',
+        discount: 'Discount', coupon_applied: 'Coupon applied', coupon_invalid: 'Invalid coupon',
+        pay_cash: 'Cash', pay_card: 'Card', pay_wallet: 'Wallet', pay_stripe: 'Stripe',
+        confirm_cancel: 'Cancel this order?', cancel: 'Cancel', order_cancelled: 'Order cancelled',
+        notifications: 'Notifications', no_notifications: 'No notifications',
+        orders_history: 'Past Orders', order_details: 'Order Details',
+        driver_location: 'Driver location', restaurant_name: 'Restaurant',
+        total_paid: 'Total paid', status: 'Status', min: 'min',
+        coupon_saved: 'Saved', items_count: 'items'
       },
       de: {
-        app_title: 'Fairfood Price',
-        loading: 'Lädt…',
-        locating: 'Standort wird ermittelt…',
-        nav_home: 'Startseite',
-        nav_cart: 'Warenkorb',
-        nav_tracking: 'Sendung',
-        nav_profile: 'Konto',
-        search_placeholder: 'Restaurants oder Gerichte suchen…',
-        all_categories: 'Alle Kategorien',
-        sort_rating: 'Bestbewertet',
-        sort_time: 'Schnellste Lieferung',
-        sort_fee: 'Niedrigste Gebühr',
-        no_results: 'Keine Ergebnisse',
-        add_to_cart: 'Hinzufügen',
-        place_order: 'Bestellung aufgeben',
-        empty_cart: 'Warenkorb leer',
-        confirm_order: 'Bestellung bestätigen',
-        delivery_address_label: 'Lieferadresse',
-        payment_method_label: 'Zahlungsmethode',
-        order_notes_label: 'Anmerkungen zum Restaurant',
-        order_notes_placeholder: 'z. B. Keine Zwiebeln, bitte bei Ankunft anrufen',
-        coupon_label: 'Gutscheincode',
-        coupon_placeholder: 'Code eingeben',
-        apply_coupon: 'Einlösen',
-        add_address: '+ Neue Adresse hinzufügen',
-        address_name_label: 'Adressname',
-        address_name_placeholder: 'z. B. Zuhause',
-        address_details_label: 'Vollständige Adresse',
-        address_details_placeholder: 'Straße, Gebäude, Stadt',
-        use_current_location: 'Meinen Standort verwenden',
-        save_address: 'Adresse speichern',
-        auth_title: 'Anmelden',
-        email_label: 'E‑Mail',
-        password_label: 'Passwort',
-        login_btn: 'Anmelden',
-        guest_btn: 'Als Gast fortfahren',
-        no_active_order: 'Keine aktive Bestellung',
-        tracking_placeholder: 'Tracking erscheint nach Bestellbestätigung.',
-        error_network: 'Netzwerkfehler',
-        error_general: 'Ein Fehler ist aufgetreten',
-        retry: 'Wiederholen',
-        logout: 'Abmelden',
-        order_success: 'Ihre Bestellung wurde aufgegeben!',
-        free_delivery: 'Kostenlose Lieferung',
-        back: 'Zurück',
-        total: 'Gesamt',
-        added: 'Hinzugefügt',
-        order_status_pending: 'Ausstehend',
-        order_status_accepted: 'Akzeptiert',
-        order_status_preparing: 'Wird zubereitet',
-        order_status_ready: 'Bereit',
-        order_status_picked_up: 'Unterwegs',
-        order_status_delivered: 'Geliefert',
-        delivery_fee: 'Liefergebühr',
-        service_fee: 'Servicegebühr',
-        address_required: 'Bitte wählen Sie eine Lieferadresse',
-        cart_empty_error: 'Warenkorb leer',
-        restaurant_missing: 'Bitte wählen Sie ein Restaurant',
-        order_placing: 'Bestellung wird aufgegeben…',
-        location_denied: 'Standortzugriff verweigert',
-        auth_welcome: 'Willkommen!',
-        guest_welcome: 'Gastmodus',
-        address_saved: 'Adresse gespeichert',
-        estimated_time: 'Voraussichtliche Zeit',
-        map_unavailable: 'Karte nicht verfügbar',
-        address_unavailable: 'Adresse nicht verfügbar',
-        invalid_quote: 'Ungültiges Angebot, bitte versuche es erneut'
+        app_title: 'Fairfood', loading: 'Lädt…', locating: 'Standort…',
+        nav_home: 'Start', nav_cart: 'Korb', nav_orders: 'Bestellungen', nav_tracking: 'Sendung', nav_wallet: 'Geldbörse', nav_profile: 'Konto',
+        search_placeholder: 'Restaurants suchen…', all_categories: 'Alle Kategorien',
+        sort_rating: 'Bestbewertet', sort_time: 'Schnellste Lieferung', sort_fee: 'Niedrigste Gebühr', no_results: 'Keine Ergebnisse',
+        add_to_cart: 'Hinzufügen', place_order: 'Bestellen', empty_cart: 'Warenkorb leer',
+        delivery_address_label: 'Lieferadresse', payment_method_label: 'Zahlungsmethode',
+        order_notes_label: 'Notiz', order_notes_placeholder: 'z.B. Keine Zwiebeln',
+        coupon_label: 'Gutschein', coupon_placeholder: 'Code eingeben', apply_coupon: 'Einlösen',
+        add_address: '+ Neue Adresse', address_name_label: 'Name',
+        address_name_placeholder: 'z.B. Zuhause', address_details_label: 'Adresse',
+        address_details_placeholder: 'Straße, Nr., Stadt', use_current_location: 'Mein Standort',
+        save_address: 'Speichern', auth_title: 'Anmelden', email_label: 'E‑Mail',
+        password_label: 'Passwort', login_btn: 'Anmelden', guest_btn: 'Als Gast',
+        no_active_order: 'Keine aktive Bestellung', tracking_placeholder: 'Tracking erscheint nach Bestellung.',
+        error_network: 'Netzwerkfehler', error_general: 'Fehler', retry: 'Wiederholen',
+        logout: 'Abmelden', order_success: 'Bestellung aufgegeben!',
+        free_delivery: 'Kostenloser Versand', back: 'Zurück', total: 'Gesamt', added: 'Hinzugefügt',
+        order_status_pending: 'Ausstehend', order_status_accepted: 'Akzeptiert',
+        order_status_preparing: 'Zubereitung', order_status_ready: 'Bereit',
+        order_status_picked_up: 'Unterwegs', order_status_delivered: 'Geliefert',
+        order_status_cancelled: 'Storniert',
+        delivery_fee: 'Liefergebühr', service_fee: 'Servicegebühr',
+        address_required: 'Bitte Adresse wählen', cart_empty_error: 'Warenkorb leer',
+        restaurant_missing: 'Bitte Restaurant wählen', order_placing: 'Bestellung wird aufgegeben…',
+        location_denied: 'Standort verweigert', auth_welcome: 'Willkommen!',
+        guest_welcome: 'Gastmodus', address_saved: 'Adresse gespeichert',
+        estimated_time: 'Voraussichtliche Zeit', map_unavailable: 'Karte nicht verfügbar',
+        address_unavailable: 'Adresse nicht verfügbar', invalid_quote: 'Ungültiges Angebot',
+        orders_empty: 'Keine vergangenen Bestellungen', wallet_balance: 'Guthaben',
+        wallet_pending: 'Ausstehend', wallet_empty: 'Keine Transaktionen', order_date: 'Datum',
+        discount: 'Rabatt', coupon_applied: 'Gutschein eingelöst', coupon_invalid: 'Ungültiger Gutschein',
+        pay_cash: 'Bar', pay_card: 'Karte', pay_wallet: 'Wallet', pay_stripe: 'Stripe',
+        confirm_cancel: 'Bestellung stornieren?', cancel: 'Stornieren', order_cancelled: 'Storniert',
+        notifications: 'Benachrichtigungen', no_notifications: 'Keine Benachrichtigungen',
+        orders_history: 'Bisherige Bestellungen', order_details: 'Bestelldetails',
+        driver_location: 'Fahrerstandort', restaurant_name: 'Restaurant',
+        total_paid: 'Bezahlt', status: 'Status', min: 'Min.',
+        coupon_saved: 'Gespart', items_count: 'Artikel'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -226,13 +139,13 @@
     _updateUIStrings() {
       document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.dataset.i18n;
-        const translation = this.t(key);
-        if (translation) el.textContent = translation;
+        const t = this.t(key);
+        if (t) el.textContent = t;
       });
       document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.dataset.i18nPlaceholder;
-        const translation = this.t(key);
-        if (translation) el.placeholder = translation;
+        const t = this.t(key);
+        if (t) el.placeholder = t;
       });
     }
   };
@@ -245,6 +158,24 @@
     }
   };
 
+  function fmtPrice(cents) {
+    return (cents / 100).toFixed(2);
+  }
+
+  const STATUS_MAP = {
+    'new': 'pending',
+    'accepted_by_restaurant': 'accepted',
+    'preparing': 'preparing',
+    'ready_for_driver': 'ready',
+    'accepted_by_driver': 'picked_up',
+    'picked_up': 'picked_up',
+    'on_the_way': 'picked_up',
+    'completed': 'delivered',
+    'cancelled': 'cancelled'
+  };
+
+  function mapStatus(s) { return STATUS_MAP[s] || s; }
+
   class ApiClient {
     constructor(baseURL = '/api/v1') {
       this.base = baseURL;
@@ -254,37 +185,26 @@
       const url = `${this.base}${path}`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
-
-      const headers = {
-        'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
-      };
-
+      const headers = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
       const token = localStorage.getItem('token') || localStorage.getItem('ff_token');
       if (token) headers.Authorization = `Bearer ${token}`;
 
       try {
         const res = await fetch(url, {
-          method,
-          headers,
+          method, headers,
           body: body ? JSON.stringify(body) : null,
           signal: controller.signal
         });
-
         clearTimeout(timeout);
-
         const payload = await res.json().catch(() => ({}));
-
         if (res.status === 401 && !path.includes('/auth/login') && !path.includes('/auth/guest')) {
           localStorage.removeItem('token');
           localStorage.removeItem('ff_token');
           throw new Error('Session expired');
         }
-
         if (!res.ok || payload.success === false) {
           throw new Error(payload.message || payload.error?.message || `HTTP ${res.status}`);
         }
-
         return payload.data || payload;
       } catch (err) {
         clearTimeout(timeout);
@@ -315,9 +235,13 @@
     menu: [],
     cart: JSON.parse(localStorage.getItem(CART_KEY) || '[]'),
     currentOrder: null,
+    orders: [],
+    wallet: null,
+    walletTx: [],
+    notifications: [],
     filters: { category: '', sort: 'rating' },
     map: null,
-    socket: null,
+    ws: null,
     driverMarker: null,
     userMarker: null,
     watchId: null,
@@ -356,9 +280,7 @@
       this._renderScreen(screen, params);
     }
 
-    refresh() {
-      this._renderScreen(this.current, null);
-    }
+    refresh() { this._renderScreen(this.current, null); }
 
     back() {
       if (this.history.length > 0) {
@@ -380,13 +302,16 @@
       UI.closeSheet('checkoutSheet');
       UI.closeSheet('newAddressSheet');
       UI.closeSheet('authSheet');
+      UI.closeSheet('orderDetailSheet');
       UI.closeTracking();
 
       switch (screen) {
         case 'home': App.screens.home(); break;
         case 'restaurant': App.screens.restaurant(params); break;
         case 'cart': App.screens.cart(); break;
+        case 'orders': App.screens.orders(); break;
         case 'tracking': App.screens.tracking(); break;
+        case 'wallet': App.screens.wallet(); break;
         case 'profile': App.screens.profile(); break;
         default: App.screens.home();
       }
@@ -496,6 +421,7 @@
       Store.token = null;
       localStorage.removeItem('token');
       Store.user = null;
+      if (Store.ws) { Store.ws.close(); Store.ws = null; }
       GPSService.clearWatch();
       App.router.navigate('home');
       UI.showToast(I18n.t('logout'), 'success');
@@ -504,7 +430,7 @@
     async fetchUser() {
       if (Store.token) {
         try {
-          const res = await api.get('/customer?action=me');
+          const res = await api.get('/auth/me');
           Store.user = res.user || res.data || res;
         } catch (e) { }
       }
@@ -514,9 +440,7 @@
   const GPSService = {
     getCurrentPosition() {
       return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) {
-          reject(new Error('Geolocation not supported'));
-        }
+        if (!navigator.geolocation) { reject(new Error('Geolocation not supported')); return; }
         navigator.geolocation.getCurrentPosition(
           (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
           (err) => reject(err),
@@ -562,9 +486,7 @@
       const mapEl = document.getElementById('trackingMap');
       if (mapEl && typeof L !== 'undefined') {
         Store.map = L.map(mapEl).setView([lat, lng], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '©️ OpenStreetMap'
-        }).addTo(Store.map);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '©️ OpenStreetMap' }).addTo(Store.map);
         this.updateUserLocation(lat, lng);
       }
     },
@@ -593,35 +515,36 @@
     }
   };
 
-  const SocketService = {
+  const WsService = {
     init(orderId) {
-      if (!window.io) return;
-      if (Store.socket) Store.socket.disconnect();
-      const socketUrl = window.APP_CONFIG?.socketUrl || window.location.origin;
-      Store.socket = io(socketUrl, {
-        auth: { token: Store.token }
-      });
-
-      Store.socket.on('connect', () => {
-        if (orderId) {
-          Store.socket.emit('order:join', { order_id: orderId });
-        }
-      });
-
-      Store.socket.on('order:status', (data) => {
-        if (Store.currentOrder && data.order_id === Store.currentOrder.id) {
-          Store.currentOrder.status = data.status;
-          if (App.router.current === 'tracking') {
-            App.screens._renderTrackingDetail();
+      if (Store.ws) { Store.ws.close(); Store.ws = null; }
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const url = `${protocol}//${window.location.host}/api/realtime`;
+      try {
+        const ws = new WebSocket(url);
+        ws.onopen = () => {
+          if (orderId) {
+            ws.send(JSON.stringify({ type: 'join:order', orderId }));
           }
-        }
-      });
-
-      Store.socket.on('driver:location', (data) => {
-        if (Store.currentOrder && data.order_id === Store.currentOrder.id) {
-          MapService.updateDriverLocation(data.lat, data.lng);
-        }
-      });
+        };
+        ws.onmessage = (e) => {
+          try {
+            const msg = JSON.parse(e.data);
+            if (msg.event === 'order:status' && Store.currentOrder) {
+              Store.currentOrder.status = msg.data?.status || Store.currentOrder.status;
+              if (App.router.current === 'tracking') {
+                App.screens._renderTrackingDetail();
+              }
+            }
+            if (msg.event === 'driver:location' && Store.currentOrder) {
+              MapService.updateDriverLocation(msg.data.lat, msg.data.lng);
+            }
+          } catch (_) {}
+        };
+        ws.onclose = () => { Store.ws = null; };
+        ws.onerror = () => {};
+        Store.ws = ws;
+      } catch (_) {}
     }
   };
 
@@ -630,11 +553,11 @@
       UI.showLoading();
       try {
         const [restRes, catRes] = await Promise.all([
-          api.get('/catalog?action=restaurants'),
-          api.get('/catalog?action=categories')
+          api.get('/restaurants'),
+          api.get('/categories')
         ]);
-        Store.restaurants = restRes.restaurants || restRes.items || restRes.data || restRes || [];
-        Store.categories = catRes.categories || catRes.data || catRes || [];
+        Store.restaurants = Array.isArray(restRes) ? restRes : (restRes.data || restRes || []);
+        Store.categories = Array.isArray(catRes) ? catRes : (catRes.data || catRes || []);
 
         const catSelect = document.getElementById('categorySelect');
         catSelect.innerHTML = `<option value="">${I18n.t('all_categories')}</option>`;
@@ -654,15 +577,16 @@
     _renderRestaurantList(filter = '') {
       let list = [...Store.restaurants];
       if (Store.filters.category) {
-        list = list.filter(r => r.category_id == Store.filters.category);
+        list = list.filter(r => r.category_id == Store.filters.category || r.cuisine == Store.filters.category);
       }
       if (filter) {
-        list = list.filter(r => r.name.toLowerCase().includes(filter.toLowerCase()));
+        const q = filter.toLowerCase();
+        list = list.filter(r => r.name.toLowerCase().includes(q));
       }
       list.sort((a, b) => {
         if (Store.filters.sort === 'rating') return (b.rating || 0) - (a.rating || 0);
-        if (Store.filters.sort === 'deliveryTime') return (a.delivery_time || 99) - (b.delivery_time || 99);
-        if (Store.filters.sort === 'deliveryFee') return (a.delivery_fee || 99) - (b.delivery_fee || 99);
+        if (Store.filters.sort === 'deliveryTime') return (a.delivery_time_min || 99) - (b.delivery_time_min || 99);
+        if (Store.filters.sort === 'deliveryFee') return (a.delivery_fee_cents || 99) - (b.delivery_fee_cents || 99);
         return 0;
       });
 
@@ -672,11 +596,13 @@
         return;
       }
 
-      const currency = window.APP_CONFIG?.defaultCurrency || '€';
+      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
       let html = '';
       list.forEach(r => {
         const name = SafeHTML.escape(r.name);
-        const logo = r.logo_url ? `<img src="${SafeHTML.escape(r.logo_url)}" alt="${name}">` : '🍽️';
+        const logo = r.logo_url ? `<img src="${SafeHTML.escape(r.logo_url)}" alt="${name}">` : '<span style="font-size:2.5rem">🍽️</span>';
+        const fee = r.delivery_fee_cents ? fmtPrice(r.delivery_fee_cents) + ' ' + currency : I18n.t('free_delivery');
+        const time = r.delivery_time_min ? r.delivery_time_min + ' ' + I18n.t('min') : '—';
         html += `
           <div class="restaurant-card" data-id="${r.id}">
             <div class="card-media">${logo}</div>
@@ -684,8 +610,8 @@
               <h3>${name}</h3>
               <div class="meta">
                 <span>⭐ ${r.rating || '—'}</span>
-                <span>${r.delivery_time || '—'} min</span>
-                <span>${r.delivery_fee ? r.delivery_fee + ' ' + currency : I18n.t('free_delivery')}</span>
+                <span>${time}</span>
+                <span>${fee}</span>
               </div>
             </div>
           </div>`;
@@ -694,8 +620,7 @@
 
       container.querySelectorAll('.restaurant-card').forEach(card => {
         card.addEventListener('click', () => {
-          const id = card.dataset.id;
-          App.router.navigate('restaurant', id);
+          App.router.navigate('restaurant', card.dataset.id);
         });
       });
     },
@@ -703,19 +628,19 @@
     async restaurant(restaurantId) {
       UI.showLoading();
       try {
-        const res = await api.get(`/catalog?action=menu&restaurantId=${encodeURIComponent(restaurantId)}`);
+        const res = await api.get(`/restaurants/${encodeURIComponent(restaurantId)}/menu`);
         Store.currentRestaurant = restaurantId;
         persistCartAndRestaurant();
-        Store.menu = res.items || res.menu || res.data || res || [];
+        Store.menu = Array.isArray(res) ? res : (res.data || res || []);
 
-        const currency = window.APP_CONFIG?.defaultCurrency || '€';
+        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
         const container = document.getElementById('appContent');
         let html = `<button class="btn-small back-btn">← ${I18n.t('back')}</button>`;
         Store.menu.forEach(item => {
           const name = SafeHTML.escape(item.name);
           const desc = SafeHTML.escape(item.description || '');
-          const price = item.price;
-          const img = item.image_url ? `<img src="${SafeHTML.escape(item.image_url)}" class="item-image" alt="${name}">` : '';
+          const price = fmtPrice(item.price_cents);
+          const img = item.image ? `<img src="${SafeHTML.escape(item.image)}" class="item-image" alt="${name}">` : '';
           html += `
             <div class="menu-item">
               ${img}
@@ -737,7 +662,7 @@
             const item = Store.menu.find(i => i.id == itemId);
             if (item) {
               setRestaurantIfNeeded(restaurantId);
-              App.cart.add({ id: item.id, name: item.name, price: item.price });
+              App.cart.add({ id: item.id, name: item.name, price_cents: item.price_cents });
             }
           });
         });
@@ -752,11 +677,11 @@
         UI.showEmpty(I18n.t('empty_cart'));
         return;
       }
-      const currency = window.APP_CONFIG?.defaultCurrency || '€';
+      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
       let html = '';
       let subtotal = 0;
       Store.cart.forEach((item, idx) => {
-        const lineTotal = item.price * item.quantity;
+        const lineTotal = item.price_cents * item.quantity;
         subtotal += lineTotal;
         html += `
           <div class="cart-item">
@@ -766,10 +691,10 @@
               <span>${item.quantity}</span>
               <button class="qty-btn" data-idx="${idx}" data-delta="1">+</button>
             </div>
-            <span>${lineTotal.toFixed(2)} ${currency}</span>
+            <span>${fmtPrice(lineTotal)} ${currency}</span>
           </div>`;
       });
-      html += `<div class="cart-total">${I18n.t('total')}: ${subtotal.toFixed(2)} ${currency}</div>
+      html += `<div class="cart-total">${I18n.t('total')}: ${fmtPrice(subtotal)} ${currency}</div>
                <button class="btn-primary" id="proceedCheckoutBtn">${I18n.t('place_order')}</button>`;
       container.innerHTML = html;
 
@@ -791,20 +716,108 @@
       });
     },
 
+    async orders() {
+      UI.showLoading();
+      try {
+        const res = await api.get('/orders/my');
+        Store.orders = Array.isArray(res) ? res : (res.data || res || []);
+        const container = document.getElementById('appContent');
+        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+
+        if (!Store.orders.length) {
+          UI.showEmpty(I18n.t('orders_empty'));
+          return;
+        }
+
+        let html = '';
+        Store.orders.forEach(o => {
+          const statusText = I18n.t('order_status_' + mapStatus(o.status)) || o.status;
+          html += `
+            <div class="order-card" data-id="${o.id}">
+              <div class="order-card-header">
+                <strong>${SafeHTML.escape(o.restaurant_name || '')}</strong>
+                <span class="order-status status-${mapStatus(o.status)}">${statusText}</span>
+              </div>
+              <div class="order-card-body">
+                <span>${I18n.t('total')}: ${fmtPrice(o.total_cents)} ${currency}</span>
+                <span>${I18n.t('order_date')}: ${new Date(o.created_at).toLocaleDateString()}</span>
+              </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+
+        container.querySelectorAll('.order-card').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = card.dataset.id;
+            const order = Store.orders.find(o => o.id === id);
+            if (order) App.screens._showOrderDetail(order);
+          });
+        });
+      } catch (e) {
+        UI.showError(e.message, () => Screens.orders());
+      }
+    },
+
+    _showOrderDetail(order) {
+      const sheet = document.getElementById('orderDetailContent');
+      if (!sheet) return;
+      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+      const statusText = I18n.t('order_status_' + mapStatus(order.status)) || order.status;
+      const items = Store.menu.filter(m => order.id); // approximate
+
+      sheet.innerHTML = `
+        <div style="margin-bottom:16px">
+          <strong>${SafeHTML.escape(order.restaurant_name || '')}</strong><br>
+          <span>${I18n.t('status')}: ${statusText}</span><br>
+          <span>${I18n.t('total_paid')}: ${fmtPrice(order.total_cents)} ${currency}</span><br>
+          <span>${I18n.t('delivery_fee')}: ${fmtPrice(order.delivery_fee_cents)} ${currency}</span><br>
+          <span>${I18n.t('order_date')}: ${new Date(order.created_at).toLocaleString()}</span><br>
+          <span>${I18n.t('address_unavailable')}: ${SafeHTML.escape(order.delivery_address || '')}</span>
+        </div>
+        ${order.status === 'new' || order.status === 'accepted_by_restaurant' ? `<button class="btn-danger" id="cancelOrderBtn">${I18n.t('cancel')}</button>` : ''}
+      `;
+      document.getElementById('cancelOrderBtn')?.addEventListener('click', async () => {
+        if (!confirm(I18n.t('confirm_cancel'))) return;
+        try {
+          await api.post(`/orders/${order.id}/cancel`, {});
+          UI.showToast(I18n.t('order_cancelled'), 'success');
+          UI.closeSheet('orderDetailSheet');
+          Screens.orders();
+        } catch (e) {
+          UI.showToast(e.message, 'error');
+        }
+      });
+      UI.openSheet('orderDetailSheet');
+    },
+
     tracking() {
       if (Store.currentOrder) {
         if (Store.userLocation) {
           MapService.init(Store.userLocation.lat, Store.userLocation.lng);
-        } else if (Store.currentOrder.driver_location) {
-          MapService.init(
-            Store.currentOrder.driver_location.lat,
-            Store.currentOrder.driver_location.lng
-          );
         }
         UI.openTracking(Store.currentOrder);
+        this._fetchDriverLocation(Store.currentOrder.id);
       } else {
         UI.showEmpty(I18n.t('no_active_order'));
       }
+    },
+
+    async _fetchDriverLocation(orderId) {
+      if (!orderId) return;
+      try {
+        const res = await api.get(`/tracking/order/${orderId}`);
+        if (res) {
+          const data = res.data || res;
+          if (data.lat && data.lng) {
+            MapService.init(data.lat, data.lng);
+            MapService.updateDriverLocation(data.lat, data.lng);
+            if (Store.currentOrder) {
+              Store.currentOrder.eta_min = data.eta_min || Store.currentOrder.eta_min;
+              this._renderTrackingDetail();
+            }
+          }
+        }
+      } catch (_) {}
     },
 
     _renderTrackingDetail() {
@@ -815,27 +828,106 @@
         detailsEl.textContent = I18n.t('tracking_placeholder');
         return;
       }
-      const statusKey = `order_status_${Store.currentOrder.status}`;
+      const simpleStatus = mapStatus(Store.currentOrder.status);
+      const statusKey = `order_status_${simpleStatus}`;
       const statusText = I18n.t(statusKey) || Store.currentOrder.status;
-      statusEl.textContent = `#${Store.currentOrder.id} - ${statusText}`;
-      detailsEl.textContent = `${I18n.t('estimated_time')}: ${Store.currentOrder.estimated_time || '--'} min`;
+      statusEl.textContent = `#${Store.currentOrder.id.substring(0, 8)} - ${statusText}`;
+      detailsEl.textContent = `${I18n.t('estimated_time')}: ${Store.currentOrder.eta_min || '--'} ${I18n.t('min')}`;
+    },
+
+    async wallet() {
+      UI.showLoading();
+      try {
+        const res = await api.get('/wallet');
+        Store.wallet = res.wallet || null;
+        Store.walletTx = res.transactions || [];
+        const container = document.getElementById('appContent');
+        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+
+        let html = '';
+        if (Store.wallet) {
+          html += `
+            <div class="wallet-card">
+              <div class="wallet-balance">${fmtPrice(Store.wallet.balance_cents || 0)} ${currency}</div>
+              <div class="wallet-label">${I18n.t('wallet_balance')}</div>
+              <div class="wallet-pending">${I18n.t('wallet_pending')}: ${fmtPrice(Store.wallet.pending_cents || 0)} ${currency}</div>
+            </div>`;
+        }
+
+        if (!Store.walletTx.length) {
+          html += `<p style="text-align:center;margin-top:40px;color:var(--text-secondary)">${I18n.t('wallet_empty')}</p>`;
+        } else {
+          html += `<h4 style="margin:24px 0 12px">${I18n.t('order_date')}</h4>`;
+          Store.walletTx.forEach(tx => {
+            html += `
+              <div class="tx-item">
+                <span>${SafeHTML.escape(tx.note || '')}</span>
+                <span style="color:${tx.type === 'credit' ? 'var(--success)' : 'var(--danger)'}">
+                  ${tx.type === 'credit' ? '+' : '-'}${fmtPrice(tx.amount_cents)} ${currency}
+                </span>
+              </div>`;
+          });
+        }
+        container.innerHTML = html;
+      } catch (e) {
+        UI.showError(e.message, () => Screens.wallet());
+      }
     },
 
     profile() {
       const container = document.getElementById('appContent');
+      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
       let html = '';
       if (Store.user) {
-        html = `<p>${SafeHTML.escape(Store.user.name)}</p>
-                <button class="btn-secondary" id="logoutBtn">${I18n.t('logout')}</button>`;
+        html = `
+          <div class="profile-card">
+            <div class="profile-avatar">👤</div>
+            <h3>${SafeHTML.escape(Store.user.name)}</h3>
+            <p>${SafeHTML.escape(Store.user.email || '')}</p>
+          </div>
+          <button class="btn-secondary" id="ordersHistoryBtn" style="width:100%;margin-bottom:12px">${I18n.t('orders_history')}</button>
+          <button class="btn-secondary" id="notificationsBtn" style="width:100%;margin-bottom:12px">${I18n.t('notifications')}</button>
+          <button class="btn-danger" id="logoutBtn" style="width:100%">${I18n.t('logout')}</button>`;
       } else {
-        html = `<button class="btn-primary" id="showLoginBtn">${I18n.t('auth_title')}</button>
-                <button class="btn-secondary" id="guestModeBtn">${I18n.t('guest_btn')}</button>`;
+        html = `
+          <div style="text-align:center;padding:40px 0">
+            <button class="btn-primary" id="showLoginBtn" style="width:100%;margin-bottom:12px">${I18n.t('auth_title')}</button>
+            <button class="btn-secondary" id="guestModeBtn" style="width:100%">${I18n.t('guest_btn')}</button>
+          </div>`;
       }
       container.innerHTML = html;
 
       document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
       document.getElementById('showLoginBtn')?.addEventListener('click', () => UI.openSheet('authSheet'));
       document.getElementById('guestModeBtn')?.addEventListener('click', () => Auth.guest());
+      document.getElementById('ordersHistoryBtn')?.addEventListener('click', () => App.router.navigate('orders'));
+      document.getElementById('notificationsBtn')?.addEventListener('click', () => Screens._showNotifications());
+    },
+
+    async _showNotifications() {
+      try {
+        const res = await api.get('/notifications');
+        Store.notifications = Array.isArray(res) ? res : (res.data || res.notifications || []);
+        const sheet = document.getElementById('orderDetailContent');
+        if (!sheet) return;
+        if (!Store.notifications.length) {
+          sheet.innerHTML = `<p style="text-align:center">${I18n.t('no_notifications')}</p>`;
+        } else {
+          sheet.innerHTML = Store.notifications.map(n => `
+            <div class="tx-item" style="${n.is_read ? '' : 'font-weight:600'}">
+              <div>
+                <div>${SafeHTML.escape(n.title || '')}</div>
+                <small>${SafeHTML.escape(n.body || '')}</small>
+              </div>
+              <small>${new Date(n.created_at).toLocaleDateString()}</small>
+            </div>
+          `).join('');
+        }
+        document.getElementById('orderDetailTitle').textContent = I18n.t('notifications');
+        UI.openSheet('orderDetailSheet');
+      } catch (e) {
+        UI.showToast(e.message, 'error');
+      }
     }
   };
 
@@ -883,66 +975,87 @@
     async render() {
       try {
         const [addrRes] = await Promise.all([
-          api.get('/customer?action=addresses')
+          api.get('/profile/addresses')
         ]);
-        Store.addresses = addrRes.data || addrRes || [];
+        Store.addresses = Array.isArray(addrRes) ? addrRes : (addrRes.data || addrRes || []);
         const select = document.getElementById('checkoutAddressSelect');
-        select.innerHTML = Store.addresses.map(a => `<option value="${a.id}">${SafeHTML.escape(a.name)}</option>`).join('');
+        select.innerHTML = Store.addresses.map(a =>
+          `<option value="${SafeHTML.escape(a.name)}">${SafeHTML.escape(a.name)}</option>`
+        ).join('');
 
-        const quoteRes = await api.post('/orders/customer', {
-          action: 'quote',
-          restaurantId: Store.currentRestaurant,
-          items: Store.cart.map(i => ({ menuItemId: i.id, quantity: i.quantity }))
+        const quoteRes = await api.post('/orders/quote', {
+          restaurant_id: Store.currentRestaurant,
+          items: Store.cart.map(i => ({ menu_item_id: i.id, quantity: i.quantity }))
         });
         this.currentQuote = quoteRes.data || quoteRes;
-        const currency = window.APP_CONFIG?.defaultCurrency || '€';
+        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
         const sub = this.currentQuote.subtotal || 0;
         const delivery = this.currentQuote.delivery_fee || 0;
         const service = this.currentQuote.service_fee || 0;
         const total = this.currentQuote.total || (sub + delivery + service);
 
         document.getElementById('checkoutTotal').innerHTML = `
-          <div>${I18n.t('total')}: ${sub.toFixed(2)} ${currency}</div>
-          <small>${I18n.t('delivery_fee')}: ${delivery.toFixed(2)} ${currency}</small>
-          <small>${I18n.t('service_fee')}: ${service.toFixed(2)} ${currency}</small>
-          <strong>${I18n.t('total')}: ${total.toFixed(2)} ${currency}</strong>
-        `;
+          <div style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(sub)} ${currency}</div>
+          <small style="display:flex;justify-content:space-between">${I18n.t('delivery_fee')}: ${fmtPrice(delivery)} ${currency}</small>
+          <small style="display:flex;justify-content:space-between">${I18n.t('service_fee')}: ${fmtPrice(service)} ${currency}</small>
+          <hr>
+          <strong style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(total)} ${currency}</strong>`;
       } catch (e) {
         UI.showToast(e.message, 'error');
       }
 
+      document.getElementById('applyCouponBtn').onclick = () => this._applyCoupon();
       document.getElementById('confirmOrderBtn').onclick = () => this.confirm();
+    },
+
+    async _applyCoupon() {
+      const code = document.getElementById('couponCode').value.trim();
+      if (!code) return;
+      try {
+        const subtotal = Store.cart.reduce((s, i) => s + i.price_cents * i.quantity, 0);
+        const res = await api.post('/coupons/validate', { code, subtotalCents: subtotal });
+        this.currentQuote = this.currentQuote || {};
+        this.currentQuote.discount = res.discountCents || 0;
+        UI.showToast(`${I18n.t('coupon_applied')}: ${fmtPrice(res.discountCents)}`, 'success');
+        // re-render totals
+        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+        const sub = subtotal;
+        const delivery = this.currentQuote.delivery_fee || 0;
+        const service = this.currentQuote.service_fee || 0;
+        const discount = this.currentQuote.discount || 0;
+        const total = sub + delivery + service - discount;
+        document.getElementById('checkoutTotal').innerHTML = `
+          <div style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(sub)} ${currency}</div>
+          <small style="display:flex;justify-content:space-between">${I18n.t('delivery_fee')}: ${fmtPrice(delivery)} ${currency}</small>
+          <small style="display:flex;justify-content:space-between">${I18n.t('service_fee')}: ${fmtPrice(service)} ${currency}</small>
+          <small style="display:flex;justify-content:space-between;color:var(--success)">${I18n.t('discount')}: -${fmtPrice(discount)} ${currency}</small>
+          <hr>
+          <strong style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(total)} ${currency}</strong>`;
+      } catch (e) {
+        UI.showToast(e.message, 'error');
+      }
     },
 
     async confirm() {
       if (this.isPlacing) return;
-      if (!Store.cart.length) {
-        UI.showToast(I18n.t('cart_empty_error'), 'error');
-        return;
-      }
-      if (!Store.currentRestaurant) {
-        UI.showToast(I18n.t('restaurant_missing'), 'error');
-        return;
-      }
+      if (!Store.cart.length) { UI.showToast(I18n.t('cart_empty_error'), 'error'); return; }
+      if (!Store.currentRestaurant) { UI.showToast(I18n.t('restaurant_missing'), 'error'); return; }
+
       const addressSelect = document.getElementById('checkoutAddressSelect');
-      const addressId = addressSelect.value;
-      if (!addressId) {
-        UI.showToast(I18n.t('address_required'), 'error');
-        return;
-      }
+      const addressText = addressSelect.value;
+      if (!addressText) { UI.showToast(I18n.t('address_required'), 'error'); return; }
 
       const payment = document.getElementById('paymentMethodSelect').value;
       const notes = document.getElementById('orderNotes').value;
       const coupon = document.getElementById('couponCode').value;
 
       const orderData = {
-        action: 'create',
-        restaurantId: Store.currentRestaurant,
-        deliveryAddress: addressSelect.options[addressSelect.selectedIndex]?.text || document.getElementById('newAddressDetails')?.value || '',
-        paymentMethod: payment,
-        notes,
-        couponCode: coupon || null,
-        items: Store.cart.map(i => ({ menuItemId: i.id, quantity: i.quantity }))
+        restaurant_id: Store.currentRestaurant,
+        delivery_address: addressText,
+        payment_method: payment,
+        delivery_note: notes || '',
+        coupon_code: coupon || null,
+        items: Store.cart.map(i => ({ menu_item_id: i.id, quantity: i.quantity }))
       };
 
       const confirmBtn = document.getElementById('confirmOrderBtn');
@@ -951,8 +1064,9 @@
       this.isPlacing = true;
 
       try {
-        const res = await api.post('/orders/customer', orderData);
-        Store.currentOrder = res.data || res;
+        const res = await api.post('/orders', orderData);
+        const order = res.data || res;
+        Store.currentOrder = order;
         Store.cart = [];
         Store.currentRestaurant = null;
         persistCartAndRestaurant();
@@ -960,7 +1074,7 @@
         UI.closeSheet('checkoutSheet');
         UI.showToast(I18n.t('order_success'), 'success');
         App.router.navigate('tracking');
-        SocketService.init(Store.currentOrder.id || Store.currentOrder.orderId || Store.currentOrder.order?.id);
+        WsService.init(Store.currentOrder.id);
       } catch (e) {
         UI.showToast(e.message, 'error');
       } finally {
@@ -1052,7 +1166,7 @@
         const name = document.getElementById('newAddressName').value;
         const details = document.getElementById('newAddressDetails').value;
         try {
-          await api.post('/customer', { action: 'address', name, details });
+          await api.post('/profile/addresses', { name, details });
           UI.closeSheet('newAddressSheet');
           UI.showToast(I18n.t('address_saved'), 'success');
         } catch (e) {
