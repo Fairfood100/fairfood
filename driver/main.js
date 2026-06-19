@@ -60,7 +60,9 @@
         fill_fields: 'الرجاء تعبئة جميع الحقول',
         email: 'البريد الإلكتروني',
         password: 'كلمة المرور',
-        login: 'دخول'
+        login: 'دخول',
+        na: 'غير متوفر',
+        pending: 'قيد الإجراء'
       },
       en: {
         app_title: 'Fairfood Price - Driver', loading: 'Loading…', locating: 'Locating…',
@@ -115,7 +117,9 @@
         fill_fields: 'Please fill in all fields',
         email: 'Email',
         password: 'Password',
-        login: 'Login'
+        login: 'Login',
+        na: 'N/A',
+        pending: 'Pending'
       },
       de: {
         app_title: 'Fairfood Price - Fahrer', loading: 'Lädt…', locating: 'Standort wird ermittelt…',
@@ -170,7 +174,9 @@
         fill_fields: 'Bitte füllen Sie alle Felder aus',
         email: 'E-Mail',
         password: 'Passwort',
-        login: 'Anmelden'
+        login: 'Anmelden',
+        na: 'N/A',
+        pending: 'Ausstehend'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -245,7 +251,13 @@
 
         const payload = await res.json().catch(() => ({}));
 
+        // لو صار 401 وكانت الف call من دوام قديم (التوكن تغير) نتجاهلها
         if (res.status === 401 && !path.includes('/auth/login')) {
+          const currentToken = localStorage.getItem('driver_token');
+          if (currentToken && currentToken !== token) {
+            // المستخدم سجل دخول بتوكن جديد - نتجاهل الـ 401 القديم
+            throw new Error('IGNORE_STALE_401');
+          }
           localStorage.removeItem('driver_token');
           Auth.silentLogout();
           throw new Error(I18n.t('session_expired'));
@@ -533,6 +545,9 @@
         Store.user = res.user;
         UI.closeSheet('authSheet');
         document.getElementById('authError').classList.add('is-hidden');
+        await this.fetchUser();
+        SocketService.init();
+        App.router.navigate('home');
         UI.showToast(I18n.t('auth_welcome'), 'success');
       } catch (e) {
         const errEl = document.getElementById('authError');
@@ -804,28 +819,102 @@
       document.getElementById('logoutBtn').addEventListener('click', () => Auth.logout());
     },
 
-    documents() {
+    async documents() {
       const container = document.getElementById('documentsContent');
-      container.innerHTML = `<div class="empty-state">${I18n.t('no_documents')}</div>`;
+      try {
+        const res = await api.get('/driver/documents');
+        const docs = res.data || res || [];
+        if (!Array.isArray(docs) || docs.length === 0) {
+          container.innerHTML = `<div class="empty-state">${I18n.t('no_documents')}</div>`;
+        } else {
+          container.innerHTML = docs.map(d => `
+            <div class="order-card">
+              <div class="order-detail">
+                <h4>${SafeHTML.escape(d.type || d.name || '')}</h4>
+                <p>${d.status || I18n.t('pending')}</p>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">${I18n.t('no_documents')}</div>`;
+      }
     },
 
-    vehicleInfo() {
+    async vehicleInfo() {
       const container = document.getElementById('vehicleInfoContent');
-      container.innerHTML = `<div class="empty-state">${I18n.t('no_vehicle_info')}</div>`;
+      try {
+        const res = await api.get('/driver/vehicle');
+        const v = res.data || res || {};
+        if (!v.plate_number && !v.vehicle_model) {
+          container.innerHTML = `<div class="empty-state">${I18n.t('no_vehicle_info')}</div>`;
+        } else {
+          const currency = window.APP_CONFIG?.defaultCurrency || '';
+          container.innerHTML = `
+            <div class="earnings-card">
+              <p><strong>${I18n.t('vehicle_plate')}:</strong> ${SafeHTML.escape(v.plate_number || I18n.t('na'))}</p>
+              <p><strong>${I18n.t('vehicle_model')}:</strong> ${SafeHTML.escape(v.vehicle_model || v.vehicle || I18n.t('na'))}</p>
+            </div>
+          `;
+        }
+      } catch (e) {
+        container.innerHTML = `<div class="empty-state">${I18n.t('no_vehicle_info')}</div>`;
+      }
     },
 
-    notifications() {
+    async notifications() {
       const container = document.getElementById('notificationsList');
       const empty = document.getElementById('emptyNotifications');
-      empty.classList.remove('is-hidden');
-      container.innerHTML = '';
+      try {
+        const res = await api.get('/driver/notifications');
+        const notifs = res.data || res || [];
+        if (!Array.isArray(notifs) || notifs.length === 0) {
+          empty.classList.remove('is-hidden');
+          container.innerHTML = '';
+        } else {
+          empty.classList.add('is-hidden');
+          container.innerHTML = notifs.map(n => `
+            <div class="order-card">
+              <div class="order-detail">
+                <h4>${SafeHTML.escape(n.title || '')}</h4>
+                <p>${SafeHTML.escape(n.body || n.message || '')}</p>
+                <small>${new Date(n.created_at).toLocaleDateString()}</small>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        empty.classList.remove('is-hidden');
+        container.innerHTML = '';
+      }
     },
 
-    ordersHistory() {
+    async ordersHistory() {
       const container = document.getElementById('ordersHistoryList');
       const empty = document.getElementById('emptyOrdersHistory');
-      empty.classList.remove('is-hidden');
-      container.innerHTML = '';
+      try {
+        const res = await api.get('/driver/orders/history');
+        const orders = res.data || res || [];
+        if (!Array.isArray(orders) || orders.length === 0) {
+          empty.classList.remove('is-hidden');
+          container.innerHTML = '';
+        } else {
+          empty.classList.add('is-hidden');
+          container.innerHTML = orders.map(o => `
+            <div class="order-card">
+              <div class="order-detail">
+                <h4>${SafeHTML.escape(o.restaurant_name || '')}</h4>
+                <p>${SafeHTML.escape(o.delivery_address || o.restaurant_address || '')}</p>
+                <p>${new Date(o.updated_at || o.created_at).toLocaleDateString()}</p>
+                <span class="status-badge">${o.status || ''}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        empty.classList.remove('is-hidden');
+        container.innerHTML = '';
+      }
     },
 
     showIncomingModal(order) {
@@ -849,13 +938,14 @@
     },
 
     async _loadQuickStats() {
+      if (!Store.token) return;
       try {
         const res = await api.get('/finance?action=wallet');
         const data = res.data || res || {};
         const currency = window.APP_CONFIG?.defaultCurrency || '';
         document.getElementById('quickStats').innerHTML = `
           <div class="stat-badge">💰 ${data.today_earnings || 0} ${currency}</div>
-          <div class="stat-badge">📦 ${data.today_deliveries || 0} ${I18n.t('deliveries_today')}</div>
+          <div class="stat-badge">📦 ${data.today_deliveries || 0} ${I18n.t('today_deliveries')}</div>
         `;
       } catch (e) { /* ignore */ }
     }
@@ -962,10 +1052,7 @@
       });
 
       document.getElementById('sendMessageBtn')?.addEventListener('click', () => {
-        const input = document.getElementById('chatMessageInput');
-        if (input.value.trim()) {
-          input.value = '';
-        }
+        UI.showToast(I18n.t('feature_unavailable'), 'info');
       });
 
       window.addEventListener('online', () => {

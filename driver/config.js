@@ -4,5 +4,5 @@ window.APP_CONFIG = {
   socketUrl: window.location.origin,
   mapProvider: "leaflet",
   defaultLanguage: "ar",
-  defaultCurrency: ""
+  defaultCurrency: 'ر.س'
 };
