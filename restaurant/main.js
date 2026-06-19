@@ -891,21 +891,23 @@
   async function saveMenuItem() {
     try {
       const formData = new FormData();
-      formData.append('name', dom.itemName.value.trim());
-      formData.append('description', dom.itemDescription.value.trim());
-      formData.append('price', dom.itemPrice.value);
-      formData.append('categoryId', dom.itemCategory.value);
-      formData.append('available', dom.itemAvailable.checked ? 'true' : 'false');
-      if (dom.itemImage.files?.[0]) {
-        formData.append('image', dom.itemImage.files[0]);
-      }
       const id = state.currentEditingItemId;
       const path = id ? '/menus/update' : '/menus/create';
+      const payload = {
+        name: dom.itemName.value.trim(),
+        description: dom.itemDescription.value.trim(),
+        price: dom.itemPrice.value,
+        category: dom.itemCategory.value,
+        available: dom.itemAvailable.checked,
+        restaurantId: state.restaurantId
+      };
+      if (id) payload.itemId = id;
 
-      if (id) formData.append('itemId', id);
-      formData.append('restaurantId', state.restaurantId);
-
-      await apiRequest(path, { method: id ? 'PUT' : 'POST', body: formData });
+      await apiRequest(path, {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
       closeModal(dom.menuItemModal);
       showToast(t('item_saved'), 'success');
       await loadMenu();

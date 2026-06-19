@@ -505,7 +505,7 @@
       if (Store.token) {
         try {
           const res = await api.get('/customer?action=me');
-          Store.user = res.data || res;
+          Store.user = res.user || res.data || res;
         } catch (e) { }
       }
     }
@@ -938,7 +938,7 @@
       const orderData = {
         action: 'create',
         restaurantId: Store.currentRestaurant,
-        deliveryAddress: Store.userAddress || document.getElementById('newAddressDetails')?.value || '',
+        deliveryAddress: addressSelect.options[addressSelect.selectedIndex]?.text || document.getElementById('newAddressDetails')?.value || '',
         paymentMethod: payment,
         notes,
         couponCode: coupon || null,

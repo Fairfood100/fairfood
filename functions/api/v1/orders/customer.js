@@ -17,7 +17,7 @@ export async function onRequestGet(context) {
     const rows = await env.DB.prepare(`
       SELECT *
       FROM orders
-      WHERE customer_id = ?
+      WHERE customer_user_id = ?
       ORDER BY created_at DESC
     `)
       .bind(user.id)
@@ -77,20 +77,26 @@ export async function onRequestPost(context) {
     await env.DB.prepare(`
       INSERT INTO orders (
         id,
-        customer_id,
+        customer_user_id,
         restaurant_id,
         status,
-        total_amount,
+        total_cents,
+        delivery_fee_cents,
+        subtotal_cents,
+        delivery_address,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
       .bind(
         orderId,
-        user.id,
+        user.sub,
         body.restaurantId,
-        "pending",
+        "new",
         body.totalAmount || 0,
+        body.deliveryFee || 0,
+        body.subtotal || 0,
+        body.deliveryAddress || "",
         Date.now()
       )
       .run();

@@ -1,6 +1,6 @@
 import { ok, error, onOptions } from "../../../../utils/response.js";
 import { requireAuth } from "../../../../utils/auth.js";
-import { readJson } from "../../../../utils/validation.js";
+import { readJson, readFormData } from "../../../../utils/validation.js";
 
 export const onRequestOptions = onOptions;
 
@@ -8,7 +8,9 @@ export async function onRequestPost({ request, env }) {
   const user = await requireAuth(request, env);
   if (!user) return error("Unauthorized", 401);
 
-  const body = await readJson(request);
+  const ct = request.headers.get("content-type") || "";
+  const isForm = ct.includes("multipart/form-data");
+  const body = isForm ? await readFormData(request) : await readJson(request);
 
   const restaurant = await env.DB.prepare("SELECT id FROM restaurants WHERE user_id = ?")
     .bind(user.sub)
@@ -20,7 +22,7 @@ export async function onRequestPost({ request, env }) {
 
   await env.DB.prepare(
     `
-    INSERT INTO menu_items (id, restaurant_id, name, description, price, category, available, image_url)
+    INSERT INTO menu_items (id, restaurant_id, name, description, price_cents, category, available, image)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `
   )

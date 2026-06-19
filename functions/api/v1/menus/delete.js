@@ -10,10 +10,11 @@ export async function onRequestDelete({ request, env }) {
 
   const body = await readJson(request);
 
-  if (!body.id) return error("Missing item id", 422);
+  const itemId = body.itemId || body.id;
+  if (!itemId) return error("Missing item id", 422);
 
   await env.DB.prepare("DELETE FROM menu_items WHERE id = ?")
-    .bind(body.id)
+    .bind(itemId)
     .run();
 
   return ok({ deleted: true });

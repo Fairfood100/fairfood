@@ -10,12 +10,13 @@ export async function onRequestPut({ request, env }) {
 
   const body = await readJson(request);
 
-  if (!body.id) return error("Missing item id", 422);
+  const itemId = body.itemId || body.id;
+  if (!itemId) return error("Missing item id", 422);
 
   await env.DB.prepare(
     `
     UPDATE menu_items
-    SET name = ?, description = ?, price = ?, category = ?, available = ?, image_url = ?
+    SET name = ?, description = ?, price_cents = ?, category = ?, available = ?, image = ?
     WHERE id = ?
     `
   )
@@ -26,7 +27,7 @@ export async function onRequestPut({ request, env }) {
       body.category || "",
       body.available === false ? 0 : 1,
       body.imageUrl || "",
-      body.id
+      itemId
     )
     .run();
 
