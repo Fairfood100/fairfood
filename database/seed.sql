@@ -91,9 +91,9 @@ INSERT INTO wallet_transactions (id, wallet_id, type, amount_cents, note, create
 
 -- الإشعارات
 INSERT INTO notifications (id, user_id, title, body, type, is_read, created_at) VALUES
-('notif_1', 'driver_1', 'طلب جديد', 'يوجد طلب جديد بالقرب منك', 'info', 0, '2026-06-19 09:00:00'),
-('notif_2', 'driver_1', 'تم التوصيل', 'تم توصيل الطلب بنجاح', 'success', 1, '2026-06-18 11:00:00'),
-('notif_3', 'driver_2', 'طلب جديد', 'يوجد طلب شاورما بالقرب منك', 'info', 0, '2026-06-19 09:30:00'),
+('notif_1', 'driver_user_1', 'طلب جديد', 'يوجد طلب جديد بالقرب منك', 'info', 0, '2026-06-19 09:00:00'),
+('notif_2', 'driver_user_1', 'تم التوصيل', 'تم توصيل الطلب بنجاح', 'success', 1, '2026-06-18 11:00:00'),
+('notif_3', 'driver_user_2', 'طلب جديد', 'يوجد طلب شاورما بالقرب منك', 'info', 0, '2026-06-19 09:30:00'),
 ('notif_4', 'customer_1', 'طلب قيد التجهيز', 'المطعم بدأ بتجهيز طلبك', 'info', 0, '2026-06-19 09:10:00'),
 ('notif_5', 'customer_2', 'طلب جاهز', 'طلبك جاهز، السائق في الطريق', 'success', 0, '2026-06-19 09:45:00');
 
