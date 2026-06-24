@@ -148,7 +148,7 @@ body[dir="ltr"] { direction: ltr; }
   transition: opacity var(--transition-slow), visibility var(--transition-slow);
   overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
-.screen.active { opacity: 1; visibility: visible; position: relative; }
+.screen.active { opacity: 1; visibility: visible; position: relative; flex: 1; }
 
 /* ---------- Bottom Navigation ---------- */
 .bottom-nav {

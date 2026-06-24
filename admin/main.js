@@ -50,7 +50,13 @@
         dark: 'داكن',
         save_settings: 'حفظ الإعدادات',
         saved_locally: 'تم الحفظ محليًا',
-        feature_unavailable: 'الميزة غير متاحة حالياً'
+        feature_unavailable: 'الميزة غير متاحة حالياً',
+        auth_title: 'تسجيل دخول المشرف',
+        auth_email_label: 'البريد الإلكتروني',
+        auth_password_label: 'كلمة المرور',
+        auth_login_btn: 'دخول',
+        auth_login_error: 'فشل تسجيل الدخول',
+        auth_welcome: 'مرحباً بك في لوحة الإدارة'
       },
       en: {
         app_title: 'Fairfood Price - Admin',
@@ -361,29 +367,80 @@
      7. AUTH SERVICE
      =========================================================== */
   const Auth = {
+    _initialized: false,
+
     async login(email, password) {
-      const res = await api.post('/auth/login', { email, password });
+      const res = await api.post('/admin/auth/login', { email, password });
       Store.token = res.token;
       localStorage.setItem('admin_token', res.token);
       Store.admin = res.user;
-      UI.showToast('Welcome!', 'success');
+      this._initialized = true;
+      document.getElementById('authOverlay')?.classList.add('is-hidden');
+      document.getElementById('adminName').textContent = res.user?.name || I18n.t('admin_name');
+      UI.showToast(I18n.t('auth_welcome'), 'success');
     },
+
     logout() {
       if (confirm(I18n.t('confirm_logout'))) {
         this.silentLogout();
         UI.showToast(I18n.t('logout'), 'success');
       }
     },
+
     silentLogout() {
       Store.token = null;
       localStorage.removeItem('admin_token');
       Store.admin = null;
-      App.router.navigate('dashboard');
+      document.getElementById('authOverlay')?.classList.remove('is-hidden');
     },
+
     async fetchAdmin() {
-      // Backend endpoint for admin profile not available yet; local fallback
-      Store.admin = { name: I18n.t('admin_name') };
-      document.getElementById('adminName').textContent = Store.admin.name;
+      if (Store.token) {
+        try {
+          const res = await api.get('/auth/me');
+          Store.admin = res.user || res.data || res;
+          document.getElementById('adminName').textContent = Store.admin?.name || I18n.t('admin_name');
+          return;
+        } catch (e) { }
+      }
+      // No token or failed — require login
+      this._showLoginScreen();
+    },
+
+    _showLoginScreen() {
+      document.getElementById('authOverlay')?.classList.remove('is-hidden');
+      document.getElementById('authError')?.classList.add('is-hidden');
+    },
+
+    _bindEvents() {
+      document.getElementById('authLoginBtn')?.addEventListener('click', async () => {
+        const email = document.getElementById('authEmail')?.value;
+        const password = document.getElementById('authPassword')?.value;
+        if (!email || !password) {
+          document.getElementById('authError')?.classList.remove('is-hidden');
+          return;
+        }
+        try {
+          await Auth.login(email, password);
+          App.router.refresh();
+          await Promise.all([
+            Screens.dashboard(),
+            Screens.orders(),
+            Screens.accounts(),
+            Screens.notifications()
+          ]);
+        } catch (e) {
+          const errEl = document.getElementById('authError');
+          if (errEl) {
+            errEl.textContent = e.message || I18n.t('auth_login_error');
+            errEl.classList.remove('is-hidden');
+          }
+        }
+      });
+      // Enter key
+      document.getElementById('authPassword')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('authLoginBtn')?.click();
+      });
     }
   };
 
@@ -402,7 +459,22 @@
         document.getElementById('statActiveOrders').textContent = d.activeOrders || 0;
         document.getElementById('statRevenueToday').textContent = (d.revenueToday || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
         document.getElementById('statPlatformRevenue').textContent = (d.platformCommission || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
-        document.getElementById('revenueChart').innerHTML = '<span>' + I18n.t('chart_loading') + '</span>';
+        const chartEl = document.getElementById('revenueChart');
+        if (d.revenueData && Array.isArray(d.revenueData)) {
+          const max = Math.max(...d.revenueData.map(v => v.value || 0), 1);
+          const bars = d.revenueData.map(v => {
+            const pct = ((v.value || 0) / max * 100).toFixed(1);
+            return `<div style="display:flex;flex-direction:column;align-items:center;flex:1">
+              <div style="width:100%;max-width:40px;height:120px;background:var(--border);border-radius:8px;position:relative;overflow:hidden">
+                <div style="position:absolute;bottom:0;width:100%;height:${pct}%;background:var(--primary);border-radius:8px;transition:height 0.5s"></div>
+              </div>
+              <small style="margin-top:6px;color:var(--text-secondary);font-size:0.7rem">${SafeHTML.escape(v.label || '')}</small>
+            </div>`;
+          }).join('');
+          chartEl.innerHTML = `<div style="display:flex;gap:8px;padding:16px 0">${bars}</div>`;
+        } else {
+          chartEl.innerHTML = `<span style="color:var(--text-secondary)">${I18n.t('chart_loading')}</span>`;
+        }
       } catch (e) {
         UI.showToast(I18n.t('error_network'), 'error');
       }
@@ -441,7 +513,7 @@
       const empty = document.getElementById('emptyAccounts');
       const tab = Store.currentAccountTab || 'customers';
       try {
-        const res = await api.get(`/admin/users?type=${tab}`);
+        const res = await api.get(`/admin/accounts?type=${tab}`);
         const list = res.data || res || [];
         Store.accounts[tab] = list;
         if (list.length === 0) {
@@ -528,6 +600,7 @@
       I18n.setLang(Store.settings.language);
       document.body.setAttribute('data-theme', Store.settings.theme);
 
+      Auth._bindEvents();
       await Auth.fetchAdmin();
 
       document.querySelectorAll('.sidebar-link[data-screen]').forEach(btn => {

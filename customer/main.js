@@ -42,7 +42,17 @@
         orders_history: 'الطلبات السابقة', order_details: 'تفاصيل الطلب',
         driver_location: 'موقع السائق', restaurant_name: 'المطعم',
         total_paid: 'المدفوع', status: 'الحالة', min: 'دقيقة',
-        coupon_saved: 'تم توفير', items_count: 'أصناف'
+        coupon_saved: 'تم توفير', items_count: 'أصناف',
+        register_toggle: 'ليس لديك حساب؟ إنشاء حساب جديد',
+        register_btn: 'إنشاء حساب',
+        login_toggle: 'لديك حساب؟ تسجيل الدخول',
+        name_label: 'الاسم',
+        phone_label: 'رقم الجوال',
+        auth_required: 'الرجاء تسجيل الدخول للمتابعة',
+        register_success: 'تم إنشاء الحساب بنجاح',
+        order_income: 'الوارد',
+        order_spending: 'المنصرف',
+        transaction_history: 'حركات المحفظة'
       },
       en: {
         app_title: 'Fairfood', loading: 'Loading…', locating: 'Locating…',
@@ -82,7 +92,17 @@
         orders_history: 'Past Orders', order_details: 'Order Details',
         driver_location: 'Driver location', restaurant_name: 'Restaurant',
         total_paid: 'Total paid', status: 'Status', min: 'min',
-        coupon_saved: 'Saved', items_count: 'items'
+        coupon_saved: 'Saved', items_count: 'items',
+        register_toggle: "Don't have an account? Register",
+        register_btn: 'Register',
+        login_toggle: 'Already have an account? Login',
+        name_label: 'Name',
+        phone_label: 'Phone',
+        auth_required: 'Please sign in to continue',
+        register_success: 'Account created successfully',
+        order_income: 'Income',
+        order_spending: 'Spending',
+        transaction_history: 'Wallet History'
       },
       de: {
         app_title: 'Fairfood', loading: 'Lädt…', locating: 'Standort…',
@@ -122,7 +142,17 @@
         orders_history: 'Bisherige Bestellungen', order_details: 'Bestelldetails',
         driver_location: 'Fahrerstandort', restaurant_name: 'Restaurant',
         total_paid: 'Bezahlt', status: 'Status', min: 'Min.',
-        coupon_saved: 'Gespart', items_count: 'Artikel'
+        coupon_saved: 'Gespart', items_count: 'Artikel',
+        register_toggle: 'Noch kein Konto? Registrieren',
+        register_btn: 'Registrieren',
+        login_toggle: 'Bereits ein Konto? Anmelden',
+        name_label: 'Name',
+        phone_label: 'Telefon',
+        auth_required: 'Bitte anmelden um fortzufahren',
+        register_success: 'Konto erfolgreich erstellt',
+        order_income: 'Einnahmen',
+        order_spending: 'Ausgaben',
+        transaction_history: 'Transaktionsverlauf'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -301,7 +331,7 @@
       UI.closeSheet('addressSheet');
       UI.closeSheet('checkoutSheet');
       UI.closeSheet('newAddressSheet');
-      UI.closeSheet('authSheet');
+      if (!Auth._authRequired) UI.closeSheet('authSheet');
       UI.closeSheet('orderDetailSheet');
       UI.closeTracking();
 
@@ -380,8 +410,11 @@
       }
     },
 
+    _closeTimer: null,
+
     openTracking(order) {
       Store.currentOrder = order;
+      if (this._closeTimer) { clearTimeout(this._closeTimer); this._closeTimer = null; }
       const container = document.getElementById('trackingContainer');
       container.classList.remove('hidden');
       void container.offsetWidth;
@@ -392,29 +425,72 @@
     closeTracking() {
       const container = document.getElementById('trackingContainer');
       container.classList.remove('open');
-      setTimeout(() => container.classList.add('hidden'), 300);
+      if (this._closeTimer) clearTimeout(this._closeTimer);
+      this._closeTimer = setTimeout(() => {
+        container.classList.add('hidden');
+        this._closeTimer = null;
+      }, 300);
     }
   };
 
   const Auth = {
+    _authRequired: false,
+
+    showRequired() {
+      this._authRequired = true;
+      const sheet = document.getElementById('authSheet');
+      if (sheet) {
+        sheet.classList.remove('hidden');
+        void sheet.offsetWidth;
+        sheet.classList.add('open');
+      }
+      const cover = document.querySelector('.sheet-overlay');
+      if (cover) cover.style.pointerEvents = 'none';
+    },
+
     async login(email, password) {
-      const res = await api.post('/auth/login', { email, password });
-      Store.token = res.token;
-      localStorage.setItem('token', res.token);
-      Store.user = res.user;
-      UI.closeSheet('authSheet');
-      UI.showToast(I18n.t('auth_welcome'), 'success');
-      App.router.navigate('home');
+      try {
+        const res = await api.post('/auth/login', { email, password });
+        Store.token = res.token;
+        localStorage.setItem('token', res.token);
+        Store.user = res.user;
+        this._authRequired = false;
+        UI.closeSheet('authSheet');
+        UI.showToast(I18n.t('auth_welcome'), 'success');
+        App.router.navigate('home');
+      } catch (e) {
+        UI.showToast(e.message, 'error');
+      }
+    },
+
+    async register(name, email, phone, password) {
+      try {
+        const res = await api.post('/auth/register', { name, email, phone, password, role: 'customer' });
+        Store.token = res.token;
+        localStorage.setItem('token', res.token);
+        Store.user = res.user;
+        this._authRequired = false;
+        UI.closeSheet('authSheet');
+        UI.showToast(I18n.t('register_success'), 'success');
+        App.router.navigate('home');
+      } catch (e) {
+        UI.showToast(e.message, 'error');
+      }
     },
 
     async guest() {
-      const res = await api.post('/auth/guest', {});
-      Store.token = res.token;
-      localStorage.setItem('token', res.token);
-      Store.user = null;
-      UI.closeSheet('authSheet');
-      UI.showToast(I18n.t('guest_welcome'), 'success');
-      App.router.navigate('home');
+      try {
+        const res = await api.post('/auth/guest', {});
+        Store.token = res.token;
+        localStorage.setItem('token', res.token);
+        Store.user = null;
+        this._authRequired = false;
+        UI.closeSheet('authSheet');
+        UI.showToast(I18n.t('guest_welcome'), 'success');
+        App.router.navigate('home');
+      } catch (e) {
+        UI.showToast(e.message, 'error');
+      }
     },
 
     logout() {
@@ -423,7 +499,7 @@
       Store.user = null;
       if (Store.ws) { Store.ws.close(); Store.ws = null; }
       GPSService.clearWatch();
-      App.router.navigate('home');
+      this.showRequired();
       UI.showToast(I18n.t('logout'), 'success');
     },
 
@@ -432,8 +508,43 @@
         try {
           const res = await api.get('/auth/me');
           Store.user = res.user || res.data || res;
+          if (Store.user) return;
         } catch (e) { }
       }
+      this.showRequired();
+    },
+
+    _setupBindings() {
+      document.getElementById('doLoginBtn')?.addEventListener('click', () => {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        if (!email || !password) { UI.showToast(I18n.t('auth_required'), 'error'); return; }
+        Auth.login(email, password);
+      });
+
+      document.getElementById('registerToggleBtn')?.addEventListener('click', () => {
+        document.getElementById('authLoginForm').style.display = 'none';
+        document.getElementById('authRegisterForm').style.display = 'block';
+        document.getElementById('authSheetTitle').textContent = I18n.t('register_btn');
+      });
+
+      document.getElementById('loginToggleBtn')?.addEventListener('click', () => {
+        document.getElementById('authRegisterForm').style.display = 'none';
+        document.getElementById('authLoginForm').style.display = 'block';
+        document.getElementById('authSheetTitle').textContent = I18n.t('auth_title');
+      });
+
+      document.getElementById('doRegisterBtn')?.addEventListener('click', () => {
+        const name = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const phone = document.getElementById('regPhone').value;
+        const password = document.getElementById('regPassword').value;
+        if (!name || !email || !phone || !password) {
+          UI.showToast(I18n.t('auth_required'), 'error');
+          return;
+        }
+        Auth.register(name, email, phone, password);
+      });
     }
   };
 
@@ -449,6 +560,8 @@
       });
     },
 
+    _lastGpsTime: 0,
+
     watchPosition(callback) {
       if (Store.watchId) navigator.geolocation.clearWatch(Store.watchId);
       Store.watchId = navigator.geolocation.watchPosition(
@@ -458,7 +571,7 @@
           callback(coords);
         },
         (err) => console.warn('GPS error', err),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
       );
     },
 
@@ -470,9 +583,12 @@
     },
 
     async reverseGeocode(lat, lng) {
+      const now = Date.now();
+      if (now - this._lastGpsTime < 30000) return;
+      this._lastGpsTime = now;
       try {
         const res = await api.get(`/geo/reverse?lat=${lat}&lng=${lng}`);
-        return res.data?.display_name || I18n.t('address_unavailable');
+        return res?.display_name || res?.data?.display_name || I18n.t('address_unavailable');
       } catch (e) {
         return I18n.t('address_unavailable');
       }
@@ -857,7 +973,23 @@
         if (!Store.walletTx.length) {
           html += `<p style="text-align:center;margin-top:40px;color:var(--text-secondary)">${I18n.t('wallet_empty')}</p>`;
         } else {
-          html += `<h4 style="margin:24px 0 12px">${I18n.t('order_date')}</h4>`;
+          const credits = Store.walletTx.filter(tx => tx.type === 'credit').reduce((s, t) => s + (t.amount_cents || 0), 0);
+          const debits = Store.walletTx.filter(tx => tx.type === 'debit').reduce((s, t) => s + (t.amount_cents || 0), 0);
+          const total = credits + debits;
+          const creditPct = total > 0 ? (credits / total * 100).toFixed(1) : 50;
+          html += `<div class="wallet-chart">
+            <div class="wallet-chart-bar">
+              <div style="display:flex;height:24px;border-radius:12px;overflow:hidden;background:var(--border)">
+                <div style="width:${creditPct}%;background:var(--success);transition:width 0.5s"></div>
+                <div style="width:${(100 - creditPct)}%;background:var(--danger);transition:width 0.5s"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-top:4px;color:var(--text-secondary)">
+                <span>${I18n.t('order_income')}: ${fmtPrice(credits)} ${currency}</span>
+                <span>${I18n.t('order_spending')}: ${fmtPrice(debits)} ${currency}</span>
+              </div>
+            </div>
+          </div>`;
+          html += `<h4 style="margin:24px 0 12px">${I18n.t('transaction_history')}</h4>`;
           Store.walletTx.forEach(tx => {
             html += `
               <div class="tx-item">
@@ -1095,16 +1227,20 @@
     async init() {
       this.router = new Router();
       I18n.setLang(I18n._lang);
+      Auth._setupBindings();
       await Auth.fetchUser();
 
+      let geocodePending = false;
       GPSService.watchPosition(async (coords) => {
         Store.userLocation = coords;
         const addressLine = document.getElementById('userAddressLine');
-        if (addressLine) {
+        if (addressLine && !geocodePending) {
+          geocodePending = true;
           addressLine.textContent = I18n.t('locating');
           const readable = await GPSService.reverseGeocode(coords.lat, coords.lng);
-          Store.userAddress = readable;
-          addressLine.textContent = readable;
+          if (readable) Store.userAddress = readable;
+          if (readable) addressLine.textContent = readable;
+          geocodePending = false;
         }
         MapService.updateUserLocation(coords.lat, coords.lng);
       });

@@ -172,6 +172,19 @@
     <div id="ariaLiveRegion" class="sr-only" aria-live="polite"></div>
   </div>
 
+  <!-- شاشة تسجيل الدخول -->
+  <div id="authOverlay" class="auth-overlay is-hidden">
+    <div class="auth-modal">
+      <h2 data-i18n="auth_title">تسجيل دخول المشرف</h2>
+      <label for="authEmail" data-i18n="auth_email_label">البريد الإلكتروني</label>
+      <input type="email" id="authEmail" placeholder="admin@fairfood.local" autocomplete="email" />
+      <label for="authPassword" data-i18n="auth_password_label">كلمة المرور</label>
+      <input type="password" id="authPassword" placeholder="كلمة المرور" autocomplete="current-password" />
+      <button type="button" id="authLoginBtn" class="btn-primary" data-i18n="auth_login_btn">دخول</button>
+      <p id="authError" class="auth-error is-hidden" data-i18n="auth_login_error">فشل تسجيل الدخول</p>
+    </div>
+  </div>
+
   <!-- ملف الإعدادات الخارجي -->
   <script src="config.js" defer></script>
   <!-- Vendor JS (إن احتجت) -->

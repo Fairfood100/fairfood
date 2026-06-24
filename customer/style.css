@@ -972,3 +972,7 @@ body[dir="ltr"] .search-box input {
   opacity: .9;
   transform: translateY(-2px);
 }
+
+.wallet-chart {
+  margin: 16px 0;
+}

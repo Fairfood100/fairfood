@@ -272,7 +272,21 @@
       order_rejected: 'Bestellung abgelehnt',
       order_ready: 'Bestellung bereit',
       handoff_confirmed: 'Übergabe bestätigt',
-      no_notifications: 'Keine Benachrichtigungen'
+      no_notifications: 'Keine Benachrichtigungen',
+      auth_title: 'تسجيل الدخول',
+      auth_email_label: 'البريد الإلكتروني',
+      auth_email_placeholder: 'restaurant@fairfood.local',
+      auth_password_label: 'كلمة المرور',
+      auth_password_placeholder: 'كلمة المرور',
+      auth_login_btn: 'دخول',
+      auth_login_error: 'فشل تسجيل الدخول',
+      auth_welcome: 'مرحباً بك في لوحة المطعم',
+      auth_register_title: 'تسجيل مطعم جديد',
+      auth_register_btn: 'تسجيل',
+      auth_name_label: 'اسم المطعم',
+      auth_phone_label: 'رقم الهاتف',
+      auth_register_success: 'تم التسجيل بنجاح',
+      auth_logout: 'تسجيل خروج'
     }
   };
 
@@ -385,7 +399,9 @@
     });
 
     if (response.status === 401) {
-      showToast(t('network_error'), 'error');
+      state.token = '';
+      localStorage.removeItem(STORAGE.token);
+      showAuthSheet();
       throw new Error('Unauthorized');
     }
 
@@ -591,7 +607,7 @@
   }
 
   async function loadBootstrap() {
-    const data = await apiRequest('/restaurants/me');
+    const data = await apiRequest('/restaurant/me');
     state.restaurant = data.restaurant || data;
     state.restaurantId = state.restaurant.id || state.restaurant._id || state.restaurantId;
     state.currency = state.restaurant.currency || CONFIG.defaultCurrency || '€';
@@ -604,7 +620,7 @@
 
   async function loadDashboard() {
     if (!state.restaurantId) return;
-    const data = await apiRequest(`/orders/list?restaurantId=${encodeURIComponent(state.restaurantId)}`);
+    const data = await apiRequest(`/restaurant/orders`);
     const orders = data.orders || data || [];
     state.orders = Array.isArray(orders) ? orders : [];
     state.newOrders = state.orders.filter((o) =>
@@ -620,7 +636,7 @@
 
   async function loadMenu() {
     if (!state.restaurantId) return;
-    const data = await apiRequest(`/menus/list?restaurantId=${encodeURIComponent(state.restaurantId)}`);
+    const data = await apiRequest(`/restaurant/menu`);
     state.menuItems = data.items || data.menu || data || [];
     state.categories = data.categories || buildCategoriesFromMenu(state.menuItems);
     renderMenuCategories();
@@ -629,7 +645,7 @@
 
   async function loadEarnings() {
     if (!state.restaurantId) return;
-    const data = await apiRequest(`/restaurants/earnings?restaurantId=${encodeURIComponent(state.restaurantId)}`);
+    const data = await apiRequest(`/restaurant/${encodeURIComponent(state.restaurantId)}/earnings`);
     state.earnings = data || null;
     renderEarnings();
   }
@@ -746,15 +762,11 @@
       if (action === 'handoff') return openDriverHandoff(orderId);
       const prepInput = document.querySelector(`[data-prep-for="${CSS.escape(orderId)}"]`);
       const prepTime = prepInput ? Number(prepInput.value || 20) : undefined;
-      const endpointMap = {
-        accept: '/orders/accept',
-        reject: '/orders/reject',
-        ready: '/orders/ready'
-      };
+      const actionSuffix = { accept: 'restaurant-accept', reject: 'restaurant-reject', ready: 'ready' }[action] || action;
 
-      await apiRequest(endpointMap[action], {
+      await apiRequest(`/orders/${encodeURIComponent(orderId)}/${actionSuffix}`, {
         method: 'POST',
-        body: JSON.stringify({ orderId, prepTime })
+        body: JSON.stringify({ prepTime })
       });
       const msgMap = { accept: t('order_accepted'), reject: t('order_rejected'), ready: t('order_ready') };
       showToast(msgMap[action] || t('saved_successfully'), 'success');
@@ -798,9 +810,8 @@
     const orderId = dom.driverHandoffContent?.dataset.orderId;
     if (!orderId) return;
     try {
-      await apiRequest('/orders/handoff', {
-        method: 'POST',
-        body: JSON.stringify({ orderId })
+      await apiRequest(`/orders/${encodeURIComponent(orderId)}/handoff`, {
+        method: 'POST'
       });
       closeModal(dom.driverHandoffModal);
       playSound(dom.soundPickupConfirmed);
@@ -853,11 +864,14 @@
 
   function menuItemHTML(item) {
     const id = item.id || item._id;
-    const img = item.imageUrl || item.image || '/assets/images/food-placeholder.png';
+    const img = item.imageUrl || item.image;
     const available = item.available !== false && item.isAvailable !== false;
+    const imgHtml = img
+      ? `<img src="${escapeHTML(img)}" alt="${escapeHTML(item.name || '')}" style="width:100%;height:160px;object-fit:cover">`
+      : `<div style="width:100%;height:160px;background:var(--border);display:flex;align-items:center;justify-content:center;color:var(--text-light);font-size:3rem">🍽</div>`;
     return `
       <article class="menu-item-card" data-item-id="${id}">
-        <img src="${escapeHTML(img)}" alt="${escapeHTML(item.name || '')}">
+        ${imgHtml}
         <div class="item-details">
           <div class="item-name">${escapeHTML(item.name || '')}</div>
           <div class="item-price">${money(item.price)}</div>
@@ -890,23 +904,36 @@
 
   async function saveMenuItem() {
     try {
-      const formData = new FormData();
       const id = state.currentEditingItemId;
-      const path = id ? '/menus/update' : '/menus/create';
-      const payload = {
-        name: dom.itemName.value.trim(),
-        description: dom.itemDescription.value.trim(),
-        price: dom.itemPrice.value,
-        category: dom.itemCategory.value,
-        available: dom.itemAvailable.checked,
-        restaurantId: state.restaurantId
-      };
-      if (id) payload.itemId = id;
+      const path = id ? `/restaurant/menu/${encodeURIComponent(id)}` : '/restaurant/menu';
+      const file = dom.itemImage?.files?.[0];
+
+      let body, headers;
+      if (file) {
+        const fd = new FormData();
+        fd.append('name', dom.itemName.value.trim());
+        fd.append('description', dom.itemDescription.value.trim());
+        fd.append('price', String(dom.itemPrice.value));
+        fd.append('category', dom.itemCategory.value);
+        fd.append('available', dom.itemAvailable.checked ? 'true' : 'false');
+        fd.append('image', file);
+        body = fd;
+        headers = {};
+      } else {
+        headers = { 'Content-Type': 'application/json' };
+        body = JSON.stringify({
+          name: dom.itemName.value.trim(),
+          description: dom.itemDescription.value.trim(),
+          price: dom.itemPrice.value,
+          category: dom.itemCategory.value,
+          available: dom.itemAvailable.checked
+        });
+      }
 
       await apiRequest(path, {
         method: id ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        headers,
+        body
       });
       closeModal(dom.menuItemModal);
       showToast(t('item_saved'), 'success');
@@ -919,9 +946,8 @@
   async function deleteMenuItem(itemId) {
     if (!itemId) return;
     try {
-      await apiRequest('/menus/delete', {
-        method: 'POST',
-        body: JSON.stringify({ itemId, restaurantId: state.restaurantId })
+      await apiRequest(`/restaurant/menu/${encodeURIComponent(itemId)}`, {
+        method: 'DELETE'
       });
       showToast(t('item_deleted'), 'success');
       await loadMenu();
@@ -932,13 +958,9 @@
 
   async function toggleMenuItem(itemId, available) {
     try {
-      await apiRequest('/menus/update', {
+      await apiRequest(`/restaurant/menu/${encodeURIComponent(itemId)}`, {
         method: 'PUT',
-        body: JSON.stringify({
-          itemId,
-          restaurantId: state.restaurantId,
-          available
-        })
+        body: JSON.stringify({ available })
       });
     } catch (err) {
       showToast(err.message || t('network_error'), 'error');
@@ -1022,7 +1044,7 @@
           driverArrived: dom.notifyDriverArrived.checked
         }
       };
-      const data = await apiRequest('/restaurants/update', {
+      const data = await apiRequest(`/restaurant/${encodeURIComponent(state.restaurantId)}`, {
         method: 'PUT',
         body: JSON.stringify(payload)
       });
@@ -1108,12 +1130,83 @@
     });
   }
 
+  /* ===== Auth ===== */
+  function showAuthSheet() {
+    const sheet = document.getElementById('authSheet');
+    if (!sheet) return;
+    sheet.classList.remove('hidden');
+    void sheet.offsetWidth;
+    sheet.classList.add('open');
+    // Disable dismiss
+    const overlay = sheet.querySelector('.sheet-overlay');
+    if (overlay) overlay.style.pointerEvents = 'none';
+  }
+
+  function closeAuthSheet() {
+    const sheet = document.getElementById('authSheet');
+    if (!sheet) return;
+    sheet.classList.remove('open');
+    sheet.classList.add('hidden');
+  }
+
+  async function handleLogin(email, password) {
+    try {
+      const res = await apiRequest('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, role: 'restaurant' })
+      });
+      const token = res.token || res.data?.token;
+      const user = res.user || res.data?.user;
+      if (!token) throw new Error('No token returned');
+      state.token = token;
+      localStorage.setItem(STORAGE.token, token);
+      state.restaurantId = user?.restaurantId || user?.id || '';
+      if (state.restaurantId) localStorage.setItem(STORAGE.restaurantId, state.restaurantId);
+      closeAuthSheet();
+      showToast(t('auth_welcome'), 'success');
+      try {
+        await loadBootstrap();
+        await Promise.all([loadDashboard(), loadMenu(), loadEarnings()]);
+        connectSocket();
+        renderAll();
+        updateBadges();
+      } catch (e) {
+        showToast(t('network_error'), 'info');
+      }
+    } catch (err) {
+      showToast(t('auth_login_error') + ': ' + (err.message || ''), 'error');
+    }
+  }
+
+  function bindAuthEvents() {
+    const loginBtn = document.getElementById('doLoginBtn');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', () => {
+        const email = document.getElementById('loginEmail')?.value;
+        const password = document.getElementById('loginPassword')?.value;
+        if (!email || !password) {
+          showToast(t('auth_login_error'), 'error');
+          return;
+        }
+        handleLogin(email, password);
+      });
+    }
+    // Allow Enter key
+    const pwdInput = document.getElementById('loginPassword');
+    if (pwdInput) {
+      pwdInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') loginBtn?.click();
+      });
+    }
+  }
+
   async function init() {
     applyTheme(state.theme);
     applyLanguage(state.lang);
     bindEvents();
     bindNetworkEvents();
     setupPwaInstall();
+    bindAuthEvents();
 
     try {
       setLoading(true);
@@ -1123,14 +1216,9 @@
         await Promise.all([loadDashboard(), loadMenu(), loadEarnings()]);
         connectSocket();
       } else {
-        state.restaurant = { name: t('restaurant_name'), isOpen: false };
-        state.orders = [];
-        state.newOrders = [];
-        state.activeOrders = [];
-        state.menuItems = [];
-        state.categories = [];
-        state.earnings = null;
-        renderAll();
+        setLoading(false);
+        showAuthSheet();
+        return; // wait for login
       }
     } catch (err) {
       state.restaurant = { name: t('restaurant_name'), isOpen: false };

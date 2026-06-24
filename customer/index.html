@@ -194,27 +194,52 @@
     </div>
   </section>
 
-  <!-- تسجيل الدخول -->
-  <section id="authSheet" class="bottom-sheet hidden" role="dialog" aria-modal="true" aria-labelledby="authSheetTitle">
-    <div class="sheet-content">
+  <!-- تسجيل الدخول (إجباري) -->
+  <section id="authSheet" class="bottom-sheet" role="dialog" aria-modal="true" aria-labelledby="authSheetTitle">
+    <div class="sheet-content" id="authSheetInner">
       <header class="sheet-header">
         <h3 id="authSheetTitle" data-i18n="auth_title">تسجيل الدخول</h3>
-        <button type="button" class="close-sheet" data-sheet="authSheet" aria-label="إغلاق">&times;</button>
       </header>
 
-      <label for="loginEmail" data-i18n="email_label">البريد الإلكتروني</label>
-      <input type="email" id="loginEmail" placeholder="name@example.com" autocomplete="email" />
+      <div id="authLoginForm">
+        <label for="loginEmail" data-i18n="email_label">البريد الإلكتروني</label>
+        <input type="email" id="loginEmail" placeholder="name@example.com" autocomplete="email" />
 
-      <label for="loginPassword" data-i18n="password_label">كلمة المرور</label>
-      <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password" />
+        <label for="loginPassword" data-i18n="password_label">كلمة المرور</label>
+        <input type="password" id="loginPassword" placeholder="كلمة المرور" autocomplete="current-password" />
 
-      <button type="button" id="doLoginBtn" class="btn-primary" data-i18n="login_btn">
-        دخول
-      </button>
+        <button type="button" id="doLoginBtn" class="btn-primary" data-i18n="login_btn">
+          دخول
+        </button>
 
-      <button type="button" id="guestModeBtn" class="btn-secondary" data-i18n="guest_btn">
-        متابعة كزائر
-      </button>
+        <button type="button" id="registerToggleBtn" class="btn-link" data-i18n="register_toggle" style="background:none;border:none;color:var(--primary);font-size:.9rem;cursor:pointer;width:100%;margin-bottom:12px">
+          ليس لديك حساب؟ إنشاء حساب جديد
+        </button>
+
+        <button type="button" id="guestModeBtn" class="btn-secondary" data-i18n="guest_btn">
+          متابعة كزائر
+        </button>
+      </div>
+
+      <div id="authRegisterForm" style="display:none">
+        <label for="regName" data-i18n="name_label">الاسم</label>
+        <input type="text" id="regName" placeholder="الاسم الكامل" autocomplete="name" />
+
+        <label for="regEmail" data-i18n="email_label">البريد الإلكتروني</label>
+        <input type="email" id="regEmail" placeholder="name@example.com" autocomplete="email" />
+
+        <label for="regPhone" data-i18n="phone_label">رقم الجوال</label>
+        <input type="tel" id="regPhone" placeholder="+9665xxxxxxxx" autocomplete="tel" />
+
+        <label for="regPassword" data-i18n="password_label">كلمة المرور</label>
+        <input type="password" id="regPassword" placeholder="كلمة المرور" autocomplete="new-password" />
+
+        <button type="button" id="doRegisterBtn" class="btn-primary" data-i18n="register_btn">إنشاء حساب</button>
+
+        <button type="button" id="loginToggleBtn" class="btn-link" data-i18n="login_toggle" style="background:none;border:none;color:var(--primary);font-size:.9rem;cursor:pointer;width:100%;margin-top:12px">
+          لديك حساب؟ تسجيل الدخول
+        </button>
+      </div>
     </div>
   </section>
 
