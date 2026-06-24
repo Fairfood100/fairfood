@@ -420,6 +420,83 @@ body[dir="ltr"] .side-menu-content { right:auto; left:0; transform: translateX(-
   background: var(--danger); color: #fff; padding: 16px; text-align: center; font-weight: 700;
 }
 
+/* ---------- Blocking Auth Overlay ---------- */
+.auth-overlay-blocking {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.auth-overlay-blocking.is-hidden { display: none; }
+.auth-modal-box {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 32px 24px;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: var(--shadow-xl);
+  animation: modalSlideIn 0.3s ease;
+}
+.auth-modal-box h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+}
+.auth-modal-box .form-group {
+  margin-bottom: 12px;
+}
+.auth-modal-box label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+.auth-modal-box input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  background: var(--bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.auth-modal-box input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-light, rgba(255,90,0,0.1));
+}
+.auth-modal-box .btn-primary {
+  width: 100%;
+  margin-top: 16px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.auth-modal-box .btn-primary:hover { background: var(--primary-dark); }
+.auth-modal-box .error-message {
+  color: var(--danger);
+  text-align: center;
+  margin-top: 12px;
+  font-size: 0.9rem;
+}
+
+@keyframes modalSlideIn {
+  from { opacity: 0; transform: translateY(30px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* ---------- Desktop Preview (phone frame) ---------- */
 @media (min-width: 768px) {
   body { background: #E8ECF1; display: flex; align-items: center; justify-content: center; }

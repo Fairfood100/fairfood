@@ -370,6 +370,8 @@
       UI.closeModal('supportModal');
       UI.closeModal('aboutModal');
 
+      if (Auth._authRequired) return;
+
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       const screenId = this.screenMap[screen];
       if (screenId) {
@@ -495,41 +497,85 @@
   };
 
   /* ===========================================================
-     8. SOCKET SERVICE
+     8. REALTIME SERVICE (Native WebSocket)
      =========================================================== */
-  const SocketService = {
+  const RealtimeService = {
+    _ws: null,
+    _reconnectTimer: null,
+
     init() {
-      if (!window.io) return;
       if (!Store.token) return;
-      if (Store.socket) Store.socket.disconnect();
-      const socketUrl = window.APP_CONFIG?.socketUrl || window.location.origin;
-      Store.socket = io(socketUrl, {
-        auth: { token: Store.token }
-      });
+      if (this._ws) { try { this._ws.close(); } catch (e) {} }
+      const url = (window.APP_CONFIG?.socketUrl || window.location.origin).replace(/^http/, 'ws') + '/api/realtime';
+      this._ws = new WebSocket(url);
 
-      Store.socket.on('connect', () => UI.hideBanners());
-      Store.socket.on('disconnect', () => UI.showOfflineBanner());
-
-      Store.socket.on('driver:new_order', (order) => {
-        Store.orders.push(order);
-        UI.updateBadge('ordersBadge', Store.orders.length);
-        UI.announce(I18n.t('new_order'));
-        App.screens.showIncomingModal(order);
-        try { document.getElementById('soundNewOrder')?.play(); } catch (e) { /* ignore */ }
-      });
-
-      Store.socket.on('driver:order_cancelled', (data) => {
-        Store.orders = Store.orders.filter(o => o.id !== data.order_id);
-        UI.updateBadge('ordersBadge', Store.orders.length);
-        try { document.getElementById('soundCancelled')?.play(); } catch (e) { /* ignore */ }
-      });
-
-      Store.socket.on('driver:delivery_update', (delivery) => {
-        Store.activeDelivery = delivery;
-        if (['home', 'delivery'].includes(App.router.current)) {
-          App.screens.delivery();
+      this._ws.onopen = () => {
+        UI.hideBanners();
+        // Join driver channel
+        this._send({ type: 'join:drivers' });
+        // Join own order channels if active
+        if (Store.activeDelivery?.orderId) {
+          this._send({ type: 'join:order', orderId: Store.activeDelivery.orderId });
         }
-      });
+      };
+
+      this._ws.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          const event = msg.event || msg.type;
+          const data = msg.data || msg;
+
+          if (event === 'driver:new_order') {
+            Store.orders.push(data);
+            UI.updateBadge('ordersBadge', Store.orders.length);
+            UI.announce(I18n.t('new_order'));
+            App.screens.showIncomingModal(data);
+            try { document.getElementById('soundNewOrder')?.play(); } catch (e) { }
+          }
+
+          if (event === 'driver:order_cancelled') {
+            Store.orders = Store.orders.filter(o => o.id !== data.order_id);
+            UI.updateBadge('ordersBadge', Store.orders.length);
+            try { document.getElementById('soundCancelled')?.play(); } catch (e) { }
+          }
+
+          if (event === 'driver:delivery_update') {
+            Store.activeDelivery = data;
+            if (['home', 'delivery'].includes(App.router.current)) {
+              App.screens.delivery();
+            }
+          }
+
+          if (event === 'order:status') {
+            // Update active delivery status if applicable
+            if (Store.activeDelivery && data.orderId === Store.activeDelivery.orderId) {
+              Store.activeDelivery = { ...Store.activeDelivery, ...data };
+            }
+          }
+        } catch (e) { /* ignore parse errors */ }
+      };
+
+      this._ws.onclose = () => {
+        UI.showOfflineBanner();
+        this._reconnectTimer = setTimeout(() => this.init(), 5000);
+      };
+
+      this._ws.onerror = () => { this._ws?.close(); };
+    },
+
+    _send(msg) {
+      if (this._ws?.readyState === WebSocket.OPEN) {
+        this._ws.send(JSON.stringify(msg));
+      }
+    },
+
+    joinOrder(orderId) {
+      this._send({ type: 'join:order', orderId });
+    },
+
+    disconnect() {
+      clearTimeout(this._reconnectTimer);
+      if (this._ws) { try { this._ws.close(); } catch (e) {} this._ws = null; }
     }
   };
 
@@ -537,16 +583,18 @@
      9. AUTH SERVICE
      =========================================================== */
   const Auth = {
+    _authRequired: false,
+
     async login(email, password) {
       try {
-        const res = await api.post('/auth/login', { email, password });
+        const res = await api.post('/driver/auth/login', { email, password });
         Store.token = res.token;
         localStorage.setItem('driver_token', res.token);
         Store.user = res.user;
-        UI.closeSheet('authSheet');
+        this._authRequired = false;
+        document.getElementById('authSheet')?.classList.add('is-hidden');
         document.getElementById('authError').classList.add('is-hidden');
-        await this.fetchUser();
-        SocketService.init();
+        RealtimeService.init();
         App.router.navigate('home');
         UI.showToast(I18n.t('auth_welcome'), 'success');
       } catch (e) {
@@ -555,31 +603,64 @@
         errEl.classList.remove('is-hidden');
       }
     },
+
     logout() {
+      RealtimeService.disconnect();
       this.silentLogout();
       UI.showToast(I18n.t('logout'), 'success');
     },
+
     silentLogout() {
       Store.token = null;
       localStorage.removeItem('driver_token');
       Store.user = null;
       Store.isOnline = false;
       localStorage.setItem('driver_online', 'false');
-      App.router.navigate('home');
+      this.showRequired();
+    },
+
+    showRequired() {
+      this._authRequired = true;
       document.getElementById('authSheet')?.classList.remove('is-hidden');
     },
+
     async fetchUser() {
       if (Store.token) {
         try {
-          const res = await api.get('/driver?action=profile');
-          Store.user = res.data || res;
-          document.getElementById('authSheet')?.classList.add('is-hidden');
-        } catch (e) {
-          this.silentLogout();
-        }
-      } else {
-        document.getElementById('authSheet')?.classList.remove('is-hidden');
+          const res = await api.get('/driver/profile');
+          Store.user = res.user || res.data || res;
+          if (Store.user) {
+            document.getElementById('authSheet')?.classList.add('is-hidden');
+            return;
+          }
+        } catch (e) { }
       }
+      this.showRequired();
+    },
+
+    _bindEvents() {
+      let loginInProgress = false;
+      document.getElementById('authLoginBtn')?.addEventListener('click', async () => {
+        if (loginInProgress) return;
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value;
+        if (!email || !password) {
+          document.getElementById('authError').textContent = I18n.t('fill_fields');
+          document.getElementById('authError').classList.remove('is-hidden');
+          return;
+        }
+        loginInProgress = true;
+        const btn = document.getElementById('authLoginBtn');
+        btn.disabled = true;
+        btn.textContent = '...';
+        await Auth.login(email, password);
+        btn.disabled = false;
+        btn.textContent = I18n.t('login');
+        loginInProgress = false;
+      });
+      document.getElementById('authPassword')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('authLoginBtn')?.click();
+      });
     }
   };
 
@@ -600,8 +681,8 @@
       const container = document.getElementById('incomingOrdersList');
       const emptyState = document.getElementById('emptyOrders');
       try {
-        const res = await api.get('/driver?action=available');
-        Store.orders = res.data || res || [];
+        const res = await api.get('/driver/orders/available');
+        Store.orders = res.orders || res.data || res || [];
         if (!Array.isArray(Store.orders)) Store.orders = [];
         UI.updateBadge('ordersBadge', Store.orders.length);
         if (Store.orders.length === 0) {
@@ -637,10 +718,20 @@
 
     async acceptOrder(orderId) {
       try {
-        await api.post('/driver-order', { action: 'accept', orderId });
+        await api.post(`/orders/${encodeURIComponent(orderId)}/driver-accept`);
+        RealtimeService.joinOrder(orderId);
+        // Fetch current order details for the delivery sheet
+        let delivery = { orderId };
+        try {
+          const orderRes = await api.get(`/orders/${encodeURIComponent(orderId)}`);
+          delivery = orderRes.data || orderRes || delivery;
+        } catch (e) { /* use basic info */ }
+        Store.activeDelivery = delivery;
         UI.showToast(I18n.t('order_accepted_message'), 'success');
         Store.orders = Store.orders.filter(o => o.id !== orderId);
         UI.updateBadge('ordersBadge', Store.orders.length);
+        UI.openSheet('activeDeliverySheet');
+        this._renderActiveDeliverySheet(Store.activeDelivery);
         this.orders();
       } catch (e) {
         UI.showToast(e.message, 'error');
@@ -649,7 +740,7 @@
 
     async rejectOrder(orderId) {
       try {
-        await api.post('/driver-order', { action: 'reject', orderId });
+        await api.post(`/orders/${encodeURIComponent(orderId)}/cancel`);
         UI.showToast(I18n.t('order_rejected_message'), 'info');
         Store.orders = Store.orders.filter(o => o.id !== orderId);
         UI.updateBadge('ordersBadge', Store.orders.length);
@@ -672,16 +763,29 @@
 
     _renderActiveDeliverySheet(delivery) {
       const stepContent = document.getElementById('deliveryStepContent');
-      let html = '';
-      html += `<div class="step-card"><h3>🏪 ${SafeHTML.escape(delivery.restaurant_name)}</h3></div>`;
-      html += `<div class="step-card"><h3>📦 ${I18n.t('pickup')}</h3></div>`;
-      html += `<div class="step-card"><h3>🏁 ${SafeHTML.escape(delivery.customer_name)}</h3></div>`;
-      stepContent.innerHTML = html;
+      const rName = SafeHTML.escape(delivery.restaurant_name || delivery.restaurantName || '');
+      const cName = SafeHTML.escape(delivery.customer_name || delivery.customerName || '');
+      const destLat = delivery.destination_lat || delivery.destLat;
+      const destLng = delivery.destination_lng || delivery.destLng;
+      const orderId = delivery.orderId || delivery.id;
 
-      const googleMapsUrl = `https://maps.google.com/maps?daddr=${delivery.destination_lat},${delivery.destination_lng}`;
-      const wazeUrl = `https://waze.com/ul?ll=${delivery.destination_lat},${delivery.destination_lng}&navigate=yes`;
-      document.getElementById('googleMapsBtn').href = googleMapsUrl;
-      document.getElementById('wazeBtn').href = wazeUrl;
+      stepContent.innerHTML = `
+        <div class="step-card"><h3>🏪 ${rName || I18n.t('restaurant')}</h3></div>
+        <div class="step-card"><h3>📦 ${I18n.t('pickup')}</h3></div>
+        <div class="step-card"><h3>🏁 ${cName || I18n.t('customer')}</h3></div>
+        <div class="delivery-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+          <button class="btn btn-primary btn-sm" id="pickedUpBtn" style="flex:1">${I18n.t('picked_up') || 'استلمت الطلب'}</button>
+          <button class="btn btn-primary btn-sm" id="onTheWayBtn" style="flex:1">${I18n.t('on_the_way') || 'في الطريق'}</button>
+          <button class="btn btn-success btn-sm" id="deliveredBtn" style="flex:1">${I18n.t('delivered') || 'تم التوصيل'}</button>
+        </div>
+      `;
+
+      if (destLat && destLng) {
+        const googleMapsUrl = `https://maps.google.com/maps?daddr=${destLat},${destLng}`;
+        const wazeUrl = `https://waze.com/ul?ll=${destLat},${destLng}&navigate=yes`;
+        document.getElementById('googleMapsBtn').href = googleMapsUrl;
+        document.getElementById('wazeBtn').href = wazeUrl;
+      }
 
       document.getElementById('callCustomerBtn').disabled = true;
       document.getElementById('chatCustomerBtn').onclick = () => {
@@ -695,12 +799,44 @@
           UI.showToast(I18n.t('support_unavailable'), 'info');
         }
       };
+
+      // Delivery status actions
+      const pickedUpBtn = document.getElementById('pickedUpBtn');
+      const onTheWayBtn = document.getElementById('onTheWayBtn');
+      const deliveredBtn = document.getElementById('deliveredBtn');
+
+      if (pickedUpBtn) {
+        pickedUpBtn.onclick = async () => {
+          try {
+            await api.post(`/orders/${encodeURIComponent(orderId)}/picked-up`);
+            UI.showToast('✅ Pickup confirmed', 'success');
+          } catch (e) { UI.showToast(e.message, 'error'); }
+        };
+      }
+      if (onTheWayBtn) {
+        onTheWayBtn.onclick = async () => {
+          try {
+            await api.post(`/orders/${encodeURIComponent(orderId)}/on-the-way`);
+            UI.showToast('🚀 On the way', 'success');
+          } catch (e) { UI.showToast(e.message, 'error'); }
+        };
+      }
+      if (deliveredBtn) {
+        deliveredBtn.onclick = async () => {
+          try {
+            await api.post(`/orders/${encodeURIComponent(orderId)}/delivered`);
+            UI.showToast('🎉 Delivered!', 'success');
+            Store.activeDelivery = null;
+            UI.closeSheet('activeDeliverySheet');
+          } catch (e) { UI.showToast(e.message, 'error'); }
+        };
+      }
     },
 
     async earnings() {
       const container = document.getElementById('earningsContainer');
       try {
-        const res = await api.get('/finance?action=wallet');
+        const res = await api.get('/driver/earnings');
         const data = res.data || res || {};
         Store.earnings = data;
         const currency = window.APP_CONFIG?.defaultCurrency || '';
@@ -725,12 +861,12 @@
 
     async wallet() {
       try {
-        const res = await api.get('/finance?action=wallet');
+        const res = await api.get('/driver/wallet');
         Store.wallet = res.data || res || {};
         const currency = window.APP_CONFIG?.defaultCurrency || '';
         document.getElementById('walletBalance').textContent = `${Store.wallet.balance || 0} ${currency}`;
 
-        const tRes = await api.get('/finance?action=transactions');
+        const tRes = await api.get('/driver/wallet/transactions');
         Store.transactions = tRes.data || tRes || [];
         if (!Array.isArray(Store.transactions)) Store.transactions = [];
         const tContainer = document.getElementById('transactionsList');
@@ -940,7 +1076,7 @@
     async _loadQuickStats() {
       if (!Store.token) return;
       try {
-        const res = await api.get('/finance?action=wallet');
+        const res = await api.get('/driver/earnings');
         const data = res.data || res || {};
         const currency = window.APP_CONFIG?.defaultCurrency || '';
         document.getElementById('quickStats').innerHTML = `
@@ -964,42 +1100,18 @@
       I18n.setLang(Store.settings.language);
       document.body.setAttribute('data-theme', Store.settings.theme);
 
+      Auth._bindEvents();
       await Auth.fetchUser();
 
       MapService.init();
-      SocketService.init();
-
-      // ربط زر تسجيل الدخول (مع منع الضغط المتكرر)
-      let loginInProgress = false;
-      document.getElementById('authLoginBtn')?.addEventListener('click', async () => {
-        if (loginInProgress) return;
-        const email = document.getElementById('authEmail').value.trim();
-        const password = document.getElementById('authPassword').value;
-        if (!email || !password) {
-          document.getElementById('authError').textContent = I18n.t('fill_fields');
-          document.getElementById('authError').classList.remove('is-hidden');
-          return;
-        }
-        loginInProgress = true;
-        const btn = document.getElementById('authLoginBtn');
-        btn.disabled = true;
-        btn.textContent = '...';
-        await Auth.login(email, password);
-        btn.disabled = false;
-        btn.textContent = I18n.t('login');
-        loginInProgress = false;
-      });
-      // السماح بالدخول بالضغط على Enter
-      document.getElementById('authPassword')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') document.getElementById('authLoginBtn')?.click();
-      });
+      if (Store.token) RealtimeService.init();
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
       this._updateOnlineBtn();
       toggleBtn.addEventListener('click', async () => {
         const newState = !Store.isOnline;
         try {
-          await api.post('/driver', { action: 'status', isOnline: newState });
+          await api.post('/driver/status', { online: newState });
           Store.isOnline = newState;
           localStorage.setItem('driver_online', newState);
           this._updateOnlineBtn();
