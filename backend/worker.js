@@ -668,7 +668,7 @@ async function app(request, env) {
   }
 
   // الملف الشخصي للمطعم (للتوافق مع الإصدار القديم)
-  if (path === "/api/restaurant/profile" && method === "GET") {
+  if ((path === "/api/restaurant/profile" || path === "/api/v1/restaurant/profile") && method === "GET") {
     const a = await requireAuth(request, env, "restaurant");
     if (a.error) return a.error;
     const restaurant = await env.DB.prepare("SELECT * FROM restaurants WHERE owner_user_id=?").bind(a.user.id).first();
@@ -755,7 +755,7 @@ async function app(request, env) {
   }
 
   // طلبات المطعم (بـ restaurantId)
-  const restaurantOrdersById = path.match(/^\/api\/restaurant\/([^/]+)\/orders$/);
+  const restaurantOrdersById = path.match(/^\/(?:api\/v1|api)\/restaurant\/([^/]+)\/orders$/);
   if (restaurantOrdersById && method === "GET") {
     const a = await requireAuth(request, env, "restaurant");
     if (a.error) return a.error;
@@ -793,7 +793,8 @@ async function app(request, env) {
     if (user.status !== "active") return fail("Account not active", 403, "ACCOUNT_NOT_ACTIVE", env);
     const d = await env.DB.prepare("SELECT * FROM drivers WHERE user_id=?").bind(user.id).first();
     await audit(env, { id: user.id }, "driver.login", "user", user.id, request);
-    return ok({ token: await signJwt({ sub: user.id, role: "driver" }, env), user: { ...user, driver: d, password_hash: undefined } }, env);
+    const loginDriverData = d || {};
+    return ok({ token: await signJwt({ sub: user.id, role: "driver" }, env), user: { ...user, driver: loginDriverData, vehicle_plate: loginDriverData.plate_number || "", vehicle_model: loginDriverData.vehicle_model || "", rating: loginDriverData.rating || 0, total_deliveries: loginDriverData.total_deliveries || 0, today_earnings: 0, weekly_earnings: 0, monthly_earnings: 0, password_hash: undefined } }, env);
   }
 
   // ملف السائق
@@ -801,7 +802,8 @@ async function app(request, env) {
     const a = await requireAuth(request, env, "driver");
     if (a.error) return a.error;
     const d = await env.DB.prepare("SELECT * FROM drivers WHERE user_id=?").bind(a.user.id).first();
-    return ok({ data: { ...a.user, driver: d } }, env);
+    const driverData = d || {};
+    return ok({ data: { ...a.user, driver: driverData, vehicle_plate: driverData.plate_number || "", vehicle_model: driverData.vehicle_model || "", rating: driverData.rating || 0, total_deliveries: driverData.total_deliveries || 0, today_earnings: driverData.today_earnings || 0, weekly_earnings: driverData.weekly_earnings || 0, monthly_earnings: driverData.monthly_earnings || 0 } }, env);
   }
 
   // تغيير حالة السائق (متصل/غير متصل)
@@ -853,7 +855,8 @@ async function app(request, env) {
     const a = await requireAuth(request, env, "driver");
     if (a.error) return a.error;
     const rows = await env.DB.prepare("SELECT o.*, r.name AS restaurant_name, r.address AS restaurant_address, r.lat AS restaurant_lat, r.lng AS restaurant_lng FROM orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.status='ready_for_driver' AND o.driver_id IS NULL ORDER BY o.updated_at ASC LIMIT 50").all();
-    return ok({ data: rows.results || [], orders: rows.results || [] }, env);
+    const orders = (rows.results || []).map(o => ({ ...o, estimated_earning: o.delivery_fee_cents || 0, destination_lat: o.restaurant_lat, destination_lng: o.restaurant_lng }));
+    return ok({ data: orders, orders: orders }, env);
   }
 
   // طلبيات السائق الحالية
@@ -897,7 +900,9 @@ async function app(request, env) {
     if (!d) return fail("Driver not found", 404, "NOT_FOUND", env);
     const wid = await createWalletIfMissing(env, "driver", d.id);
     const wallet = await env.DB.prepare("SELECT * FROM wallets WHERE id=?").bind(wid).first();
-    return ok({ data: wallet || { balance: 0, balance_cents: 0, pending_cents: 0 } }, env);
+    const w = wallet || { balance_cents: 0, pending_cents: 0 };
+    w.balance = Math.round((w.balance_cents || 0) / 100);
+    return ok({ data: w }, env);
   }
 
   // حركات المحفظة
@@ -908,7 +913,8 @@ async function app(request, env) {
     if (!d) return fail("Driver not found", 404, "NOT_FOUND", env);
     const wid = await createWalletIfMissing(env, "driver", d.id);
     const tx = await env.DB.prepare("SELECT * FROM wallet_transactions WHERE wallet_id=? ORDER BY created_at DESC LIMIT 50").bind(wid).all();
-    return ok({ data: tx.results || [] }, env);
+    const txData = (tx.results || []).map(t => ({ ...t, amount: Math.round((t.amount_cents || 0) / 100) }));
+    return ok({ data: txData }, env);
   }
 
   // طلب سحب من المحفظة
@@ -958,7 +964,7 @@ async function app(request, env) {
   // ORDER ACTIONS - إجراءات الطلب (قبول، رفض، تجهيز، توصيل)
   // ================================================================
 
-  const action = path.match(/^\/api\/orders\/([^/]+)\/([^/]+)$/);
+  const action = path.match(/^\/(?:api\/v1|api)\/orders\/([^/]+)\/([^/]+)$/);
   if (action && method === "POST") {
     const [, orderId, act] = action;
     const a = await requireAuth(request, env);
@@ -1103,7 +1109,7 @@ async function app(request, env) {
   // GET ORDER - تفاصيل الطلب
   // ================================================================
 
-  const single = path.match(/^\/api\/orders\/([^/]+)$/);
+  const single = path.match(/^\/(?:api\/v1|api)\/orders\/([^/]+)$/);
   if (single && method === "GET") {
     const a = await requireAuth(request, env);
     if (a.error) return a.error;
@@ -1739,12 +1745,13 @@ async function app(request, env) {
       const week = await env.DB.prepare("SELECT COALESCE(SUM(o.delivery_fee_cents),0) total FROM orders o WHERE o.driver_id=? AND o.status='completed' AND o.updated_at >= datetime('now', '-7 days')").bind(d.id).first();
       const month = await env.DB.prepare("SELECT COALESCE(SUM(o.delivery_fee_cents),0) total FROM orders o WHERE o.driver_id=? AND o.status='completed' AND o.updated_at >= datetime('now', '-30 days')").bind(d.id).first();
       const wallet = await env.DB.prepare("SELECT balance_cents, pending_cents FROM wallets WHERE owner_type='driver' AND owner_id=?").bind(d.id).first();
-      return ok({ data: { balance: wallet?.balance_cents || 0, balance_cents: wallet?.balance_cents || 0, pending_cents: wallet?.pending_cents || 0, today_earnings: today?.total || 0, weekly_earnings: week?.total || 0, monthly_earnings: month?.total || 0, today_deliveries: 0 } }, env);
+      const bal = Math.round((wallet?.balance_cents || 0) / 100);
+      return ok({ data: { balance: bal, balance_cents: wallet?.balance_cents || 0, pending_cents: wallet?.pending_cents || 0, today_earnings: today?.total || 0, weekly_earnings: week?.total || 0, monthly_earnings: month?.total || 0, today_deliveries: 0 } }, env);
     }
     if (action === "transactions") {
       const wid = await createWalletIfMissing(env, "driver", d.id);
       const tx = await env.DB.prepare("SELECT * FROM wallet_transactions WHERE wallet_id=? ORDER BY created_at DESC LIMIT 50").bind(wid).all();
-      const mapped = (tx.results || []).map(t => ({ description: t.note || "حركة مالية", created_at: t.created_at, type: t.type, amount: t.amount_cents }));
+      const mapped = (tx.results || []).map(t => ({ description: t.note || "حركة مالية", created_at: t.created_at, type: t.type, amount: Math.round((t.amount_cents || 0) / 100) }));
       return ok({ data: mapped }, env);
     }
     return fail("Unknown action", 400, "UNKNOWN_ACTION", env);

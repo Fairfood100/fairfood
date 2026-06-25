@@ -493,6 +493,29 @@
           icon: L.divIcon({ className: 'driver-marker', html: '🛵', iconSize: [30, 30] })
         }).addTo(Store.map);
       }
+    },
+
+    startTracking() {
+      if (!Store.token || Store._watchId) return;
+      Store._watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const accuracy = pos.coords.accuracy;
+          Store.userLocation = { lat, lng };
+          this.updateUserMarker();
+          api.post('/driver/location', { lat, lng, accuracy }).catch(() => {});
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
+      );
+    },
+
+    stopTracking() {
+      if (Store._watchId) {
+        navigator.geolocation.clearWatch(Store._watchId);
+        Store._watchId = null;
+      }
     }
   };
 
@@ -595,6 +618,7 @@
         document.getElementById('authSheet')?.classList.add('is-hidden');
         document.getElementById('authError').classList.add('is-hidden');
         RealtimeService.init();
+        MapService.startTracking();
         App.router.navigate('home');
         UI.showToast(I18n.t('auth_welcome'), 'success');
       } catch (e) {
@@ -606,6 +630,7 @@
 
     logout() {
       RealtimeService.disconnect();
+      MapService.stopTracking();
       this.silentLogout();
       UI.showToast(I18n.t('logout'), 'success');
     },
@@ -1104,7 +1129,10 @@
       await Auth.fetchUser();
 
       MapService.init();
-      if (Store.token) RealtimeService.init();
+      if (Store.token) {
+        RealtimeService.init();
+        MapService.startTracking();
+      }
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
       this._updateOnlineBtn();
