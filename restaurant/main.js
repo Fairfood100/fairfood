@@ -275,7 +275,7 @@
       no_notifications: 'Keine Benachrichtigungen',
       auth_title: 'تسجيل الدخول',
       auth_email_label: 'البريد الإلكتروني',
-      auth_email_placeholder: 'restaurant@fairfood.local',
+      auth_email_placeholder: 'البريد الإلكتروني',
       auth_password_label: 'كلمة المرور',
       auth_password_placeholder: 'كلمة المرور',
       auth_login_btn: 'دخول',

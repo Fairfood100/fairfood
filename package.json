@@ -5,9 +5,7 @@
   "scripts": {
     "dev": "wrangler pages dev .",
     "deploy": "wrangler pages deploy .",
-    "db:migrate": "wrangler d1 execute fairfood-db --file=./database/schema.sql",
-    "db:seed": "wrangler d1 execute fairfood-db --file=./database/seed.sql",
-    "db:setup": "npm run db:migrate && npm run db:seed"
+    "db:migrate": "wrangler d1 execute fairfood-db --file=./database/schema.sql"
   },
   "devDependencies": {
     "wrangler": "^4.0.0"

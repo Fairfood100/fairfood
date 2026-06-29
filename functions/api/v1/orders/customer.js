@@ -93,7 +93,7 @@ export async function onRequestPost(context) {
         orderId,
         user.sub,
         body.restaurantId,
-        body.customerName || user.name || "",
+        user.name || "",
         "new",
         body.totalAmount || 0,
         body.deliveryFee || 0,
