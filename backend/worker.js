@@ -616,7 +616,7 @@ async function app(request, env) {
     const paymentMethod = b.payment_method || "cash";
     const paymentStatus = paymentMethod === "cash" ? "pending" : (paymentMethod === "stripe" ? "pending" : "pending");
     await env.DB.prepare("INSERT INTO orders (id, customer_user_id, restaurant_id, customer_name, customer_phone, delivery_address, delivery_note, subtotal_cents, delivery_fee_cents, discount_cents, total_cents, payment_method, payment_status, coupon_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-      .bind(orderId, a.user.id, restaurant.id, b.customer_name || a.user.name, b.customer_phone || a.user.phone, b.delivery_address || "", b.delivery_note || b.notes || "", subtotal, restaurant.delivery_fee_cents, discount, total, paymentMethod, paymentStatus, couponCode).run();
+      .bind(orderId, a.user.id, restaurant.id, a.user.name, a.user.phone, b.delivery_address || "", b.delivery_note || b.notes || "", subtotal, restaurant.delivery_fee_cents, discount, total, paymentMethod, paymentStatus, couponCode).run();
     for (const item of prepared) {
       await env.DB.prepare("INSERT INTO order_items (id, order_id, menu_item_id, name, quantity, unit_price_cents, total_cents) VALUES (?, ?, ?, ?, ?, ?, ?)")
         .bind(uid("oi"), orderId, item.m.id, item.m.name, item.qty, item.m.price_cents, item.total).run();

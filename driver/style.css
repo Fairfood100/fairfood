@@ -126,9 +126,10 @@ body[dir="ltr"] { direction: ltr; }
   border-radius: var(--radius); overflow: hidden; position: relative; z-index: 1;
 }
 .map-fallback {
+  position: absolute; inset: 0;
   background: var(--surface); color: var(--text-secondary);
   display: flex; align-items: center; justify-content: center;
-  height: 100%; font-weight: 600;
+  font-weight: 600; z-index: 2;
   opacity: 0; visibility: hidden; transition: opacity var(--transition), visibility var(--transition);
 }
 .map-fallback:not(.is-hidden) { opacity: 1; visibility: visible; }

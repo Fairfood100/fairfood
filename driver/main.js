@@ -453,20 +453,24 @@
       if (Store.map) return;
       const mapEl = document.getElementById('driverMap');
       if (mapEl && typeof L !== 'undefined') {
-        Store.map = L.map(mapEl, { attributionControl: false });
+        Store.map = L.map(mapEl, { attributionControl: false, center: [24.7136, 46.6753], zoom: 12 });
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '©️ OpenStreetMap'
         }).addTo(Store.map);
 
+        setTimeout(() => Store.map.invalidateSize(), 400);
+
         navigator.geolocation.getCurrentPosition(
           (pos) => {
+            document.getElementById('mapFallback')?.classList.add('is-hidden');
             Store.userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             Store.map.setView([Store.userLocation.lat, Store.userLocation.lng], 14);
             this.updateUserMarker();
           },
           () => {
             document.getElementById('mapFallback')?.classList.remove('is-hidden');
-          }
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
       } else {
         document.getElementById('mapFallback')?.classList.remove('is-hidden');
