@@ -62,6 +62,34 @@ async function readFormData(request) {
   }
 }
 
+// تحويل ArrayBuffer إلى Base64
+function bufToB64(buf) {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+
+// قراءة body مع دعم FormData (للمنيو)
+async function parseMenuBody(request) {
+  const ct = request.headers.get("content-type") || "";
+  if (ct.includes("multipart")) {
+    const fd = await readFormData(request);
+    if (!fd) return { b: {} };
+    const b = {};
+    for (const key of ["name", "description", "price", "category", "categoryId", "category_id", "priceCents", "price_cents", "tags", "inventoryCount", "inventory_count", "available", "image", "imageUrl", "sortOrder", "sort_order"]) {
+      b[key] = fd.get(key);
+    }
+    const imgFile = fd.get("image");
+    if (imgFile && imgFile.size > 0) {
+      const buf = await imgFile.arrayBuffer();
+      return { b, imgBuf: buf, imgType: imgFile.type };
+    }
+    return { b };
+  }
+  return { b: await readBody(request) };
+}
+
 // -------------------- دوال التشفير والأمان --------------------
 
 // تشفير SHA-256
@@ -687,23 +715,16 @@ async function app(request, env) {
   }
 
   // إضافة صنف للمنيو (للمطعم)
+  // إضافة صنف للمنيو (للمطعم)
   if ((path === "/api/restaurant/menu" || path === "/api/v1/restaurant/menu") && method === "POST") {
     const a = await requireAuth(request, env, "restaurant");
     if (a.error) return a.error;
-    const ct = request.headers.get("content-type") || "";
-    const b = ct.includes("multipart") ? await readFormData(request) : await readBody(request);
+    const { b, imgBuf, imgType } = await parseMenuBody(request);
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id=?").bind(a.user.id).first();
     if (!r) return fail("Restaurant not found", 404, "NOT_FOUND", env);
     const itemId = uid("m");
-    let imageUrl = b.image || "";
-    if (ct.includes("multipart") && b.get?.("image") && b.get("image").size > 0) {
-      const file = b.get("image");
-      const buf = await file.arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      imageUrl = `data:${file.type};base64,${b64}`;
-    }
-    const rawPrice = Number(b.priceCents ?? (b.price != null ? b.price * 100 : 0));
-    const priceCents = Math.round(rawPrice);
+    const imageUrl = imgBuf ? `data:${imgType};base64,${bufToB64(imgBuf)}` : (b.image || "");
+    const priceCents = Math.round(Number(b.priceCents ?? (b.price != null ? b.price * 100 : 0)));
     await env.DB.prepare("INSERT INTO menu_items (id, restaurant_id, category, category_id, name, description, price_cents, image, tags, available, inventory_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
       .bind(itemId, r.id, b.category || "Main", b.categoryId || b.category || "", b.name || "Item", b.description || "", priceCents, imageUrl, b.tags || "", b.available === false ? 0 : 1, b.inventoryCount ?? null).run();
     return ok({ id: itemId }, env, 201);
@@ -720,15 +741,8 @@ async function app(request, env) {
       await env.DB.prepare("DELETE FROM menu_items WHERE id=? AND restaurant_id=?").bind(restaurantItem[1], r.id).run();
       return ok({ message: "deleted" }, env);
     }
-    const ct = request.headers.get("content-type") || "";
-    const b = ct.includes("multipart") ? await readFormData(request) : await readBody(request);
-    let imageUrl = b.image || b.imageUrl || null;
-    if (ct.includes("multipart") && b.get?.("image") && b.get("image").size > 0) {
-      const file = b.get("image");
-      const buf = await file.arrayBuffer();
-      const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-      imageUrl = `data:${file.type};base64,${b64}`;
-    }
+    const { b, imgBuf, imgType } = await parseMenuBody(request);
+    const imageUrl = imgBuf ? `data:${imgType};base64,${bufToB64(imgBuf)}` : (b.image || b.imageUrl || null);
     const rawPrice = b.priceCents != null ? b.priceCents : (b.price != null ? b.price * 100 : null);
     const priceCents = rawPrice != null ? Math.round(Number(rawPrice)) : null;
     await env.DB.prepare("UPDATE menu_items SET category=COALESCE(?,category), category_id=COALESCE(?,category_id), name=COALESCE(?,name), description=COALESCE(?,description), price_cents=COALESCE(?,price_cents), image=COALESCE(?,image), tags=COALESCE(?,tags), available=COALESCE(?,available), inventory_count=COALESCE(?,inventory_count), sort_order=COALESCE(?,sort_order), updated_at=CURRENT_TIMESTAMP WHERE id=? AND restaurant_id=?")
