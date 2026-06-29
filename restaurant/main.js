@@ -876,7 +876,7 @@
 
   function menuItemHTML(item) {
     const id = item.id || item._id;
-    const img = item.imageUrl || item.image;
+    const img = item.image || item.imageUrl;
     const available = item.available !== false && item.isAvailable !== false;
     const imgHtml = img
       ? `<img src="${escapeHTML(img)}" alt="${escapeHTML(item.name || '')}" style="width:100%;height:160px;object-fit:cover">`
@@ -886,7 +886,7 @@
         ${imgHtml}
         <div class="item-details">
           <div class="item-name">${escapeHTML(item.name || '')}</div>
-          <div class="item-price">${money(item.price)}</div>
+          <div class="item-price">${money(item.price_cents ? item.price_cents / 100 : item.price)}</div>
           <label class="switch-label">
             <input type="checkbox" ${available ? 'checked' : ''} data-menu-action="toggle" data-item-id="${id}">
             <span>${t('item_available')}</span>
@@ -908,7 +908,7 @@
     dom.menuItemModalTitle.textContent = item ? t('edit_menu_item_title') : t('add_menu_item_title');
     dom.itemName.value = item?.name || '';
     dom.itemDescription.value = item?.description || '';
-    dom.itemPrice.value = item?.price || '';
+    dom.itemPrice.value = item?.price_cents ? item.price_cents / 100 : item?.price || '';
     dom.itemCategory.value = item?.categoryId || item?.category_id || item?.category || '';
     dom.itemAvailable.checked = item ? item.available !== false && item.isAvailable !== false : true;
     openModal(dom.menuItemModal);
