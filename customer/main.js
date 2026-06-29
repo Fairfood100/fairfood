@@ -602,7 +602,7 @@
       const mapEl = document.getElementById('trackingMap');
       if (mapEl && typeof L !== 'undefined') {
         Store.map = L.map(mapEl).setView([lat, lng], 14);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '©️ OpenStreetMap' }).addTo(Store.map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '©️ <a href="https://carto.com/">CARTO</a>' }).addTo(Store.map);
         this.updateUserLocation(lat, lng);
       }
     },
