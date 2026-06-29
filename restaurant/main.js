@@ -786,7 +786,7 @@
     }).join('');
     dom.orderDetailsContent.innerHTML = `
       <p><strong>${t('order')} #${escapeHTML(order.orderNumber || String(orderId).slice(-6))}</strong></p>
-      <p>${t('customer')}: ${escapeHTML(order.customer?.name || order.customerName || '—')}</p>
+      <p>${t('customer')}: ${escapeHTML(order.customer_name || order.customer?.name || order.customerName || '—')}</p>
       <p>${t('status')}: ${escapeHTML(order.status || '—')}</p>
       <p>${t('total')}: ${money(order.total || order.totalAmount)}</p>
       <h4>${t('order_items')}</h4>

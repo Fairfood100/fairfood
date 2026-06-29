@@ -79,6 +79,7 @@ export async function onRequestPost(context) {
         id,
         customer_user_id,
         restaurant_id,
+        customer_name,
         status,
         total_cents,
         delivery_fee_cents,
@@ -86,12 +87,13 @@ export async function onRequestPost(context) {
         delivery_address,
         created_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
       .bind(
         orderId,
         user.sub,
         body.restaurantId,
+        body.customerName || user.name || "",
         "new",
         body.totalAmount || 0,
         body.deliveryFee || 0,

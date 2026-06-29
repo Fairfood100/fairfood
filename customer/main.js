@@ -1340,6 +1340,11 @@
           UI.showToast(e.message, 'error');
         }
       });
+
+      document.getElementById('closeTrackingBtn')?.addEventListener('click', () => {
+        UI.closeTracking();
+        App.router.navigate('orders');
+      });
     }
   };
 
