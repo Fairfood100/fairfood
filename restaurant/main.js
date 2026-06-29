@@ -114,7 +114,11 @@
       order_rejected: 'تم رفض الطلب',
       order_ready: 'تم تجهيز الطلب',
       handoff_confirmed: 'تم تأكيد التسليم',
-      no_notifications: 'لا توجد إشعارات'
+      no_notifications: 'لا توجد إشعارات',
+      no_account: 'ليس لديك حساب؟ تسجيل',
+      have_account: 'لديك حساب؟ دخول',
+      address: 'العنوان',
+      cuisine: 'نوع المطبخ'
     },
     en: {
       app_title: 'Fairfood Price – Restaurant',
@@ -193,7 +197,11 @@
       order_rejected: 'Order rejected',
       order_ready: 'Order ready',
       handoff_confirmed: 'Handoff confirmed',
-      no_notifications: 'No notifications'
+      no_notifications: 'No notifications',
+      no_account: 'No account? Register',
+      have_account: 'Have an account? Login',
+      address: 'Address',
+      cuisine: 'Cuisine'
     },
     de: {
       app_title: 'Fairfood Price – Restaurant',
@@ -273,6 +281,10 @@
       order_ready: 'Bestellung bereit',
       handoff_confirmed: 'Übergabe bestätigt',
       no_notifications: 'Keine Benachrichtigungen',
+      no_account: 'Kein Konto? Registrieren',
+      have_account: 'Bereits Konto? Anmelden',
+      address: 'Adresse',
+      cuisine: 'Küche',
       auth_title: 'تسجيل الدخول',
       auth_email_label: 'البريد الإلكتروني',
       auth_email_placeholder: 'البريد الإلكتروني',
@@ -1178,6 +1190,49 @@
     }
   }
 
+  function toggleAuthForm(showRegister) {
+    document.getElementById('authLoginForm').classList.toggle('hidden', showRegister);
+    document.getElementById('authRegisterForm').classList.toggle('hidden', !showRegister);
+    document.getElementById('authSheetTitle').textContent = showRegister ? 'تسجيل مطعم جديد' : 'تسجيل الدخول';
+  }
+
+  async function handleRegister() {
+    const name = document.getElementById('regName')?.value;
+    const email = document.getElementById('regEmail')?.value;
+    const phone = document.getElementById('regPhone')?.value;
+    const password = document.getElementById('regPassword')?.value;
+    const address = document.getElementById('regAddress')?.value;
+    const cuisine = document.getElementById('regCuisine')?.value;
+    if (!name || !email || !password) {
+      showToast('يرجى تعبئة الحقول المطلوبة', 'error');
+      return;
+    }
+    try {
+      const res = await apiRequest('/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ role: 'restaurant', name, email, phone, password, restaurantName: name, address, cuisine })
+      });
+      const token = res.token || res.data?.token;
+      const user = res.user || res.data?.user;
+      if (!token) throw new Error('No token returned');
+      state.token = token;
+      localStorage.setItem(STORAGE.token, token);
+      closeAuthSheet();
+      showToast(t('auth_register_success'), 'success');
+      try {
+        await loadBootstrap();
+        await Promise.all([loadDashboard(), loadMenu(), loadEarnings()]);
+        connectSocket();
+        renderAll();
+        updateBadges();
+      } catch (e) {
+        showToast(t('network_error'), 'info');
+      }
+    } catch (err) {
+      showToast('فشل التسجيل: ' + (err.message || ''), 'error');
+    }
+  }
+
   function bindAuthEvents() {
     const loginBtn = document.getElementById('doLoginBtn');
     if (loginBtn) {
@@ -1191,6 +1246,9 @@
         handleLogin(email, password);
       });
     }
+    document.getElementById('doRegisterBtn')?.addEventListener('click', handleRegister);
+    document.getElementById('showRegisterLink')?.addEventListener('click', (e) => { e.preventDefault(); toggleAuthForm(true); });
+    document.getElementById('showLoginLink')?.addEventListener('click', (e) => { e.preventDefault(); toggleAuthForm(false); });
     // Allow Enter key
     const pwdInput = document.getElementById('loginPassword');
     if (pwdInput) {
@@ -1198,6 +1256,9 @@
         if (e.key === 'Enter') loginBtn?.click();
       });
     }
+    document.getElementById('regPassword')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleRegister();
+    });
   }
 
   async function init() {
