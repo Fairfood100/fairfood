@@ -1003,23 +1003,9 @@ async function app(request, env) {
       return ok({ message: "preparing" }, env);
     }
 
-    // الطلب جاهز (وتعيين سائق)
+    // الطلب جاهز (يُتاح للسائقين لاختياره)
     if (act === "ready") {
       if (a.user.role !== "restaurant" || order.owner_user_id !== a.user.id) return fail("Forbidden", 403, "FORBIDDEN", env);
-      const best = await dispatchBestDriver(env, order);
-      if (best) {
-        await env.DB.batch([
-          env.DB.prepare("UPDATE orders SET status='accepted_by_driver', driver_id=?, updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(best.id, orderId),
-          env.DB.prepare("UPDATE drivers SET status='busy' WHERE id=?").bind(best.id)
-        ]);
-        await addEvent(env, orderId, a.user.id, "dispatch.auto_assigned", "تم تعيين سائق تلقائيًا");
-        const driverUser = await env.DB.prepare("SELECT user_id FROM drivers WHERE id=?").bind(best.id).first();
-        await notify(env, driverUser?.user_id, "طلب توصيل جديد", "تم تعيين طلب جاهز لك.");
-        await notify(env, order.customer_user_id, "تم تعيين السائق", "السائق في طريقه لاستلام الطلب.");
-        broadcastToOrder(orderId, "order:status", { status: "accepted_by_driver", driver_id: best.id });
-        broadcastToDrivers("driver:delivery_update", { orderId, driver_id: best.id });
-        return ok({ message: "ready and assigned", driverId: best.id }, env);
-      }
       await env.DB.prepare("UPDATE orders SET status='ready_for_driver', updated_at=CURRENT_TIMESTAMP WHERE id=?").bind(orderId).run();
       await addEvent(env, orderId, a.user.id, "restaurant.ready", "الطلب جاهز للسائق");
       await notify(env, order.customer_user_id, "الطلب جاهز", "الطلب جاهز ونبحث عن سائق.");
@@ -1065,10 +1051,12 @@ async function app(request, env) {
       return ok({ message: "on the way", etaMin: eta }, env);
     }
 
-    // تم التوصيل
+    // تم التوصيل (سائق أو زبون)
     if (act === "delivered") {
-      if (a.user.role !== "driver") return fail("Driver role required", 403, "FORBIDDEN", env);
-      const d = await env.DB.prepare("SELECT id FROM drivers WHERE user_id=?").bind(a.user.id).first();
+      if (a.user.role !== "driver" && a.user.id !== order.customer_user_id) return fail("Forbidden", 403, "FORBIDDEN", env);
+      const d = a.user.role === "driver"
+        ? await env.DB.prepare("SELECT id FROM drivers WHERE user_id=?").bind(a.user.id).first()
+        : order.driver_id ? { id: order.driver_id } : null;
       const restaurantShare = Math.round(order.subtotal_cents * 0.88);
       const driverShare = order.delivery_fee_cents;
       const platformShare = Math.max(0, order.total_cents - restaurantShare - driverShare);

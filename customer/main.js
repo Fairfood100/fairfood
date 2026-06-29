@@ -939,9 +939,11 @@
     _renderTrackingDetail() {
       const statusEl = document.getElementById('trackingOrderStatus');
       const detailsEl = document.getElementById('trackingOrderDetails');
+      const confirmBtn = document.getElementById('confirmDeliveryBtn');
       if (!Store.currentOrder) {
         statusEl.textContent = I18n.t('no_active_order');
         detailsEl.textContent = I18n.t('tracking_placeholder');
+        if (confirmBtn) confirmBtn.classList.add('hidden');
         return;
       }
       const simpleStatus = mapStatus(Store.currentOrder.status);
@@ -949,6 +951,13 @@
       const statusText = I18n.t(statusKey) || Store.currentOrder.status;
       statusEl.textContent = `#${Store.currentOrder.id.substring(0, 8)} - ${statusText}`;
       detailsEl.textContent = `${I18n.t('estimated_time')}: ${Store.currentOrder.eta_min || '--'} ${I18n.t('min')}`;
+      if (confirmBtn) {
+        if (Store.currentOrder.status === 'on_the_way') {
+          confirmBtn.classList.remove('hidden');
+        } else {
+          confirmBtn.classList.add('hidden');
+        }
+      }
     },
 
     async wallet() {
@@ -1317,6 +1326,18 @@
           document.getElementById('newAddressDetails').value = address;
         } catch (e) {
           UI.showToast(I18n.t('location_denied'), 'error');
+        }
+      });
+
+      document.getElementById('confirmDeliveryBtn')?.addEventListener('click', async () => {
+        if (!Store.currentOrder) return;
+        try {
+          await api.post(`/orders/${Store.currentOrder.id}/delivered`, {});
+          Store.currentOrder.status = 'completed';
+          UI.showToast('تم تأكيد الاستلام', 'success');
+          Screens._renderTrackingDetail();
+        } catch (e) {
+          UI.showToast(e.message, 'error');
         }
       });
     }

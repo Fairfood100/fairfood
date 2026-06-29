@@ -1219,17 +1219,17 @@
           const res = await api.get('/driver/orders/available');
           const orders = res.orders || res.data || res || [];
           if (Array.isArray(orders)) {
+            const incomingIds = new Set(orders.map(o => o.id));
             for (const order of orders) {
               if (!this._knownOrderIds.has(order.id)) {
-                this._knownOrderIds.add(order.id);
-                Store.orders.push(order);
-                UI.updateBadge('ordersBadge', Store.orders.length);
                 UI.announce(I18n.t('new_order'));
                 App.screens.showIncomingModal(order);
                 try { document.getElementById('soundNewOrder')?.play(); } catch (e) { }
               }
             }
-            Store.orders = Store.orders.filter(o => orders.some(n => n.id === o.id));
+            Store.orders = orders;
+            this._knownOrderIds = incomingIds;
+            UI.updateBadge('ordersBadge', Store.orders.length);
           }
         } catch (e) { /* ignore polling errors */ }
       }, 15000);
