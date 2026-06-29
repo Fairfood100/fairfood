@@ -619,6 +619,7 @@
         document.getElementById('authError').classList.add('is-hidden');
         RealtimeService.init();
         MapService.startTracking();
+        App._startPolling();
         App.router.navigate('home');
         UI.showToast(I18n.t('auth_welcome'), 'success');
       } catch (e) {
@@ -631,6 +632,8 @@
     logout() {
       RealtimeService.disconnect();
       MapService.stopTracking();
+      clearInterval(App._pollTimer);
+      clearInterval(App._activePollTimer);
       this.silentLogout();
       UI.showToast(I18n.t('logout'), 'success');
     },
@@ -1132,6 +1135,7 @@
       if (Store.token) {
         RealtimeService.init();
         MapService.startTracking();
+        this._startPolling();
       }
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
@@ -1203,6 +1207,48 @@
 
       this.router.navigate('home');
       UI.hideLoader();
+    },
+
+    _knownOrderIds: new Set(),
+
+    _startPolling() {
+      clearInterval(this._pollTimer);
+      this._pollTimer = setInterval(async () => {
+        if (!Store.token || Auth._authRequired) return;
+        try {
+          const res = await api.get('/driver/orders/available');
+          const orders = res.orders || res.data || res || [];
+          if (Array.isArray(orders)) {
+            for (const order of orders) {
+              if (!this._knownOrderIds.has(order.id)) {
+                this._knownOrderIds.add(order.id);
+                Store.orders.push(order);
+                UI.updateBadge('ordersBadge', Store.orders.length);
+                UI.announce(I18n.t('new_order'));
+                App.screens.showIncomingModal(order);
+                try { document.getElementById('soundNewOrder')?.play(); } catch (e) { }
+              }
+            }
+            Store.orders = Store.orders.filter(o => orders.some(n => n.id === o.id));
+          }
+        } catch (e) { /* ignore polling errors */ }
+      }, 15000);
+
+      clearInterval(this._activePollTimer);
+      this._activePollTimer = setInterval(async () => {
+        if (!Store.token || Auth._authRequired) return;
+        if (Store.activeDelivery) return;
+        try {
+          const res = await api.get('/driver/orders/current');
+          const list = res.orders || res.data || res || [];
+          if (Array.isArray(list) && list.length > 0) {
+            Store.activeDelivery = list[0];
+            if (['home', 'delivery'].includes(App.router.current)) {
+              App.screens.delivery();
+            }
+          }
+        } catch (e) { /* ignore */ }
+      }, 10000);
     },
 
     _updateOnlineBtn() {
