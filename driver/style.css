@@ -503,6 +503,9 @@ body[dir="ltr"] .side-menu-content { right:auto; left:0; transform: translateX(-
   cursor: pointer;
 }
 
+#authLoginForm.is-hidden,
+#authRegisterForm.is-hidden { display: none !important; }
+
 @keyframes modalSlideIn {
   from { opacity: 0; transform: translateY(30px) scale(0.96); }
   to { opacity: 1; transform: translateY(0) scale(1); }
