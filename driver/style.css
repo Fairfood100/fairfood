@@ -492,6 +492,16 @@ body[dir="ltr"] .side-menu-content { right:auto; left:0; transform: translateX(-
   margin-top: 12px;
   font-size: 0.9rem;
 }
+.auth-toggle-link {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+.auth-toggle-link a {
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 @keyframes modalSlideIn {
   from { opacity: 0; transform: translateY(30px) scale(0.96); }

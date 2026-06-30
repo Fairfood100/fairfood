@@ -292,21 +292,62 @@
       </div>
     </div>
 
-    <!-- شاشة تسجيل الدخول (إجباري - ما تنقفل بدون تسجيل) -->
+    <!-- شاشة تسجيل الدخول والتسجيل (إجباري - ما تنقفل بدون تسجيل) -->
     <div id="authSheet" class="auth-overlay-blocking is-hidden" role="dialog" aria-modal="true" aria-labelledby="authTitle">
       <div class="auth-modal-box">
-        <h3 id="authTitle" data-i18n="driver_login">تسجيل دخول السائق</h3>
-        <div class="auth-form">
-          <div class="form-group">
-            <label data-i18n="email">البريد الإلكتروني</label>
-            <input type="email" id="authEmail" class="form-input" placeholder="البريد الإلكتروني" />
+        <!-- تسجيل الدخول -->
+        <div id="authLoginForm">
+          <h3 id="authTitle" data-i18n="driver_login">تسجيل دخول السائق</h3>
+          <div class="auth-form">
+            <div class="form-group">
+              <label data-i18n="email">البريد الإلكتروني</label>
+              <input type="email" id="authEmail" class="form-input" placeholder="البريد الإلكتروني" />
+            </div>
+            <div class="form-group">
+              <label data-i18n="password">كلمة المرور</label>
+              <input type="password" id="authPassword" class="form-input" placeholder="كلمة المرور" />
+            </div>
+            <button type="button" id="authLoginBtn" class="btn btn-primary btn-block" data-i18n="login">دخول</button>
+            <p id="authError" class="error-message is-hidden"></p>
+            <p class="auth-toggle-link"><a href="#" id="showRegisterLink" data-i18n="no_account">ليس لديك حساب؟ تسجيل</a></p>
           </div>
-          <div class="form-group">
-            <label data-i18n="password">كلمة المرور</label>
-            <input type="password" id="authPassword" class="form-input" placeholder="كلمة المرور" />
+        </div>
+        <!-- تسجيل جديد -->
+        <div id="authRegisterForm" class="is-hidden">
+          <h3 data-i18n="driver_register_title">تسجيل سائق جديد</h3>
+          <div class="auth-form">
+            <div class="form-group">
+              <label for="regName" data-i18n="name_label">الاسم الكامل</label>
+              <input type="text" id="regName" class="form-input" placeholder="الاسم الكامل" />
+            </div>
+            <div class="form-group">
+              <label for="regEmail" data-i18n="email">البريد الإلكتروني</label>
+              <input type="email" id="regEmail" class="form-input" placeholder="البريد الإلكتروني" />
+            </div>
+            <div class="form-group">
+              <label for="regPhone" data-i18n="phone_label">رقم الهاتف</label>
+              <input type="tel" id="regPhone" class="form-input" placeholder="رقم الهاتف" />
+            </div>
+            <div class="form-group">
+              <label for="regPassword" data-i18n="password">كلمة المرور</label>
+              <input type="password" id="regPassword" class="form-input" placeholder="كلمة المرور" />
+            </div>
+            <div class="form-group">
+              <label for="regVehicle" data-i18n="vehicle_label">نوع المركبة</label>
+              <select id="regVehicle" class="form-input">
+                <option value="car" data-i18n="vehicle_car">سيارة</option>
+                <option value="motorcycle" data-i18n="vehicle_motorcycle">دراجة نارية</option>
+                <option value="bicycle" data-i18n="vehicle_bicycle">دراجة</option>
+                <option value="scooter" data-i18n="vehicle_scooter">سكوتر</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="regPlate" data-i18n="plate_label">رقم اللوحة</label>
+              <input type="text" id="regPlate" class="form-input" placeholder="رقم اللوحة" />
+            </div>
+            <button type="button" id="doRegisterBtn" class="btn btn-primary btn-block" data-i18n="driver_register_btn">تسجيل</button>
+            <p class="auth-toggle-link"><a href="#" id="showLoginLink" data-i18n="have_account">لديك حساب؟ دخول</a></p>
           </div>
-          <button type="button" id="authLoginBtn" class="btn btn-primary btn-block" data-i18n="login">دخول</button>
-          <p id="authError" class="error-message is-hidden"></p>
         </div>
       </div>
     </div>

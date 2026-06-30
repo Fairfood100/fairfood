@@ -57,6 +57,19 @@
         order_details: 'تفاصيل الطلب',
         feature_unavailable: 'هذه الميزة غير متاحة حاليًا',
         driver_login: 'تسجيل دخول السائق',
+        driver_register_title: 'تسجيل سائق جديد',
+        driver_register_btn: 'تسجيل',
+        driver_register_success: 'تم التسجيل بنجاح',
+        no_account: 'ليس لديك حساب؟ تسجيل',
+        have_account: 'لديك حساب؟ دخول',
+        name_label: 'الاسم الكامل',
+        phone_label: 'رقم الهاتف',
+        vehicle_label: 'نوع المركبة',
+        plate_label: 'رقم اللوحة',
+        vehicle_car: 'سيارة',
+        vehicle_motorcycle: 'دراجة نارية',
+        vehicle_bicycle: 'دراجة',
+        vehicle_scooter: 'سكوتر',
         fill_fields: 'الرجاء تعبئة جميع الحقول',
         email: 'البريد الإلكتروني',
         password: 'كلمة المرور',
@@ -114,6 +127,19 @@
         order_details: 'Order Details',
         feature_unavailable: 'This feature is currently unavailable',
         driver_login: 'Driver Login',
+        driver_register_title: 'Register New Driver',
+        driver_register_btn: 'Register',
+        driver_register_success: 'Registration successful',
+        no_account: 'No account? Register',
+        have_account: 'Already have an account? Login',
+        name_label: 'Full Name',
+        phone_label: 'Phone Number',
+        vehicle_label: 'Vehicle Type',
+        plate_label: 'Plate Number',
+        vehicle_car: 'Car',
+        vehicle_motorcycle: 'Motorcycle',
+        vehicle_bicycle: 'Bicycle',
+        vehicle_scooter: 'Scooter',
         fill_fields: 'Please fill in all fields',
         email: 'Email',
         password: 'Password',
@@ -171,6 +197,19 @@
         order_details: 'Bestelldetails',
         feature_unavailable: 'Diese Funktion ist derzeit nicht verfügbar',
         driver_login: 'Fahrer-Login',
+        driver_register_title: 'Neuen Fahrer registrieren',
+        driver_register_btn: 'Registrieren',
+        driver_register_success: 'Registrierung erfolgreich',
+        no_account: 'Kein Konto? Registrieren',
+        have_account: 'Bereits Konto? Anmelden',
+        name_label: 'Vollständiger Name',
+        phone_label: 'Telefonnummer',
+        vehicle_label: 'Fahrzeugtyp',
+        plate_label: 'Kennzeichen',
+        vehicle_car: 'Auto',
+        vehicle_motorcycle: 'Motorrad',
+        vehicle_bicycle: 'Fahrrad',
+        vehicle_scooter: 'Roller',
         fill_fields: 'Bitte füllen Sie alle Felder aus',
         email: 'E-Mail',
         password: 'Passwort',
@@ -692,6 +731,64 @@
       });
       document.getElementById('authPassword')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') document.getElementById('authLoginBtn')?.click();
+      });
+      document.getElementById('regPassword')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('doRegisterBtn')?.click();
+      });
+
+      // Toggle register / login
+      document.getElementById('showRegisterLink')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('authLoginForm')?.classList.add('is-hidden');
+        document.getElementById('authRegisterForm')?.classList.remove('is-hidden');
+        document.getElementById('authError')?.classList.add('is-hidden');
+      });
+      document.getElementById('showLoginLink')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('authRegisterForm')?.classList.add('is-hidden');
+        document.getElementById('authLoginForm')?.classList.remove('is-hidden');
+        document.getElementById('authError')?.classList.add('is-hidden');
+      });
+
+      // Register
+      let registerInProgress = false;
+      document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
+        if (registerInProgress) return;
+        const name = document.getElementById('regName')?.value.trim();
+        const email = document.getElementById('regEmail')?.value.trim();
+        const phone = document.getElementById('regPhone')?.value.trim();
+        const password = document.getElementById('regPassword')?.value;
+        const vehicle = document.getElementById('regVehicle')?.value;
+        const plateNumber = document.getElementById('regPlate')?.value.trim();
+        if (!name || !email || !password) {
+          document.getElementById('authError').textContent = I18n.t('fill_fields');
+          document.getElementById('authError').classList.remove('is-hidden');
+          return;
+        }
+        registerInProgress = true;
+        const btn = document.getElementById('doRegisterBtn');
+        btn.disabled = true;
+        btn.textContent = '...';
+        try {
+          const res = await api.request('POST', '/auth/register', { role: 'driver', name, email, phone, password, vehicle, plateNumber });
+          const token = res.token || res.data?.token;
+          const user = res.user || res.data?.user;
+          if (!token) throw new Error(I18n.t('error_general'));
+          localStorage.setItem('driver_token', token);
+          Store.token = token;
+          Store.user = user;
+          document.getElementById('authSheet')?.classList.add('is-hidden');
+          UI.showToast(I18n.t('driver_register_success'), 'success');
+          Auth._authRequired = false;
+          MapService.init();
+        } catch (err) {
+          document.getElementById('authError').textContent = err.message || I18n.t('error_general');
+          document.getElementById('authError').classList.remove('is-hidden');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = I18n.t('driver_register_btn');
+          registerInProgress = false;
+        }
       });
     }
   };
