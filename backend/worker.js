@@ -1594,14 +1594,31 @@ async function app(request, env) {
 
   // استقبال Webhook من Stripe
   if ((path === "/api/stripe/webhook" || path === "/api/v1/stripe/webhook") && method === "POST") {
-    // التحقق من التوقيع (في الإنتاج)
-    const sig = request.headers.get("stripe-signature");
-    if (!env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET) {
-      // في الإنتاج، نتحقق من التوقيع
-      // حاليًا نتجاوز التحقق للتبسيط
+    const rawBody = await request.clone().text();
+
+    if (env.STRIPE_SECRET_KEY && env.STRIPE_WEBHOOK_SECRET) {
+      const sig = request.headers.get("stripe-signature");
+      if (!sig) return fail("Missing stripe-signature header", 401, "SIGNATURE_MISSING", env);
+      try {
+        const parts = Object.fromEntries(sig.split(',').map(p => {
+          const [k, v] = p.trim().split('=');
+          return [k, v];
+        }));
+        const timestamp = parts.t;
+        const sig1 = parts.v1;
+        if (!timestamp || !sig1) throw new Error('Invalid signature format');
+        const payload = `${timestamp}.${rawBody}`;
+        const key = new TextEncoder().encode(env.STRIPE_WEBHOOK_SECRET);
+        const keyData = await crypto.subtle.importKey('raw', key, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        const sigBytes = await crypto.subtle.sign('HMAC', keyData, new TextEncoder().encode(payload));
+        const expected = [...new Uint8Array(sigBytes)].map(b => b.toString(16).padStart(2, '0')).join('');
+        if (expected !== sig1) throw new Error('Signature mismatch');
+      } catch (e) {
+        return fail('Invalid signature: ' + e.message, 401, 'INVALID_SIGNATURE', env);
+      }
     }
 
-    const event = await readBody(request);
+    const event = JSON.parse(rawBody);
 
     // معالجة الأحداث
     if (event.type === "checkout.session.completed") {
