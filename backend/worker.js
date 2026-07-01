@@ -929,8 +929,19 @@ async function app(request, env) {
     if (a.error) return a.error;
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id=?").bind(a.user.id).first();
     if (!r) return fail("Restaurant not found", 404, "NOT_FOUND", env);
-    const rows = await env.DB.prepare("SELECT * FROM orders WHERE restaurant_id=? ORDER BY created_at DESC LIMIT 100").bind(r.id).all();
-    return ok({ data: rows.results || [], orders: rows.results || [] }, env);
+    const orders = (rows.results || []).map(o => ({ ...o, total: o.total_cents }));
+    const orderIds = orders.map(o => o.id);
+    if (orderIds.length) {
+      const placeholders = orderIds.map(() => '?').join(',');
+      const items = await env.DB.prepare(`SELECT * FROM order_items WHERE order_id IN (${placeholders})`).bind(...orderIds).all();
+      const itemMap = {};
+      (items.results || []).forEach(it => {
+        if (!itemMap[it.order_id]) itemMap[it.order_id] = [];
+        itemMap[it.order_id].push(it);
+      });
+      orders.forEach(o => { o.items = itemMap[o.id] || []; });
+    }
+    return ok({ data: orders, orders }, env);
   }
 
   // طلبات المطعم (بـ restaurantId)
@@ -941,8 +952,16 @@ async function app(request, env) {
     const rId = restaurantOrdersById[1];
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE id=? AND owner_user_id=?").bind(rId, a.user.id).first();
     if (!r) return fail("Forbidden", 403, "FORBIDDEN", env);
-    const rows = await env.DB.prepare("SELECT * FROM orders WHERE restaurant_id=? ORDER BY created_at DESC LIMIT 100").bind(rId).all();
-    return ok({ data: rows.results || [], orders: rows.results || [] }, env);
+    const orders = (rows.results || []).map(o => ({ ...o, total: o.total_cents }));
+    const orderIds = orders.map(o => o.id);
+    if (orderIds.length) {
+      const placeholders = orderIds.map(() => '?').join(',');
+      const items = await env.DB.prepare(`SELECT * FROM order_items WHERE order_id IN (${placeholders})`).bind(...orderIds).all();
+      const itemMap = {};
+      (items.results || []).forEach(it => { if (!itemMap[it.order_id]) itemMap[it.order_id] = []; itemMap[it.order_id].push(it); });
+      orders.forEach(o => { o.items = itemMap[o.id] || []; });
+    }
+    return ok({ data: orders, orders }, env);
   }
 
   // أرباح المطعم

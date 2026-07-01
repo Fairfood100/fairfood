@@ -1293,19 +1293,26 @@
     auth: Auth,
 
     async init() {
-      this.router = new Router();
-      I18n.setLang(Store.settings.language);
-      document.body.setAttribute('data-theme', Store.settings.theme);
+      try {
+        this.router = new Router();
+        I18n.setLang(Store.settings.language);
+        document.body.setAttribute('data-theme', Store.settings.theme);
 
-      Auth._bindEvents();
-      await Auth.fetchUser();
+        Auth._bindEvents();
+        await Auth.fetchUser();
 
-      MapService.init();
-      if (Store.token) {
-        RealtimeService.init();
-        MapService.startTracking();
-        this._startPolling();
+        if (Store.token) {
+          RealtimeService.init();
+          MapService.startTracking();
+          this._startPolling();
+        }
+      } catch (e) {
+        console.error('Init error:', e);
       }
+      UI.hideLoader();
+
+      // Map try (لا تمنع التحميل)
+      try { MapService.init(); } catch (e) { console.warn('Map init error:', e); }
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
       this._updateOnlineBtn();

@@ -795,7 +795,7 @@
     const id = order.id || order._id;
     const number = order.orderNumber || order.number || String(id || '').slice(-6);
     const items = order.items || [];
-    const total = order.total || order.totalAmount || order.amount || 0;
+    const total = order.total_cents || order.total || order.totalAmount || order.amount || 0;
     const status = order.status || 'new';
     const itemsText = items.map((item) => {
       const name = item.name || item.menuItemName || item.item?.name || '';
