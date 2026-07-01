@@ -61,6 +61,11 @@
       no_menu_items: 'المنيو فارغ',
       earnings_history: 'سجل الأرباح',
       no_earnings: 'لا توجد بيانات أرباح',
+      week: 'الأسبوع',
+      commission: 'العمولة',
+      date: 'التاريخ',
+      orders: 'الطلبات',
+      net: 'الصافي',
       working_hours: 'ساعات العمل',
       from: 'من',
       to: 'إلى',
@@ -159,6 +164,11 @@
       no_menu_items: 'Menu is empty',
       earnings_history: 'Earnings history',
       no_earnings: 'No earnings data',
+      week: 'Week',
+      commission: 'Commission',
+      date: 'Date',
+      orders: 'Orders',
+      net: 'Net',
       working_hours: 'Working hours',
       from: 'From',
       to: 'To',
@@ -257,6 +267,11 @@
       no_menu_items: 'Speisekarte ist leer',
       earnings_history: 'Einnahmenverlauf',
       no_earnings: 'Keine Einnahmendaten',
+      week: 'Woche',
+      commission: 'Provision',
+      date: 'Datum',
+      orders: 'Bestellungen',
+      net: 'Netto',
       working_hours: 'Öffnungszeiten',
       from: 'Von',
       to: 'Bis',
@@ -1022,11 +1037,11 @@
         <strong>${money(summary.today || summary.todayEarnings || 0)}</strong>
       </div>
       <div class="metric-card">
-        <span>Week</span>
+        <span>${t('week')}</span>
         <strong>${money(summary.week || summary.weekEarnings || 0)}</strong>
       </div>
       <div class="metric-card">
-        <span>Commission</span>
+        <span>${t('commission')}</span>
         <strong>${money(summary.commission || 0)}</strong>
       </div>
     `;
@@ -1041,11 +1056,11 @@
       <table class="earnings-table">
         <thead>
           <tr>
-            <th>Date</th>
-            <th>Orders</th>
+            <th>${t('date')}</th>
+            <th>${t('orders')}</th>
             <th>${t('total')}</th>
-            <th>Commission</th>
-            <th>Net</th>
+            <th>${t('commission')}</th>
+            <th>${t('net')}</th>
           </tr>
         </thead>
         <tbody>
