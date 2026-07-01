@@ -877,6 +877,7 @@
       try {
         const res = await api.get('/orders/my');
         Store.orders = Array.isArray(res) ? res : (res.data || res || []);
+        Cart._updateOrdersBadge();
         const container = document.getElementById('appContent');
         const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
 
@@ -1145,6 +1146,15 @@
       if (badge) {
         badge.textContent = count;
         badge.classList.toggle('hidden', count === 0);
+      }
+    },
+
+    _updateOrdersBadge() {
+      const badge = document.getElementById('ordersBadge');
+      const active = (Store.orders || []).filter(o => !['delivered','completed','cancelled'].includes(o.status)).length;
+      if (badge) {
+        badge.textContent = active;
+        badge.classList.toggle('hidden', active === 0);
       }
     }
   };
