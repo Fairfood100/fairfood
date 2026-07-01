@@ -80,7 +80,10 @@
         on_the_way: 'في الطريق',
         delivered: 'تم التوصيل',
         restaurant: 'المطعم',
-        customer: 'العميل'
+        customer: 'العميل',
+        arabic: 'العربية',
+        english: 'English',
+        german: 'Deutsch'
       },
       en: {
         app_title: 'Fairfood Price - Driver', loading: 'Loading…', locating: 'Locating…',
@@ -155,7 +158,10 @@
         on_the_way: 'On the way',
         delivered: 'Delivered',
         restaurant: 'Restaurant',
-        customer: 'Customer'
+        customer: 'Customer',
+        arabic: 'العربية',
+        english: 'English',
+        german: 'Deutsch'
       },
       de: {
         app_title: 'Fairfood Price - Fahrer', loading: 'Lädt…', locating: 'Standort wird ermittelt…',
@@ -230,7 +236,10 @@
         on_the_way: 'Unterwegs',
         delivered: 'Geliefert',
         restaurant: 'Restaurant',
-        customer: 'Kunde'
+        customer: 'Kunde',
+        arabic: 'العربية',
+        english: 'English',
+        german: 'Deutsch'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -447,7 +456,8 @@
       }
 
       if (Store.map && screen === 'home') {
-        setTimeout(() => Store.map.invalidateSize(), 200);
+        clearTimeout(Store._mapTimer);
+        Store._mapTimer = setTimeout(() => Store.map?.invalidateSize(), 200);
       }
     }
   }
@@ -458,6 +468,7 @@
   const UI = {
     showToast(msg, type = 'success') {
       const container = document.getElementById('toastContainer');
+      if (!container) return;
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
       toast.textContent = msg;
@@ -465,8 +476,8 @@
       setTimeout(() => toast.remove(), 4000);
     },
 
-    showLoader() { document.getElementById('app').classList.add('app-loading'); },
-    hideLoader() { document.getElementById('app').classList.remove('app-loading'); },
+    showLoader() { document.getElementById('app')?.classList.add('app-loading'); },
+    hideLoader() { document.getElementById('app')?.classList.remove('app-loading'); },
 
     openSheet(id) { document.getElementById(id)?.classList.remove('is-hidden'); },
     closeSheet(id) { document.getElementById(id)?.classList.add('is-hidden'); },
@@ -512,7 +523,8 @@
           attribution: '©️ <a href="https://carto.com/">CARTO</a>'
         }).addTo(Store.map);
 
-        setTimeout(() => Store.map.invalidateSize(), 400);
+        clearTimeout(Store._mapInitTimer);
+        Store._mapInitTimer = setTimeout(() => Store.map?.invalidateSize(), 400);
 
         navigator.geolocation.getCurrentPosition(
           (pos) => {
@@ -686,7 +698,7 @@
         Store.user = res.user;
         this._authRequired = false;
         document.getElementById('authSheet')?.classList.add('is-hidden');
-        document.getElementById('authError').classList.add('is-hidden');
+        document.getElementById('authError')?.classList.add('is-hidden');
         RealtimeService.init();
         MapService.startTracking();
         App._startPolling();
@@ -694,8 +706,10 @@
         UI.showToast(I18n.t('auth_welcome'), 'success');
       } catch (e) {
         const errEl = document.getElementById('authError');
-        errEl.textContent = e.message;
-        errEl.classList.remove('is-hidden');
+        if (errEl) {
+          errEl.textContent = e.message;
+          errEl.classList.remove('is-hidden');
+        }
       }
     },
 
@@ -713,6 +727,8 @@
       MapService.stopTracking();
       clearInterval(App._pollTimer);
       clearInterval(App._activePollTimer);
+      clearTimeout(Store._mapTimer);
+      clearTimeout(Store._mapInitTimer);
       Store.token = null;
       localStorage.removeItem('driver_token');
       Store.user = null;
@@ -747,8 +763,8 @@
         const email = document.getElementById('authEmail').value.trim();
         const password = document.getElementById('authPassword').value;
         if (!email || !password) {
-          document.getElementById('authError').textContent = I18n.t('fill_fields');
-          document.getElementById('authError').classList.remove('is-hidden');
+          const ae = document.getElementById('authError');
+          if (ae) { ae.textContent = I18n.t('fill_fields'); ae.classList.remove('is-hidden'); }
           return;
         }
         loginInProgress = true;
@@ -792,8 +808,8 @@
         const vehicle = document.getElementById('regVehicle')?.value;
         const plateNumber = document.getElementById('regPlate')?.value.trim();
         if (!name || !email || !password) {
-          document.getElementById('authError').textContent = I18n.t('fill_fields');
-          document.getElementById('authError').classList.remove('is-hidden');
+          const ae = document.getElementById('authError');
+          if (ae) { ae.textContent = I18n.t('fill_fields'); ae.classList.remove('is-hidden'); }
           return;
         }
         registerInProgress = true;
@@ -816,8 +832,8 @@
           RealtimeService.init();
           App._startPolling();
         } catch (err) {
-          document.getElementById('authError').textContent = err.message || I18n.t('error_general');
-          document.getElementById('authError').classList.remove('is-hidden');
+          const ae = document.getElementById('authError');
+          if (ae) { ae.textContent = err.message || I18n.t('error_general'); ae.classList.remove('is-hidden'); }
         } finally {
           btn.disabled = false;
           btn.textContent = I18n.t('driver_register_btn');
@@ -937,9 +953,9 @@
         <div class="step-card"><h3>📦 ${I18n.t('pickup')}</h3></div>
         <div class="step-card"><h3>🏁 ${cName || I18n.t('customer')}</h3></div>
         <div class="delivery-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
-          <button class="btn btn-primary btn-sm" id="pickedUpBtn" style="flex:1">${I18n.t('picked_up') || 'استلمت الطلب'}</button>
-          <button class="btn btn-primary btn-sm" id="onTheWayBtn" style="flex:1">${I18n.t('on_the_way') || 'في الطريق'}</button>
-          <button class="btn btn-success btn-sm" id="deliveredBtn" style="flex:1">${I18n.t('delivered') || 'تم التوصيل'}</button>
+          <button class="btn btn-primary btn-sm" id="pickedUpBtn" style="flex:1">${I18n.t('picked_up')}</button>
+          <button class="btn btn-primary btn-sm" id="onTheWayBtn" style="flex:1">${I18n.t('on_the_way')}</button>
+          <button class="btn btn-success btn-sm" id="deliveredBtn" style="flex:1">${I18n.t('delivered')}</button>
         </div>
       `;
 
@@ -972,7 +988,7 @@
         pickedUpBtn.onclick = async () => {
           try {
             await api.post(`/orders/${encodeURIComponent(orderId)}/picked-up`);
-            UI.showToast('✅ Pickup confirmed', 'success');
+            UI.showToast('✅ ' + I18n.t('picked_up'), 'success');
           } catch (e) { UI.showToast(e.message, 'error'); }
         };
       }
@@ -980,7 +996,7 @@
         onTheWayBtn.onclick = async () => {
           try {
             await api.post(`/orders/${encodeURIComponent(orderId)}/on-the-way`);
-            UI.showToast('🚀 On the way', 'success');
+            UI.showToast('🚀 ' + I18n.t('on_the_way'), 'success');
           } catch (e) { UI.showToast(e.message, 'error'); }
         };
       }
@@ -988,7 +1004,7 @@
         deliveredBtn.onclick = async () => {
           try {
             await api.post(`/orders/${encodeURIComponent(orderId)}/delivered`);
-            UI.showToast('🎉 Delivered!', 'success');
+            UI.showToast('🎉 ' + I18n.t('delivered'), 'success');
             Store.activeDelivery = null;
             UI.closeSheet('activeDeliverySheet');
           } catch (e) { UI.showToast(e.message, 'error'); }
@@ -1062,17 +1078,17 @@
 
     profile() {
       if (Store.user) {
-        document.getElementById('driverName').textContent = Store.user.name || '---';
-        document.getElementById('driverRating').textContent = Store.user.rating || '0.0';
-        document.getElementById('driverVehicleNumber').textContent = Store.user.vehicle_plate || '---';
-        document.getElementById('driverVehicleType').textContent = Store.user.vehicle_model || '---';
+        document.getElementById('driverName')?.textContent = Store.user.name || '---';
+        document.getElementById('driverRating')?.textContent = Store.user.rating || '0.0';
+        document.getElementById('driverVehicleNumber')?.textContent = Store.user.vehicle_plate || '---';
+        document.getElementById('driverVehicleType')?.textContent = Store.user.vehicle_model || '---';
         if (Store.user.avatar_url) {
-          document.getElementById('driverAvatarImg').src = Store.user.avatar_url;
+          document.getElementById('driverAvatarImg')?.setAttribute('src', Store.user.avatar_url);
         }
-        document.getElementById('statDeliveries').textContent = Store.user.total_deliveries || 0;
-        document.getElementById('statToday').textContent = Store.user.today_earnings || 0;
-        document.getElementById('statWeekly').textContent = Store.user.weekly_earnings || 0;
-        document.getElementById('statMonthly').textContent = Store.user.monthly_earnings || 0;
+        document.getElementById('statDeliveries')?.textContent = Store.user.total_deliveries || 0;
+        document.getElementById('statToday')?.textContent = Store.user.today_earnings || 0;
+        document.getElementById('statWeekly')?.textContent = Store.user.weekly_earnings || 0;
+        document.getElementById('statMonthly')?.textContent = Store.user.monthly_earnings || 0;
       }
     },
 
@@ -1082,9 +1098,9 @@
         <div class="settings-item">
           <span>${I18n.t('settings_language')}</span>
           <select id="langSelect">
-            <option value="ar" ${I18n._lang === 'ar' ? 'selected' : ''}>العربية</option>
-            <option value="en" ${I18n._lang === 'en' ? 'selected' : ''}>English</option>
-            <option value="de" ${I18n._lang === 'de' ? 'selected' : ''}>Deutsch</option>
+            <option value="ar" ${I18n._lang === 'ar' ? 'selected' : ''}>${I18n.t('arabic')}</option>
+            <option value="en" ${I18n._lang === 'en' ? 'selected' : ''}>${I18n.t('english')}</option>
+            <option value="de" ${I18n._lang === 'de' ? 'selected' : ''}>${I18n.t('german')}</option>
           </select>
         </div>
         <div class="settings-item">
@@ -1275,7 +1291,7 @@
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
       this._updateOnlineBtn();
-      toggleBtn.addEventListener('click', async () => {
+      toggleBtn?.addEventListener('click', async () => {
         const newState = !Store.isOnline;
         try {
           await api.post('/driver/status', { online: newState });
@@ -1336,7 +1352,8 @@
 
       window.addEventListener('online', () => {
         UI.showReconnectBanner();
-        setTimeout(() => UI.hideBanners(), 3000);
+        clearTimeout(UI._hideBannerTimer);
+        UI._hideBannerTimer = setTimeout(() => UI.hideBanners(), 3000);
       });
       window.addEventListener('offline', () => UI.showOfflineBanner());
 
@@ -1388,6 +1405,7 @@
 
     _updateOnlineBtn() {
       const btn = document.getElementById('toggleOnlineBtn');
+      if (!btn) return;
       btn.className = Store.isOnline ? 'btn btn-success btn-block' : 'btn btn-danger btn-block';
       btn.innerHTML = `<span>${I18n.t(Store.isOnline ? 'online' : 'offline')}</span>`;
     }
