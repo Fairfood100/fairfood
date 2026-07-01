@@ -270,19 +270,18 @@ const COUNTRY_CURRENCY = {
   'ZA': 'ZAR', 'NG': 'NGN', 'KE': 'KES', 'GH': 'GHS', 'ET': 'ETB',
   'TZ': 'TZS', 'UG': 'UGX', 'RW': 'RWF', 'ZW': 'ZWL', 'MW': 'MWK',
   'MZ': 'MZN', 'BW': 'BWP', 'NA': 'NAD', 'SZ': 'SZL', 'LS': 'LSL',
-  'KM': 'KMF', 'SC': 'SCR', 'MU': 'MUR', 'MG': 'MGA', 'CV': 'CVE',
+  'SC': 'SCR', 'MU': 'MUR', 'MG': 'MGA', 'CV': 'CVE',
   'ST': 'STN', 'TD': 'XAF', 'CF': 'XAF', 'CG': 'XAF', 'CM': 'XAF',
   'GA': 'XAF', 'GQ': 'XAF', 'SN': 'XOF', 'ML': 'XOF', 'BF': 'XOF',
   'CI': 'XOF', 'NE': 'XOF', 'TG': 'XOF', 'BJ': 'XOF', 'GW': 'XOF',
-  'GN': 'GNF', 'LR': 'LRD', 'SL': 'SLE', 'GM': 'GMD', 'GW': 'XOF',
+  'GN': 'GNF', 'LR': 'LRD', 'SL': 'SLE', 'GM': 'GMD',
   'AF': 'AFN', 'BD': 'BDT', 'BT': 'BTN', 'KH': 'KHR', 'LA': 'LAK',
   'MN': 'MNT', 'MM': 'MMK', 'NP': 'NPR', 'PK': 'PKR', 'LK': 'LKR',
   'MV': 'MVR', 'TL': 'USD', 'BN': 'BND', 'KZ': 'KZT', 'KG': 'KGS',
   'TJ': 'TJS', 'TM': 'TMT', 'UZ': 'UZS', 'AZ': 'AZN', 'AM': 'AMD',
-  'GE': 'GEL', 'BY': 'BYN', 'UA': 'UAH', 'MD': 'MDL', 'RS': 'RSD',
-  'ME': 'EUR', 'MK': 'MKD', 'XK': 'EUR', 'BA': 'BAM', 'HR': 'EUR',
+  'GE': 'GEL', 'BY': 'BYN', 'UA': 'UAH', 'MD': 'MDL',
+  'XK': 'EUR',
   'SI': 'EUR', 'SK': 'EUR', 'LT': 'EUR', 'LV': 'EUR', 'EE': 'EUR',
-  'CZ': 'CZK', 'HU': 'HUF', 'RO': 'RON', 'BG': 'BGN', 'PL': 'PLN',
 };
 
 const currencyCache = new Map();
