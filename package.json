@@ -5,9 +5,13 @@
   "scripts": {
     "dev": "wrangler pages dev .",
     "deploy": "wrangler pages deploy .",
-    "db:migrate": "wrangler d1 execute fairfood-db --file=./database/schema.sql"
+    "db:migrate": "wrangler d1 execute fairfood-db --file=./database/schema.sql",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "node tests/e2e.mjs"
   },
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.0.0",
+    "vitest": "^3.0.0"
   }
 }

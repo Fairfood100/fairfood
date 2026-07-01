@@ -27,3 +27,14 @@ wrangler secret put JWT_SECRET
 wrangler d1 execute fairfood-db --file=./database/schema.sql
 npm run deploy
 ```
+
+## الاختبارات
+
+```bash
+# تشغيل اختبارات E2E (يتطلب تشغيل الخادم المحلي أولاً)
+npm run dev &
+npm run test:e2e
+
+# اختبارات الوحدة (vitest)
+npm test
+```
