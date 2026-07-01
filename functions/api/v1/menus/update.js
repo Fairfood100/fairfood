@@ -23,7 +23,7 @@ export async function onRequestPut({ request, env }) {
     .bind(
       body.name,
       body.description || "",
-      Number(body.price || 0),
+      Math.round(Number(body.price || 0) * 100),
       body.category || "",
       body.available === false ? 0 : 1,
       body.imageUrl || "",

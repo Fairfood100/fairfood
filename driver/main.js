@@ -14,7 +14,7 @@
         nav_home: 'الرئيسية', nav_orders: 'الطلبات', nav_delivery: 'التوصيل',
         nav_earnings: 'الأرباح', nav_settings: 'الإعدادات', nav_profile: 'ملفي', nav_wallet: 'المحفظة',
         no_new_orders: 'لا توجد طلبات جديدة حاليًا', accept: 'قبول', reject: 'رفض',
-        new_order: 'طلب جديد', today_earnings: '💰 0 ر.س', today_deliveries: '📦 0 توصيل',
+        new_order: 'طلب جديد', today_earnings: 'ر.س', today_deliveries: 'توصيل',
         offline_banner: 'أنت غير متصل بالإنترنت', reconnect_banner: 'تمت إعادة الاتصال',
         map_unavailable: 'الخريطة غير متاحة حاليًا', navigate_google: '🗺️ Google Maps',
         navigate_waze: '🚗 Waze', call_customer: '📞 اتصال', chat_customer: '💬 محادثة',
@@ -75,7 +75,12 @@
         password: 'كلمة المرور',
         login: 'دخول',
         na: 'غير متوفر',
-        pending: 'قيد الإجراء'
+        pending: 'قيد الإجراء',
+        picked_up: 'استلمت الطلب',
+        on_the_way: 'في الطريق',
+        delivered: 'تم التوصيل',
+        restaurant: 'المطعم',
+        customer: 'العميل'
       },
       en: {
         app_title: 'Fairfood Price - Driver', loading: 'Loading…', locating: 'Locating…',
@@ -84,7 +89,7 @@
         nav_home: 'Home', nav_orders: 'Orders', nav_delivery: 'Delivery',
         nav_earnings: 'Earnings', nav_settings: 'Settings', nav_profile: 'Profile', nav_wallet: 'Wallet',
         no_new_orders: 'No new orders', accept: 'Accept', reject: 'Reject',
-        new_order: 'New Order', today_earnings: '💰 0 SAR', today_deliveries: '📦 0 deliveries',
+        new_order: 'New Order', today_earnings: 'SAR', today_deliveries: 'deliveries',
         offline_banner: 'You are offline', reconnect_banner: 'Reconnected',
         map_unavailable: 'Map not available', navigate_google: '🗺️ Google Maps',
         navigate_waze: '🚗 Waze', call_customer: '📞 Call', chat_customer: '💬 Chat',
@@ -145,7 +150,12 @@
         password: 'Password',
         login: 'Login',
         na: 'N/A',
-        pending: 'Pending'
+        pending: 'Pending',
+        picked_up: 'Picked up',
+        on_the_way: 'On the way',
+        delivered: 'Delivered',
+        restaurant: 'Restaurant',
+        customer: 'Customer'
       },
       de: {
         app_title: 'Fairfood Price - Fahrer', loading: 'Lädt…', locating: 'Standort wird ermittelt…',
@@ -154,7 +164,7 @@
         nav_home: 'Start', nav_orders: 'Aufträge', nav_delivery: 'Lieferung',
         nav_earnings: 'Verdienst', nav_settings: 'Einstellungen', nav_profile: 'Profil', nav_wallet: 'Geldbörse',
         no_new_orders: 'Keine neuen Aufträge', accept: 'Annehmen', reject: 'Ablehnen',
-        new_order: 'Neuer Auftrag', today_earnings: '💰 0 EUR', today_deliveries: '📦 0 Lieferungen',
+        new_order: 'Neuer Auftrag', today_earnings: 'EUR', today_deliveries: 'Lieferungen',
         offline_banner: 'Sie sind offline', reconnect_banner: 'Wieder verbunden',
         map_unavailable: 'Karte nicht verfügbar', navigate_google: '🗺️ Google Maps',
         navigate_waze: '🚗 Waze', call_customer: '📞 Anrufen', chat_customer: '💬 Chat',
@@ -215,7 +225,12 @@
         password: 'Passwort',
         login: 'Anmelden',
         na: 'N/A',
-        pending: 'Ausstehend'
+        pending: 'Ausstehend',
+        picked_up: 'Abgeholt',
+        on_the_way: 'Unterwegs',
+        delivered: 'Geliefert',
+        restaurant: 'Restaurant',
+        customer: 'Kunde'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -540,16 +555,25 @@
 
     startTracking() {
       if (!Store.token || Store._watchId) return;
+      if (!('geolocation' in navigator)) {
+        UI.showToast(I18n.t('map_unavailable'), 'info');
+        return;
+      }
       Store._watchId = navigator.geolocation.watchPosition(
         (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           const accuracy = pos.coords.accuracy;
           Store.userLocation = { lat, lng };
+          document.getElementById('mapFallback')?.classList.add('is-hidden');
           this.updateUserMarker();
           api.post('/driver/location', { lat, lng, accuracy }).catch(() => {});
         },
-        () => {},
+        (err) => {
+          console.warn('GPS tracking error:', err.message);
+          document.getElementById('mapFallback')?.classList.remove('is-hidden');
+          if (err.code === 1) UI.showToast(I18n.t('map_unavailable'), 'info');
+        },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
       );
     },
@@ -592,11 +616,14 @@
           const data = msg.data || msg;
 
           if (event === 'driver:new_order') {
-            Store.orders.push(data);
-            UI.updateBadge('ordersBadge', Store.orders.length);
-            UI.announce(I18n.t('new_order'));
-            App.screens.showIncomingModal(data);
-            try { document.getElementById('soundNewOrder')?.play(); } catch (e) { }
+            if (!App._knownOrderIds.has(data.id)) {
+              App._knownOrderIds.add(data.id);
+              Store.orders.push(data);
+              UI.updateBadge('ordersBadge', Store.orders.length);
+              UI.announce(I18n.t('new_order'));
+              App.screens.showIncomingModal(data);
+              try { document.getElementById('soundNewOrder')?.play(); } catch (e) { }
+            }
           }
 
           if (event === 'driver:order_cancelled') {
@@ -682,6 +709,10 @@
     },
 
     silentLogout() {
+      RealtimeService.disconnect();
+      MapService.stopTracking();
+      clearInterval(App._pollTimer);
+      clearInterval(App._activePollTimer);
       Store.token = null;
       localStorage.removeItem('driver_token');
       Store.user = null;
@@ -781,6 +812,9 @@
           UI.showToast(I18n.t('driver_register_success'), 'success');
           Auth._authRequired = false;
           MapService.init();
+          MapService.startTracking();
+          RealtimeService.init();
+          App._startPolling();
         } catch (err) {
           document.getElementById('authError').textContent = err.message || I18n.t('error_general');
           document.getElementById('authError').classList.remove('is-hidden');

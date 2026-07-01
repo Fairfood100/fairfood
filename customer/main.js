@@ -52,7 +52,18 @@
         register_success: 'تم إنشاء الحساب بنجاح',
         order_income: 'الوارد',
         order_spending: 'المنصرف',
-        transaction_history: 'حركات المحفظة'
+        transaction_history: 'حركات المحفظة',
+        noscript_warning: 'يجب تفعيل JavaScript لاستخدام التطبيق.',
+        category_label: 'التصنيف',
+        sort_label: 'الترتيب',
+        address_sheet_title: 'عنوان التوصيل',
+        checkout_title: 'إتمام الطلب',
+        payment_cash: 'دفع عند الاستلام',
+        payment_card: 'بطاقة',
+        payment_wallet: 'محفظة',
+        confirm_order: 'تأكيد الطلب',
+        new_address_title: 'عنوان جديد',
+        confirm_delivery: 'تم تأكيد الاستلام'
       },
       en: {
         app_title: 'Fairfood', loading: 'Loading…', locating: 'Locating…',
@@ -102,7 +113,18 @@
         register_success: 'Account created successfully',
         order_income: 'Income',
         order_spending: 'Spending',
-        transaction_history: 'Wallet History'
+        transaction_history: 'Wallet History',
+        noscript_warning: 'JavaScript must be enabled to use the app.',
+        category_label: 'Category',
+        sort_label: 'Sort by',
+        address_sheet_title: 'Delivery Address',
+        checkout_title: 'Checkout',
+        payment_cash: 'Cash on Delivery',
+        payment_card: 'Card',
+        payment_wallet: 'Wallet',
+        confirm_order: 'Confirm Order',
+        new_address_title: 'New Address',
+        confirm_delivery: 'Delivery confirmed'
       },
       de: {
         app_title: 'Fairfood', loading: 'Lädt…', locating: 'Standort…',
@@ -152,7 +174,18 @@
         register_success: 'Konto erfolgreich erstellt',
         order_income: 'Einnahmen',
         order_spending: 'Ausgaben',
-        transaction_history: 'Transaktionsverlauf'
+        transaction_history: 'Transaktionsverlauf',
+        noscript_warning: 'JavaScript muss aktiviert sein.',
+        category_label: 'Kategorie',
+        sort_label: 'Sortieren',
+        address_sheet_title: 'Lieferadresse',
+        checkout_title: 'Zur Kasse',
+        payment_cash: 'Barzahlung',
+        payment_card: 'Karte',
+        payment_wallet: 'Geldbörse',
+        confirm_order: 'Bestellung bestätigen',
+        new_address_title: 'Neue Adresse',
+        confirm_delivery: 'Lieferung bestätigt'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -595,28 +628,35 @@
     }
   };
 
+  const RIP = '©️ <a href="https://carto.com/">CARTO</a>';
   const MapService = {
     init(lat, lng) {
       if (Store.map) return;
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      const centerLat = Number.isFinite(lat) ? lat : 24.7136;
+      const centerLng = Number.isFinite(lng) ? lng : 46.6753;
       const mapEl = document.getElementById('trackingMap');
       if (mapEl && typeof L !== 'undefined') {
-        Store.map = L.map(mapEl).setView([lat, lng], 14);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '©️ <a href="https://carto.com/">CARTO</a>' }).addTo(Store.map);
-        this.updateUserLocation(lat, lng);
+        Store.map = L.map(mapEl, { center: [centerLat, centerLng], zoom: 12 });
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: RIP }).addTo(Store.map);
+        setTimeout(() => Store.map?.invalidateSize(), 300);
+        if (Number.isFinite(lat) && Number.isFinite(lng)) this.addUserMarker(lat, lng);
+      }
+    },
+
+    addUserMarker(lat, lng) {
+      if (!Store.map || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      if (!Store.userMarker) {
+        Store.userMarker = L.marker([lat, lng], {
+          icon: L.divIcon({ className: 'user-marker', html: '🔵', iconSize: [20, 20] })
+        }).addTo(Store.map);
+      } else {
+        Store.userMarker.setLatLng([lat, lng]);
       }
     },
 
     updateUserLocation(lat, lng) {
       if (!Store.map || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      if (Store.userMarker) {
-        Store.userMarker.setLatLng([lat, lng]);
-      } else {
-        Store.userMarker = L.marker([lat, lng], {
-          icon: L.divIcon({ className: 'user-marker', html: '🔵', iconSize: [20, 20] })
-        }).addTo(Store.map);
-      }
-      Store.map.setView([lat, lng], 15);
+      this.addUserMarker(lat, lng);
     },
 
     updateDriverLocation(lat, lng) {
@@ -1033,14 +1073,14 @@
         html = `
           <div style="text-align:center;padding:40px 0">
             <button class="btn-primary" id="showLoginBtn" style="width:100%;margin-bottom:12px">${I18n.t('auth_title')}</button>
-            <button class="btn-secondary" id="guestModeBtn" style="width:100%">${I18n.t('guest_btn')}</button>
+            <button class="btn-secondary" id="guestModeProfileBtn" style="width:100%">${I18n.t('guest_btn')}</button>
           </div>`;
       }
       container.innerHTML = html;
 
       document.getElementById('logoutBtn')?.addEventListener('click', () => Auth.logout());
       document.getElementById('showLoginBtn')?.addEventListener('click', () => UI.openSheet('authSheet'));
-      document.getElementById('guestModeBtn')?.addEventListener('click', () => Auth.guest());
+      document.getElementById('guestModeProfileBtn')?.addEventListener('click', () => Auth.guest());
       document.getElementById('ordersHistoryBtn')?.addEventListener('click', () => App.router.navigate('orders'));
       document.getElementById('notificationsBtn')?.addEventListener('click', () => Screens._showNotifications());
     },
@@ -1121,7 +1161,7 @@
         Store.addresses = Array.isArray(addrRes) ? addrRes : (addrRes.data || addrRes || []);
         const select = document.getElementById('checkoutAddressSelect');
         select.innerHTML = Store.addresses.map(a =>
-          `<option value="${SafeHTML.escape(a.name)}">${SafeHTML.escape(a.name)}</option>`
+          `<option value="${SafeHTML.escape(a.id)}">${SafeHTML.escape(a.name)}</option>`
         ).join('');
 
         const quoteRes = await api.post('/orders/quote', {
@@ -1157,7 +1197,7 @@
         const res = await api.post('/coupons/validate', { code, subtotalCents: subtotal });
         this.currentQuote = this.currentQuote || {};
         this.currentQuote.discount = res.discountCents || 0;
-        UI.showToast(`${I18n.t('coupon_applied')}: ${fmtPrice(res.discountCents)}`, 'success');
+        UI.showToast(`${I18n.t('coupon_applied')}: ${fmtPrice(res.discountCents ?? 0)}`, 'success');
         // re-render totals
         const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
         const sub = subtotal;
@@ -1246,10 +1286,15 @@
         if (addressLine && !geocodePending) {
           geocodePending = true;
           addressLine.textContent = I18n.t('locating');
-          const readable = await GPSService.reverseGeocode(coords.lat, coords.lng);
-          if (readable) Store.userAddress = readable;
-          if (readable) addressLine.textContent = readable;
-          geocodePending = false;
+          try {
+            const readable = await GPSService.reverseGeocode(coords.lat, coords.lng);
+            if (readable) Store.userAddress = readable;
+            if (readable) addressLine.textContent = readable;
+          } catch (e) {
+            // ignore
+          } finally {
+            geocodePending = false;
+          }
         }
         MapService.updateUserLocation(coords.lat, coords.lng);
       });
@@ -1298,12 +1343,6 @@
 
       document.getElementById('locationTrigger')?.addEventListener('click', () => UI.openSheet('addressSheet'));
 
-      document.getElementById('doLoginBtn')?.addEventListener('click', () => {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        Auth.login(email, password);
-      });
-
       document.getElementById('guestModeBtn')?.addEventListener('click', () => Auth.guest());
 
       document.getElementById('addNewAddressBtn')?.addEventListener('click', () => UI.openSheet('newAddressSheet'));
@@ -1334,7 +1373,7 @@
         try {
           await api.post(`/orders/${Store.currentOrder.id}/delivered`, {});
           Store.currentOrder.status = 'completed';
-          UI.showToast('تم تأكيد الاستلام', 'success');
+          UI.showToast(I18n.t('confirm_delivery'), 'success');
           Screens._renderTrackingDetail();
         } catch (e) {
           UI.showToast(e.message, 'error');

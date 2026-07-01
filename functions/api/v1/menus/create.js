@@ -12,7 +12,7 @@ export async function onRequestPost({ request, env }) {
   const isForm = ct.includes("multipart/form-data");
   const body = isForm ? await readFormData(request) : await readJson(request);
 
-  const restaurant = await env.DB.prepare("SELECT id FROM restaurants WHERE user_id = ?")
+  const restaurant = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id = ?")
     .bind(user.sub)
     .first();
 
@@ -31,7 +31,7 @@ export async function onRequestPost({ request, env }) {
       restaurant.id,
       body.name,
       body.description || "",
-      Number(body.price || 0),
+      Math.round(Number(body.price || 0) * 100),
       body.category || "",
       body.available === false ? 0 : 1,
       body.imageUrl || ""

@@ -771,10 +771,12 @@ async function app(request, env) {
     const rId = restaurantMenuById[1];
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE id=? AND owner_user_id=?").bind(rId, a.user.id).first();
     if (!r) return fail("Forbidden", 403, "FORBIDDEN", env);
-    const b = await readBody(request);
+    const { b, imgBuf, imgType } = await parseMenuBody(request);
     const itemId = uid("m");
+    const imageUrl = imgBuf ? `data:${imgType};base64,${bufToB64(imgBuf)}` : (b.image || b.imageUrl || "");
+    const priceCents = Math.round(Number(b.priceCents ?? (b.price != null ? b.price * 100 : 0)));
     await env.DB.prepare("INSERT INTO menu_items (id, restaurant_id, category, category_id, name, description, price_cents, image, tags, available, inventory_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-      .bind(itemId, rId, b.category || "Main", b.categoryId || b.category || "", b.name || "Item", b.description || "", Number(b.priceCents || b.price || 0), b.image || "", b.tags || "", b.available === false ? 0 : 1, b.inventoryCount ?? null).run();
+      .bind(itemId, rId, b.category || "Main", b.categoryId || b.category || "", b.name || "Item", b.description || "", priceCents, imageUrl, b.tags || "", b.available === false ? 0 : 1, b.inventoryCount ?? null).run();
     return ok({ id: itemId }, env, 201);
   }
 

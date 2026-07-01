@@ -114,6 +114,7 @@
       order_rejected: 'تم رفض الطلب',
       order_ready: 'تم تجهيز الطلب',
       handoff_confirmed: 'تم تأكيد التسليم',
+      fill_fields: 'يرجى تعبئة الحقول المطلوبة',
       no_notifications: 'لا توجد إشعارات',
       no_account: 'ليس لديك حساب؟ تسجيل',
       have_account: 'لديك حساب؟ دخول',
@@ -211,6 +212,7 @@
       order_rejected: 'Order rejected',
       order_ready: 'Order ready',
       handoff_confirmed: 'Handoff confirmed',
+      fill_fields: 'Please fill in the required fields',
       no_notifications: 'No notifications',
       no_account: 'No account? Register',
       have_account: 'Already have an account? Login',
@@ -308,6 +310,7 @@
       order_rejected: 'Bestellung abgelehnt',
       order_ready: 'Bestellung bereit',
       handoff_confirmed: 'Übergabe bestätigt',
+      fill_fields: 'Bitte füllen Sie die Pflichtfelder aus',
       no_notifications: 'Keine Benachrichtigungen',
       no_account: 'Kein Konto? Registrieren',
       have_account: 'Bereits Konto? Anmelden',
@@ -1221,7 +1224,7 @@
   function toggleAuthForm(showRegister) {
     document.getElementById('authLoginForm').classList.toggle('hidden', showRegister);
     document.getElementById('authRegisterForm').classList.toggle('hidden', !showRegister);
-    document.getElementById('authSheetTitle').textContent = showRegister ? 'تسجيل مطعم جديد' : 'تسجيل الدخول';
+    document.getElementById('authSheetTitle').textContent = showRegister ? t('auth_register_title') : t('auth_title');
   }
 
   async function handleRegister() {
@@ -1232,7 +1235,7 @@
     const address = document.getElementById('regAddress')?.value;
     const cuisine = document.getElementById('regCuisine')?.value;
     if (!name || !email || !password) {
-      showToast('يرجى تعبئة الحقول المطلوبة', 'error');
+      showToast(t('fill_fields'), 'error');
       return;
     }
     try {
@@ -1257,7 +1260,7 @@
         showToast(t('network_error'), 'info');
       }
     } catch (err) {
-      showToast('فشل التسجيل: ' + (err.message || ''), 'error');
+      showToast(t('auth_login_error') + ': ' + (err.message || ''), 'error');
     }
   }
 

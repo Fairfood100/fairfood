@@ -11,7 +11,7 @@ export async function onRequestGet({ request, env }) {
   let restaurantId = url.searchParams.get("restaurantId");
 
   if (!restaurantId && user.role === "restaurant") {
-    const restaurant = await env.DB.prepare("SELECT id FROM restaurants WHERE user_id = ?")
+    const restaurant = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id = ?")
       .bind(user.sub)
       .first();
 
@@ -31,10 +31,11 @@ export async function onRequestGet({ request, env }) {
       id: item.id,
       name: item.name,
       description: item.description,
-      price: item.price,
+      price: item.price_cents / 100,
+      price_cents: item.price_cents,
       category: item.category,
       available: Boolean(item.available),
-      imageUrl: item.image_url
+      imageUrl: item.image
     })),
     categories: []
   });
