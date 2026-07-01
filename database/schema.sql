@@ -86,11 +86,13 @@ CREATE TABLE restaurants (
   closing_time TEXT DEFAULT '23:00',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  currency TEXT DEFAULT 'SAR',
   FOREIGN KEY(owner_user_id) REFERENCES users(id)
 );
 
 CREATE INDEX idx_restaurants_owner ON restaurants(owner_user_id);
 CREATE INDEX idx_restaurants_status ON restaurants(status, verification_status);
+CREATE INDEX idx_restaurants_location ON restaurants(lat, lng);
 
 -- ============================================================
 -- 3. أصناف القائمة

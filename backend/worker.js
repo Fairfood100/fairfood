@@ -248,6 +248,78 @@ function distanceKm(aLat, aLng, bLat, bLng) {
   return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
 }
 
+// ============================================================
+// العملات العالمية - ISO 4217
+// ============================================================
+const COUNTRY_CURRENCY = {
+  'SA': 'SAR', 'AE': 'AED', 'EG': 'EGP', 'JO': 'JOD', 'KW': 'KWD',
+  'BH': 'BHD', 'QA': 'QAR', 'OM': 'OMR', 'LB': 'LBP', 'IQ': 'IQD',
+  'SY': 'SYP', 'YE': 'YER', 'PS': 'ILS', 'MA': 'MAD', 'TN': 'TND',
+  'DZ': 'DZD', 'LY': 'LYD', 'SD': 'SDG', 'SO': 'SOS', 'DJ': 'DJF',
+  'KM': 'KMF', 'MR': 'MRU', 'US': 'USD', 'CA': 'CAD', 'MX': 'MXN',
+  'BR': 'BRL', 'AR': 'ARS', 'CL': 'CLP', 'CO': 'COP', 'PE': 'PEN',
+  'DE': 'EUR', 'FR': 'EUR', 'IT': 'EUR', 'ES': 'EUR', 'NL': 'EUR',
+  'BE': 'EUR', 'AT': 'EUR', 'PT': 'EUR', 'IE': 'EUR', 'FI': 'EUR',
+  'GB': 'GBP', 'CH': 'CHF', 'SE': 'SEK', 'NO': 'NOK', 'DK': 'DKK',
+  'PL': 'PLN', 'CZ': 'CZK', 'HU': 'HUF', 'RO': 'RON', 'BG': 'BGN',
+  'HR': 'EUR', 'RS': 'RSD', 'BA': 'BAM', 'ME': 'EUR', 'MK': 'MKD',
+  'AL': 'ALL', 'GR': 'EUR', 'CY': 'EUR', 'MT': 'EUR', 'TR': 'TRY',
+  'IL': 'ILS', 'CN': 'CNY', 'JP': 'JPY', 'KR': 'KRW', 'IN': 'INR',
+  'AU': 'AUD', 'NZ': 'NZD', 'SG': 'SGD', 'HK': 'HKD', 'TW': 'TWD',
+  'MY': 'MYR', 'TH': 'THB', 'VN': 'VND', 'ID': 'IDR', 'PH': 'PHP',
+  'ZA': 'ZAR', 'NG': 'NGN', 'KE': 'KES', 'GH': 'GHS', 'ET': 'ETB',
+  'TZ': 'TZS', 'UG': 'UGX', 'RW': 'RWF', 'ZW': 'ZWL', 'MW': 'MWK',
+  'MZ': 'MZN', 'BW': 'BWP', 'NA': 'NAD', 'SZ': 'SZL', 'LS': 'LSL',
+  'KM': 'KMF', 'SC': 'SCR', 'MU': 'MUR', 'MG': 'MGA', 'CV': 'CVE',
+  'ST': 'STN', 'TD': 'XAF', 'CF': 'XAF', 'CG': 'XAF', 'CM': 'XAF',
+  'GA': 'XAF', 'GQ': 'XAF', 'SN': 'XOF', 'ML': 'XOF', 'BF': 'XOF',
+  'CI': 'XOF', 'NE': 'XOF', 'TG': 'XOF', 'BJ': 'XOF', 'GW': 'XOF',
+  'GN': 'GNF', 'LR': 'LRD', 'SL': 'SLE', 'GM': 'GMD', 'GW': 'XOF',
+  'AF': 'AFN', 'BD': 'BDT', 'BT': 'BTN', 'KH': 'KHR', 'LA': 'LAK',
+  'MN': 'MNT', 'MM': 'MMK', 'NP': 'NPR', 'PK': 'PKR', 'LK': 'LKR',
+  'MV': 'MVR', 'TL': 'USD', 'BN': 'BND', 'KZ': 'KZT', 'KG': 'KGS',
+  'TJ': 'TJS', 'TM': 'TMT', 'UZ': 'UZS', 'AZ': 'AZN', 'AM': 'AMD',
+  'GE': 'GEL', 'BY': 'BYN', 'UA': 'UAH', 'MD': 'MDL', 'RS': 'RSD',
+  'ME': 'EUR', 'MK': 'MKD', 'XK': 'EUR', 'BA': 'BAM', 'HR': 'EUR',
+  'SI': 'EUR', 'SK': 'EUR', 'LT': 'EUR', 'LV': 'EUR', 'EE': 'EUR',
+  'CZ': 'CZK', 'HU': 'HUF', 'RO': 'RON', 'BG': 'BGN', 'PL': 'PLN',
+};
+
+const currencyCache = new Map();
+
+async function getCurrencyFromCoords(lat, lng) {
+  const key = `${Number(lat).toFixed(4)},${Number(lng).toFixed(4)}`;
+  if (currencyCache.has(key)) return currencyCache.get(key);
+  
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`,
+      { headers: { 'User-Agent': 'Fairfood/2.0' }}
+    );
+    const data = await res.json();
+    const countryCode = data.address?.country_code?.toUpperCase();
+    const currency = COUNTRY_CURRENCY[countryCode] || 'USD';
+    currencyCache.set(key, currency);
+    return currency;
+  } catch {
+    return 'USD';
+  }
+}
+
+// تنسيق السعر باستخدام Intl.NumberFormat (محلي)
+function formatPrice(cents, currencyCode, locale = 'ar-SA') {
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode.toUpperCase(),
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(cents / 100);
+  } catch {
+    return (cents / 100).toFixed(0) + ' ' + currencyCode.toUpperCase();
+  }
+}
+
 // إنشاء محفظة إذا لم تكن موجودة
 async function createWalletIfMissing(env, ownerType, ownerId) {
   const existing = await env.DB.prepare("SELECT id FROM wallets WHERE owner_type=? AND owner_id=?").bind(ownerType, ownerId).first();
@@ -268,7 +340,7 @@ async function creditWallet(env, ownerType, ownerId, orderId, amount, note) {
 
 // جلب تفاصيل الطلب مع المطعم
 async function getOrder(env, id) {
-  return env.DB.prepare("SELECT o.*, r.name restaurant_name, r.address restaurant_address, r.lat restaurant_lat, r.lng restaurant_lng, r.owner_user_id FROM orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.id=?").bind(id).first();
+  return env.DB.prepare("SELECT o.*, r.name restaurant_name, r.address restaurant_address, r.lat restaurant_lat, r.lng restaurant_lng, r.currency restaurant_currency, r.owner_user_id FROM orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.id=?").bind(id).first();
 }
 
 // إيجاد أفضل سائق متاح قريب من المطعم
@@ -470,8 +542,13 @@ async function app(request, env) {
     if (b.role === "customer") await createWalletIfMissing(env, "customer", userId);
     if (b.role === "restaurant") {
       const rid = uid("r");
-      await env.DB.prepare("INSERT INTO restaurants (id, owner_user_id, name, description, address, cuisine, status, verification_status) VALUES (?, ?, ?, ?, ?, ?, 'closed', 'pending')")
-        .bind(rid, userId, b.restaurantName || b.name, b.description || "", b.address || "Address needed", b.cuisine || "Food").run();
+      // Auto-detect currency from lat/lng if provided
+      let currency = 'SAR';
+      if (b.lat && b.lng) {
+        currency = await getCurrencyFromCoords(b.lat, b.lng);
+      }
+      await env.DB.prepare("INSERT INTO restaurants (id, owner_user_id, name, description, address, cuisine, status, verification_status, lat, lng, currency) VALUES (?, ?, ?, ?, ?, ?, 'closed', 'pending', ?, ?, ?)")
+        .bind(rid, userId, b.restaurantName || b.name, b.description || "", b.address || "Address needed", b.cuisine || "Food", b.lat || null, b.lng || null, currency).run();
       await createWalletIfMissing(env, "restaurant", rid);
       await env.DB.prepare("INSERT INTO documents (id, owner_type, owner_id, document_type, file_url, status) VALUES (?, 'restaurant', ?, 'business_license', ?, 'pending')")
         .bind(uid("doc"), rid, b.businessLicenseUrl || "").run();
@@ -589,6 +666,35 @@ async function app(request, env) {
   // قائمة المطاعم المفتوحة
   if ((path === "/api/restaurants" || path === "/api/v1/restaurants") && method === "GET") {
     const rows = await env.DB.prepare("SELECT * FROM restaurants WHERE status='open' AND verification_status='approved' ORDER BY rating DESC").all();
+    return ok({ data: rows.results || [] }, env);
+  }
+
+  // المطاعم القريبة (مع فلترة المسافة - افتراضي 40كم)
+  if ((path === "/api/restaurants/nearby" || path === "/api/v1/restaurants/nearby") && method === "GET") {
+    const lat = Number(url.searchParams.get("lat"));
+    const lng = Number(url.searchParams.get("lng"));
+    const radius = Math.min(Number(url.searchParams.get("radius") || 40), 100); // max 100km
+    
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return fail("Invalid coordinates", 422, "INVALID_COORDS", env);
+    }
+
+    // Haversine formula in SQL (SQLite)
+    const rows = await env.DB.prepare(`
+      SELECT *, 
+        (6371 * 2 * ASIN(SQRT(
+          POWER(SIN((? - lat) * PI()/360), 2) + 
+          COS(lat * PI()/180) * COS(? * PI()/180) * 
+          POWER(SIN((? - lng) * PI()/360), 2)
+        ))) AS distance_km
+      FROM restaurants 
+      WHERE status='open' AND verification_status='approved' 
+        AND lat IS NOT NULL AND lng IS NOT NULL
+      HAVING distance_km <= ?
+      ORDER BY distance_km ASC
+      LIMIT 50
+    `).bind(lat, lat, lng, radius).all();
+
     return ok({ data: rows.results || [] }, env);
   }
 
@@ -718,8 +824,15 @@ async function app(request, env) {
     const b = await readBody(request);
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id=?").bind(a.user.id).first();
     if (!r || r.id !== restaurantUpdate[1]) return fail("Forbidden", 403, "FORBIDDEN", env);
-    await env.DB.prepare("UPDATE restaurants SET name=COALESCE(?,name), phone=COALESCE(?,phone), address=COALESCE(?,address), description=COALESCE(?,description), cuisine=COALESCE(?,cuisine), is_open=COALESCE(?,is_open), opening_time=COALESCE(?,opening_time), closing_time=COALESCE(?,closing_time), lat=COALESCE(?,lat), lng=COALESCE(?,lng), delivery_fee_cents=COALESCE(?,delivery_fee_cents), min_order_cents=COALESCE(?,min_order_cents), delivery_time_min=COALESCE(?,delivery_time_min), delivery_time_max=COALESCE(?,delivery_time_max), status=CASE WHEN ?=1 THEN 'open' WHEN ?=0 THEN 'closed' ELSE status END, updated_at=CURRENT_TIMESTAMP WHERE id=?")
-      .bind(b.name ?? null, b.phone ?? null, b.address ?? null, b.description ?? null, b.cuisine ?? null, b.isOpen === undefined ? null : (b.isOpen ? 1 : 0), b.openingTime ?? null, b.closingTime ?? null, b.lat ?? null, b.lng ?? null, b.deliveryFeeCents ?? null, b.minOrderCents ?? null, b.deliveryTimeMin ?? null, b.deliveryTimeMax ?? null, b.isOpen === undefined ? null : (b.isOpen ? 1 : 0), b.isOpen === undefined ? null : (b.isOpen ? 0 : 1), r.id).run();
+    
+    // Auto-update currency if lat/lng changed
+    let currency = null;
+    if (b.lat && b.lng) {
+      currency = await getCurrencyFromCoords(b.lat, b.lng);
+    }
+    
+    await env.DB.prepare("UPDATE restaurants SET name=COALESCE(?,name), phone=COALESCE(?,phone), address=COALESCE(?,address), description=COALESCE(?,description), cuisine=COALESCE(?,cuisine), is_open=COALESCE(?,is_open), opening_time=COALESCE(?,opening_time), closing_time=COALESCE(?,closing_time), lat=COALESCE(?,lat), lng=COALESCE(?,lng), currency=COALESCE(?,currency), delivery_fee_cents=COALESCE(?,delivery_fee_cents), min_order_cents=COALESCE(?,min_order_cents), delivery_time_min=COALESCE(?,delivery_time_min), delivery_time_max=COALESCE(?,delivery_time_max), status=CASE WHEN ?=1 THEN 'open' WHEN ?=0 THEN 'closed' ELSE status END, updated_at=CURRENT_TIMESTAMP WHERE id=?")
+      .bind(b.name ?? null, b.phone ?? null, b.address ?? null, b.description ?? null, b.cuisine ?? null, b.isOpen === undefined ? null : (b.isOpen ? 1 : 0), b.openingTime ?? null, b.closingTime ?? null, b.lat ?? null, b.lng ?? null, currency, b.deliveryFeeCents ?? null, b.minOrderCents ?? null, b.deliveryTimeMin ?? null, b.deliveryTimeMax ?? null, b.isOpen === undefined ? null : (b.isOpen ? 1 : 0), b.isOpen === undefined ? null : (b.isOpen ? 0 : 1), r.id).run();
     return ok({ message: "updated" }, env);
   }
 
@@ -1585,6 +1698,14 @@ async function app(request, env) {
     if (!order) return fail("Order not found", 404, "NOT_FOUND", env);
     if (order.customer_user_id !== a.user.id) return fail("Forbidden", 403, "FORBIDDEN", env);
 
+    // الحصول على عملة المطعم
+    const restaurant = await env.DB.prepare("SELECT currency FROM restaurants WHERE id=?").bind(order.restaurant_id).first();
+    const currency = (restaurant?.currency || 'SAR').toLowerCase();
+    
+    // العملات المدعومة في Stripe
+    const supportedCurrencies = ['sar','usd','eur','aed','egp','gbp','cad','aud','jpy','inr','bhd','kwd','omr','qar','jod','lbp','mad','tnd','dzd','lyd','sdg','try','ils','czk','huf','pln','ron','bgn','hrk','isk','nok','sek','dkk','chf','rub','uah','bgn','ron'];
+    const finalCurrency = supportedCurrencies.includes(currency) ? currency : 'sar';
+
     try {
       // إنشاء Stripe Checkout Session
       const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -1597,8 +1718,8 @@ async function app(request, env) {
           "mode": "payment",
           "success_url": (env.PUBLIC_API_BASE || "https://fairfood.fairfood100.workers.dev") + "/payment/success?session_id={CHECKOUT_SESSION_ID}",
           "cancel_url": (env.PUBLIC_API_BASE || "https://fairfood.fairfood100.workers.dev") + "/payment/cancel",
-          "currency": "eur",
-          "line_items[0][price_data][currency]": "eur",
+          "currency": finalCurrency,
+          "line_items[0][price_data][currency]": finalCurrency,
           "line_items[0][price_data][product_data][name]": "طلب رقم " + order.id.slice(0, 8),
           "line_items[0][price_data][unit_amount]": String(order.total_cents),
           "line_items[0][quantity]": "1",
