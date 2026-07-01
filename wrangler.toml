@@ -5,8 +5,9 @@ pages_build_output_dir = "."
 [[d1_databases]]
 binding = "DB"
 database_name = "fairfood-db"
-database_id = "d6950e98-4c6b-4247-bb28-67438d08b806
+database_id = "d6950e98-4c6b-4247-bb28-67438d08b806"
 
-[[r2_buckets]]
-binding = "R2"
-bucket_name = "fairfood-uploads""
+# [[r2_buckets]]
+# binding = "R2"
+# bucket_name = "fairfood-uploads"
+# Uncomment above & run: wrangler r2 bucket create fairfood-uploads
