@@ -1262,7 +1262,17 @@
         Store.currentRestaurant = null;
         persistCartAndRestaurant();
         Cart._updateBadge();
+        Cart._updateOrdersBadge();
         UI.closeSheet('checkoutSheet');
+
+        if (payment === 'stripe') {
+          const stripeRes = await api.post('/stripe/checkout', { order_id: order.id });
+          if (stripeRes.url) {
+            window.location.href = stripeRes.url;
+            return;
+          }
+        }
+
         UI.showToast(I18n.t('order_success'), 'success');
         App.router.navigate('tracking');
         WsService.init(Store.currentOrder.id);
