@@ -3,5 +3,6 @@ window.APP_CONFIG = {
   apiBaseUrl: "/api/v1",
   socketUrl: window.location.origin,
   defaultLanguage: "ar",
-  defaultCurrency: "ر.س"
+  defaultCurrency: "ر.س",
+  supportPhone: ''
 };
