@@ -546,7 +546,7 @@ async function app(request, env) {
       if (b.lat && b.lng) {
         currency = await getCurrencyFromCoords(b.lat, b.lng);
       }
-      await env.DB.prepare("INSERT INTO restaurants (id, owner_user_id, name, description, address, cuisine, status, verification_status, lat, lng, currency) VALUES (?, ?, ?, ?, ?, ?, 'closed', 'pending', ?, ?, ?)")
+      await env.DB.prepare("INSERT INTO restaurants (id, owner_user_id, name, description, address, cuisine, status, verification_status, lat, lng, currency) VALUES (?, ?, ?, ?, ?, ?, 'open', 'approved', ?, ?, ?)")
         .bind(rid, userId, b.restaurantName || b.name, b.description || "", b.address || "Address needed", b.cuisine || "Food", b.lat || null, b.lng || null, currency).run();
       await createWalletIfMissing(env, "restaurant", rid);
       await env.DB.prepare("INSERT INTO documents (id, owner_type, owner_id, document_type, file_url, status) VALUES (?, 'restaurant', ?, 'business_license', ?, 'pending')")
