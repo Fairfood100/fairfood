@@ -56,7 +56,9 @@
         auth_password_label: 'كلمة المرور',
         auth_login_btn: 'دخول',
         auth_login_error: 'فشل تسجيل الدخول',
-        auth_welcome: 'مرحباً بك في لوحة الإدارة'
+        auth_welcome: 'مرحباً بك في لوحة الإدارة',
+        min_order_label: 'الحد الأدنى للطلب (تجريبي)',
+        min_order_placeholder: 'مثال: 20'
       },
       en: {
         app_title: 'Fairfood Price - Admin',
@@ -101,7 +103,9 @@
         dark: 'Dark',
         save_settings: 'Save settings',
         saved_locally: 'Saved locally',
-        feature_unavailable: 'Feature not available'
+        feature_unavailable: 'Feature not available',
+        min_order_label: 'Min Order (experimental)',
+        min_order_placeholder: 'Example: 20'
       },
       de: {
         app_title: 'Fairfood Price - Verwaltung',
@@ -146,7 +150,9 @@
         dark: 'Dunkel',
         save_settings: 'Einstellungen speichern',
         saved_locally: 'Lokal gespeichert',
-        feature_unavailable: 'Funktion nicht verfügbar'
+        feature_unavailable: 'Funktion nicht verfügbar',
+        min_order_label: 'Mindestbestellung (experimentell)',
+        min_order_placeholder: 'Beispiel: 20'
       }
     },
     t(key) { return this._data[this._lang]?.[key] || this._data.en[key] || key; },
@@ -308,7 +314,7 @@
         notifications: 'notifications',
         settings: 'settings'
       };
-      document.getElementById('currentPageTitle').textContent = I18n.t(titleMap[this.current] || 'dashboard');
+      document.getElementById('currentPageTitle')?.textContent = I18n.t(titleMap[this.current] || 'dashboard');
     }
 
     _renderScreen(screen, params) {
@@ -334,6 +340,7 @@
   const UI = {
     showToast(msg, type = 'success') {
       const container = document.getElementById('toastContainer');
+      if (!container) return;
       const toast = document.createElement('div');
       toast.className = `toast toast-${type}`;
       toast.textContent = msg;
@@ -341,8 +348,8 @@
       setTimeout(() => toast.remove(), 4000);
     },
 
-    showLoader() { document.getElementById('app').classList.add('app-loading'); },
-    hideLoader() { document.getElementById('app').classList.remove('app-loading'); },
+    showLoader() { document.getElementById('app')?.classList.add('app-loading'); },
+    hideLoader() { document.getElementById('app')?.classList.remove('app-loading'); },
 
     showOfflineBanner() {
       document.getElementById('offlineBanner')?.classList.remove('is-hidden');
@@ -376,7 +383,7 @@
       Store.admin = res.user;
       this._initialized = true;
       document.getElementById('authOverlay')?.classList.add('is-hidden');
-      document.getElementById('adminName').textContent = res.user?.name || I18n.t('admin_name');
+      document.getElementById('adminName')?.textContent = res.user?.name || I18n.t('admin_name');
       UI.showToast(I18n.t('auth_welcome'), 'success');
     },
 
@@ -399,7 +406,7 @@
         try {
           const res = await api.get('/auth/me');
           Store.admin = res.user || res.data || res;
-          document.getElementById('adminName').textContent = Store.admin?.name || I18n.t('admin_name');
+          document.getElementById('adminName')?.textContent = Store.admin?.name || I18n.t('admin_name');
           return;
         } catch (e) { }
       }
@@ -453,12 +460,12 @@
         const res = await api.get('/admin/dashboard');
         Store.dashboard = res.data || res;
         const d = Store.dashboard;
-        document.getElementById('statCustomers').textContent = d.customers || 0;
-        document.getElementById('statRestaurants').textContent = d.restaurants || 0;
-        document.getElementById('statDrivers').textContent = d.drivers || 0;
-        document.getElementById('statActiveOrders').textContent = d.activeOrders || 0;
-        document.getElementById('statRevenueToday').textContent = (d.revenueToday || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
-        document.getElementById('statPlatformRevenue').textContent = (d.platformCommission || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
+        document.getElementById('statCustomers')?.textContent = d.customers || 0;
+        document.getElementById('statRestaurants')?.textContent = d.restaurants || 0;
+        document.getElementById('statDrivers')?.textContent = d.drivers || 0;
+        document.getElementById('statActiveOrders')?.textContent = d.activeOrders || 0;
+        document.getElementById('statRevenueToday')?.textContent = (d.revenueToday || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
+        document.getElementById('statPlatformRevenue')?.textContent = (d.platformCommission || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
         const chartEl = document.getElementById('revenueChart');
         if (d.revenueData && Array.isArray(d.revenueData)) {
           const max = Math.max(...d.revenueData.map(v => v.value || 0), 1);
@@ -539,21 +546,21 @@
     },
 
     notifications() {
-      // Notifications endpoint not available yet; show empty state
       Store.notifications = [];
-      document.getElementById('emptyNotifications').classList.remove('is-hidden');
-      document.getElementById('notificationsList').innerHTML = '';
+      document.getElementById('emptyNotifications')?.classList.remove('is-hidden');
+      document.getElementById('notificationsList')?.innerHTML = '';
     },
 
     settings() {
       const container = document.getElementById('settingsContent');
+      if (!container) return;
       container.innerHTML = `
         <div class="settings-item">
           <span>${I18n.t('language')}</span>
           <select id="langSelect">
-            <option value="ar" ${I18n._lang === 'ar' ? 'selected' : ''}>العربية</option>
-            <option value="en" ${I18n._lang === 'en' ? 'selected' : ''}>English</option>
-            <option value="de" ${I18n._lang === 'de' ? 'selected' : ''}>Deutsch</option>
+            <option value="ar" ${I18n._lang === 'ar' ? 'selected' : ''}>${I18n.t('lang_ar')}</option>
+            <option value="en" ${I18n._lang === 'en' ? 'selected' : ''}>${I18n.t('lang_en')}</option>
+            <option value="de" ${I18n._lang === 'de' ? 'selected' : ''}>${I18n.t('lang_de')}</option>
           </select>
         </div>
         <div class="settings-item">
@@ -564,8 +571,8 @@
           </select>
         </div>
         <div class="settings-item">
-          <span>الحد الأدنى للطلب (تجريبي)</span>
-          <input type="number" id="minOrderInput" placeholder="مثال: 20" />
+          <span>${I18n.t('min_order_label')}</span>
+          <input type="number" id="minOrderInput" placeholder="${I18n.t('min_order_placeholder')}" />
         </div>
         <button class="btn btn-primary btn-block" id="saveSettingsBtn">${I18n.t('save_settings')}</button>
       `;
