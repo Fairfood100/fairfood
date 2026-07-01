@@ -15,12 +15,23 @@
   --info: #3b82f6;
 }
 
-body.theme-dark {
+body.theme-dark,
+[data-theme="dark"] {
   --background: #111827;
   --surface: #1f2937;
   --text: #f9fafb;
   --text-light: #9ca3af;
   --border: #374151;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111827;
+    --surface: #1f2937;
+    --text: #f9fafb;
+    --text-light: #9ca3af;
+    --border: #374151;
+  }
 }
 
 *,

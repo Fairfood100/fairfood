@@ -515,6 +515,7 @@
     localStorage.setItem(STORAGE.theme, state.theme);
     document.body.classList.toggle('theme-dark', state.theme === 'dark');
     document.body.classList.toggle('theme-light', state.theme !== 'dark');
+    document.documentElement.setAttribute('data-theme', state.theme);
   }
 
   function openModal(modal) {
@@ -1326,6 +1327,9 @@
   }
 
   async function init() {
+    if (!localStorage.getItem(STORAGE.theme) && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      state.theme = 'dark';
+    }
     applyTheme(state.theme);
     applyLanguage(state.lang);
     bindEvents();

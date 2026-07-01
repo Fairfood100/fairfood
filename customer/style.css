@@ -55,6 +55,22 @@ html[data-theme="dark"] {
   --primary-light: rgba(255, 90, 0, 0.15);
 }
 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1C1C28;
+    --surface: #2C2C3A;
+    --surface-glass: rgba(44, 44, 58, 0.72);
+    --text: #F5F5F7;
+    --text-secondary: #A0A0B0;
+    --text-muted: #6B6B7B;
+    --border: #3A3A4A;
+    --border-light: #2E2E3A;
+    --shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --primary-light: rgba(255, 90, 0, 0.15);
+  }
+}
+
 /* ---------- Reset & Base ---------- */
 *,
 *::before,
