@@ -62,6 +62,34 @@ async function readFormData(request) {
   }
 }
 
+// رفع ملف إلى R2 (مع fallback إلى Base64)
+async function uploadFile(env, key, buf, contentType) {
+  if (env.R2) {
+    try {
+      await env.R2.put(key, buf, { httpMetadata: { contentType } });
+      return `/api/files/${key}`;
+    } catch (e) {
+      // fallback إلى Base64
+    }
+  }
+  return `data:${contentType};base64,${bufToB64(buf)}`;
+}
+
+// قراءة ملف من R2
+async function serveFile(env, key) {
+  if (!env.R2) return null;
+  try {
+    const obj = await env.R2.get(key);
+    if (!obj) return null;
+    return new Response(obj.body, {
+      headers: {
+        'content-type': obj.httpMetadata?.contentType || 'application/octet-stream',
+        'cache-control': 'public, max-age=86400'
+      }
+    });
+  } catch { return null; }
+}
+
 // تحويل ArrayBuffer إلى Base64
 function bufToB64(buf) {
   const bytes = new Uint8Array(buf);
@@ -723,7 +751,8 @@ async function app(request, env) {
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id=?").bind(a.user.id).first();
     if (!r) return fail("Restaurant not found", 404, "NOT_FOUND", env);
     const itemId = uid("m");
-    const imageUrl = imgBuf ? `data:${imgType};base64,${bufToB64(imgBuf)}` : (b.image || "");
+    const key = imgBuf ? `menu/${itemId}.${imgType.split('/')[1] || 'png'}` : null;
+    const imageUrl = imgBuf ? await uploadFile(env, key, imgBuf, imgType) : (b.image || "");
     const priceCents = Math.round(Number(b.priceCents ?? (b.price != null ? b.price * 100 : 0)));
     await env.DB.prepare("INSERT INTO menu_items (id, restaurant_id, category, category_id, name, description, price_cents, image, tags, available, inventory_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
       .bind(itemId, r.id, b.category || "Main", b.categoryId || b.category || "", b.name || "Item", b.description || "", priceCents, imageUrl, b.tags || "", b.available === false ? 0 : 1, b.inventoryCount ?? null).run();
@@ -742,7 +771,8 @@ async function app(request, env) {
       return ok({ message: "deleted" }, env);
     }
     const { b, imgBuf, imgType } = await parseMenuBody(request);
-    const imageUrl = imgBuf ? `data:${imgType};base64,${bufToB64(imgBuf)}` : (b.image || b.imageUrl || null);
+    const key = imgBuf ? `menu/${restaurantItem[1]}.${imgType.split('/')[1] || 'png'}` : null;
+    const imageUrl = imgBuf ? await uploadFile(env, key, imgBuf, imgType) : (b.image || b.imageUrl || null);
     const rawPrice = b.priceCents != null ? b.priceCents : (b.price != null ? b.price * 100 : null);
     const priceCents = rawPrice != null ? Math.round(Number(rawPrice)) : null;
     await env.DB.prepare("UPDATE menu_items SET category=COALESCE(?,category), category_id=COALESCE(?,category_id), name=COALESCE(?,name), description=COALESCE(?,description), price_cents=COALESCE(?,price_cents), image=COALESCE(?,image), tags=COALESCE(?,tags), available=COALESCE(?,available), inventory_count=COALESCE(?,inventory_count), sort_order=COALESCE(?,sort_order), updated_at=CURRENT_TIMESTAMP WHERE id=? AND restaurant_id=?")
@@ -773,7 +803,8 @@ async function app(request, env) {
     if (!r) return fail("Forbidden", 403, "FORBIDDEN", env);
     const { b, imgBuf, imgType } = await parseMenuBody(request);
     const itemId = uid("m");
-    const imageUrl = imgBuf ? `data:${imgType};base64,${bufToB64(imgBuf)}` : (b.image || b.imageUrl || "");
+    const key = imgBuf ? `menu/${itemId}.${imgType.split('/')[1] || 'png'}` : null;
+    const imageUrl = imgBuf ? await uploadFile(env, key, imgBuf, imgType) : (b.image || b.imageUrl || "");
     const priceCents = Math.round(Number(b.priceCents ?? (b.price != null ? b.price * 100 : 0)));
     await env.DB.prepare("INSERT INTO menu_items (id, restaurant_id, category, category_id, name, description, price_cents, image, tags, available, inventory_count) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
       .bind(itemId, rId, b.category || "Main", b.categoryId || b.category || "", b.name || "Item", b.description || "", priceCents, imageUrl, b.tags || "", b.available === false ? 0 : 1, b.inventoryCount ?? null).run();
@@ -1379,9 +1410,7 @@ async function app(request, env) {
 
     if (!file) return fail("File is required", 422, "FILE_REQUIRED", env);
 
-    // تحويل الملف إلى Base64 للتخزين في D1 (مؤقت - في الإنتاج نستخدم R2)
     const fileBuffer = await file.arrayBuffer();
-    const fileBase64 = btoa(String.fromCharCode(...new Uint8Array(fileBuffer)));
     const mimeType = file.type || "application/octet-stream";
     const fileSize = file.size;
 
@@ -1398,8 +1427,10 @@ async function app(request, env) {
     }
 
     const docId = uid("doc");
+    const docKey = `documents/${docId}.${mimeType.split('/')[1] || 'bin'}`;
+    const fileUrl = await uploadFile(env, docKey, fileBuffer, mimeType);
     await env.DB.prepare("INSERT INTO documents (id, owner_type, owner_id, document_type, file_name, file_data, file_size, mime_type, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending')")
-      .bind(docId, ownerType, ownerId, documentType, fileName, fileBase64, fileSize, mimeType).run();
+      .bind(docId, ownerType, ownerId, documentType, fileName, fileUrl, fileSize, mimeType).run();
 
     await audit(env, a.user, "document.upload", "document", docId, request);
     return ok({ id: docId, message: "Document uploaded successfully, pending review" }, env, 201);
@@ -1680,6 +1711,18 @@ async function app(request, env) {
     } catch (e) {
       return fail("Refund failed: " + e.message, 402, "REFUND_ERROR", env);
     }
+  }
+
+  // ================================================================
+  // FILES - خدمة الملفات من R2
+  // ================================================================
+
+  const filesMatch = path.match(/^\/api\/files\/(.+)$/);
+  if (filesMatch && method === "GET") {
+    const key = filesMatch[1];
+    const file = await serveFile(env, key);
+    if (file) return file;
+    return fail("Not found", 404, "NOT_FOUND", env);
   }
 
   // ================================================================
