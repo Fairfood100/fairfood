@@ -188,6 +188,10 @@
           <div id="settingsMap" style="height:200px;margin-top:8px;border-radius:8px;overflow:hidden"></div>
           <input type="hidden" id="restaurantLat" value="">
           <input type="hidden" id="restaurantLng" value="">
+          <div class="settings-item">
+            <label data-i18n="currency_label">العملة</label>
+            <input type="text" id="restaurantCurrency" readonly aria-label="عملة المطعم (تحسب تلقائياً من الموقع)">
+          </div>
           <button id="saveSettingsBtn" class="btn-primary" data-i18n="save_changes">حفظ التغييرات</button>
         </div>
       </div>
@@ -283,7 +287,6 @@
       apiBaseUrl: "/api/v1",
       socketUrl: window.location.origin,
       defaultLanguage: "ar",
-      defaultCurrency: "",
       supportPhone: ''
     };
   </script>

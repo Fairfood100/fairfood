@@ -4,8 +4,7 @@
   const CONFIG = window.APP_CONFIG || {
     apiBaseUrl: '/api/v1',
     socketUrl: window.location.origin,
-    defaultLanguage: 'ar',
-    defaultCurrency: '€'
+    defaultLanguage: 'ar'
   };
 
   const STORAGE = {
@@ -20,7 +19,7 @@
     restaurantId: localStorage.getItem(STORAGE.restaurantId) || '',
     lang: localStorage.getItem(STORAGE.lang) || CONFIG.defaultLanguage || 'ar',
     theme: localStorage.getItem(STORAGE.theme) || 'light',
-    currency: CONFIG.defaultCurrency || '€',
+    currency: '',
     activeTab: 'dashboard',
     socket: null,
     socketReady: false,
@@ -78,6 +77,7 @@
       restaurant_name_placeholder: 'اسم المطعم',
       phone_placeholder: 'رقم الهاتف',
       address_placeholder: 'العنوان',
+      currency_label: 'العملة (تحسب من الموقع)',
       save_changes: 'حفظ التغييرات',
       driver_arriving: 'السائق في الطريق',
       add_menu_item_title: 'إضافة صنف',
@@ -181,6 +181,7 @@
       restaurant_name_placeholder: 'Restaurant name',
       phone_placeholder: 'Phone number',
       address_placeholder: 'Address',
+      currency_label: 'Currency (auto from location)',
       save_changes: 'Save changes',
       driver_arriving: 'Driver is arriving',
       add_menu_item_title: 'Add item',
@@ -284,6 +285,7 @@
       restaurant_name_placeholder: 'Restaurantname',
       phone_placeholder: 'Telefonnummer',
       address_placeholder: 'Adresse',
+      currency_label: 'Währung (automatisch vom Standort)',
       save_changes: 'Änderungen speichern',
       driver_arriving: 'Fahrer ist unterwegs',
       add_menu_item_title: 'Artikel hinzufügen',
@@ -433,7 +435,17 @@
 
   function money(value) {
     const amount = Number(value || 0);
-    return `${amount.toFixed(2)} ${state.currency || ''}`.trim();
+    const currency = state.restaurant?.currency || state.currency || 'SAR';
+    try {
+      return new Intl.NumberFormat('ar-SA', {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(amount / 100);
+    } catch {
+      return (amount / 100).toFixed(0) + ' ' + currency;
+    }
   }
 
   function apiUrl(path) {
@@ -669,7 +681,7 @@
     const data = await apiRequest('/restaurant/me');
     state.restaurant = data.restaurant || data;
     state.restaurantId = state.restaurant.id || state.restaurant._id || state.restaurantId;
-    state.currency = state.restaurant.currency || CONFIG.defaultCurrency || '€';
+    state.currency = state.restaurant.currency || '';
     if (state.restaurantId) {
       localStorage.setItem(STORAGE.restaurantId, state.restaurantId);
     }
@@ -1031,6 +1043,7 @@
     if (!dom.earningsSummary || !dom.earningsTableContainer) return;
     const data = state.earnings || {};
     const summary = data.summary || data;
+    const currency = state.restaurant?.currency || 'SAR';
     dom.earningsSummary.innerHTML = `
       <div class="metric-card">
         <span>${t('total')}</span>
@@ -1086,6 +1099,7 @@
     if (dom.restaurantNameInput) dom.restaurantNameInput.value = r.name || '';
     if (dom.restaurantPhone) dom.restaurantPhone.value = r.phone || '';
     if (dom.restaurantAddress) dom.restaurantAddress.value = r.address || '';
+    if (dom.restaurantCurrency) dom.restaurantCurrency.value = r.currency || '—';
     initSettingsMap(r.lat, r.lng);
   }
 

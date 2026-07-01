@@ -283,6 +283,24 @@
     }
   };
 
+  function getCurrency() {
+    const localeMap = { ar: 'SAR', en: 'USD', de: 'EUR' };
+    return localeMap[I18n._lang] || 'SAR';
+  }
+
+  function formatPrice(cents, currencyCode) {
+    try {
+      return new Intl.NumberFormat('ar-SA', {
+        style: 'currency',
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(cents / 100);
+    } catch {
+      return (cents / 100).toFixed(2) + ' ' + currencyCode;
+    }
+  }
+
   /* ===========================================================
      3. API CLIENT (modified to match backend response format)
      =========================================================== */
@@ -869,13 +887,13 @@
           container.innerHTML = '';
         } else {
           emptyState.classList.add('is-hidden');
-          const currency = window.APP_CONFIG?.defaultCurrency || '';
+          const currency = getCurrency();
           container.innerHTML = Store.orders.map(order => `
             <div class="order-card">
               <div class="order-detail">
                 <h4>${SafeHTML.escape(order.restaurant_name)}</h4>
                 <p>${SafeHTML.escape(order.delivery_address)}</p>
-                <p>${I18n.t('delivery_fee')}: ${order.estimated_earning} ${currency}</p>
+                <p>${I18n.t('delivery_fee')}: ${formatPrice(order.estimated_earning || 0, currency)}</p>
               </div>
               <div class="order-actions">
                 <button class="btn btn-success btn-sm accept-order-btn" data-id="${order.id}">${I18n.t('accept')}</button>
@@ -1018,19 +1036,19 @@
         const res = await api.get('/driver/earnings');
         const data = res.data || res || {};
         Store.earnings = data;
-        const currency = window.APP_CONFIG?.defaultCurrency || '';
+        const currency = getCurrency();
         container.innerHTML = `
           <div class="earnings-card">
             <h4>${I18n.t('earnings_today')}</h4>
-            <div class="amount">${data.today_earnings || 0} ${currency}</div>
+            <div class="amount">${formatPrice(data.today_earnings || 0, currency)}</div>
           </div>
           <div class="earnings-card">
             <h4>${I18n.t('earnings_weekly')}</h4>
-            <div class="amount">${data.weekly_earnings || 0} ${currency}</div>
+            <div class="amount">${formatPrice(data.weekly_earnings || 0, currency)}</div>
           </div>
           <div class="earnings-card">
             <h4>${I18n.t('earnings_monthly')}</h4>
-            <div class="amount">${data.monthly_earnings || 0} ${currency}</div>
+            <div class="amount">${formatPrice(data.monthly_earnings || 0, currency)}</div>
           </div>
         `;
       } catch (e) {
@@ -1042,8 +1060,8 @@
       try {
         const res = await api.get('/driver/wallet');
         Store.wallet = res.data || res || {};
-        const currency = window.APP_CONFIG?.defaultCurrency || '';
-        document.getElementById('walletBalance').textContent = `${Store.wallet.balance || 0} ${currency}`;
+        const currency = getCurrency();
+        document.getElementById('walletBalance').textContent = formatPrice(Store.wallet.balance_cents || 0, currency);
 
         const tRes = await api.get('/driver/wallet/transactions');
         Store.transactions = tRes.data || tRes || [];
@@ -1062,7 +1080,7 @@
                 <p>${new Date(tx.created_at).toLocaleDateString()}</p>
               </div>
               <span class="tx-amount ${tx.type === 'credit' ? 'tx-credit' : 'tx-debit'}">
-                ${tx.type === 'credit' ? '+' : '-'}${tx.amount} ${currency}
+                ${tx.type === 'credit' ? '+' : '-'}${formatPrice(tx.amount_cents || 0, currency)}
               </span>
             </div>
           `).join('');
@@ -1086,9 +1104,10 @@
           document.getElementById('driverAvatarImg')?.setAttribute('src', Store.user.avatar_url);
         }
         document.getElementById('statDeliveries')?.textContent = Store.user.total_deliveries || 0;
-        document.getElementById('statToday')?.textContent = Store.user.today_earnings || 0;
-        document.getElementById('statWeekly')?.textContent = Store.user.weekly_earnings || 0;
-        document.getElementById('statMonthly')?.textContent = Store.user.monthly_earnings || 0;
+        const pCurrency = getCurrency();
+        document.getElementById('statToday')?.textContent = formatPrice(Store.user.today_earnings || 0, pCurrency);
+        document.getElementById('statWeekly')?.textContent = formatPrice(Store.user.weekly_earnings || 0, pCurrency);
+        document.getElementById('statMonthly')?.textContent = formatPrice(Store.user.monthly_earnings || 0, pCurrency);
       }
     },
 
@@ -1164,7 +1183,6 @@
         if (!v.plate_number && !v.vehicle_model) {
           container.innerHTML = `<div class="empty-state">${I18n.t('no_vehicle_info')}</div>`;
         } else {
-          const currency = window.APP_CONFIG?.defaultCurrency || '';
           container.innerHTML = `
             <div class="earnings-card">
               <p><strong>${I18n.t('vehicle_plate')}:</strong> ${SafeHTML.escape(v.plate_number || I18n.t('na'))}</p>
@@ -1234,11 +1252,11 @@
 
     showIncomingModal(order) {
       const details = document.getElementById('incomingOrderDetails');
-      const currency = window.APP_CONFIG?.defaultCurrency || '';
+      const currency = getCurrency();
       details.innerHTML = `
         <p><strong>${SafeHTML.escape(order.restaurant_name)}</strong></p>
         <p>${SafeHTML.escape(order.delivery_address)}</p>
-        <p>${I18n.t('delivery_fee')}: ${order.estimated_earning} ${currency}</p>
+        <p>${I18n.t('delivery_fee')}: ${formatPrice(order.estimated_earning || 0, currency)}</p>
       `;
       UI.openModal('incomingOrderModal');
 
@@ -1257,9 +1275,9 @@
       try {
         const res = await api.get('/driver/earnings');
         const data = res.data || res || {};
-        const currency = window.APP_CONFIG?.defaultCurrency || '';
+        const currency = getCurrency();
         document.getElementById('quickStats').innerHTML = `
-          <div class="stat-badge">💰 ${data.today_earnings || 0} ${currency}</div>
+          <div class="stat-badge">💰 ${formatPrice(data.today_earnings || 0, currency)}</div>
           <div class="stat-badge">📦 ${data.today_deliveries || 0} ${I18n.t('today_deliveries')}</div>
         `;
       } catch (e) { /* ignore */ }

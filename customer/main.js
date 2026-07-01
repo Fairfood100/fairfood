@@ -225,6 +225,27 @@
     return (cents / 100).toFixed(2);
   }
 
+  // نظام العملات العالمي - ISO 4217
+  function getCurrency(restaurant) {
+    // الأولوية: عملة المطعم > لغة التطبيق > افتراضي
+    if (restaurant?.currency) return restaurant.currency;
+    const localeMap = { ar: 'SAR', en: 'USD', de: 'EUR' };
+    return localeMap[I18n._lang] || 'SAR';
+  }
+
+  function formatPrice(cents, currencyCode) {
+    try {
+      return new Intl.NumberFormat('ar-SA', {
+        style: 'currency',
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(cents / 100);
+    } catch {
+      return fmtPrice(cents) + ' ' + currencyCode;
+    }
+  }
+
   const STATUS_MAP = {
     'new': 'pending',
     'accepted_by_restaurant': 'accepted',
@@ -752,13 +773,14 @@
         return;
       }
 
-      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
       let html = '';
       list.forEach(r => {
         const name = SafeHTML.escape(r.name);
+        const currency = getCurrency(r);
         const logo = r.logo_url ? `<img src="${SafeHTML.escape(r.logo_url)}" alt="${name}">` : '<span style="font-size:2.5rem">🍽️</span>';
-        const fee = r.delivery_fee_cents ? fmtPrice(r.delivery_fee_cents) + ' ' + currency : I18n.t('free_delivery');
+        const fee = r.delivery_fee_cents ? formatPrice(r.delivery_fee_cents, currency) : I18n.t('free_delivery');
         const time = r.delivery_time_min ? r.delivery_time_min + ' ' + I18n.t('min') : '—';
+        const distance = r.distance_km ? `${r.distance_km.toFixed(1)} كم` : '';
         html += `
           <div class="restaurant-card" data-id="${r.id}">
             <div class="card-media">${logo}</div>
@@ -789,13 +811,13 @@
         persistCartAndRestaurant();
         Store.menu = Array.isArray(res) ? res : (res.data || res || []);
 
-        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+        const restaurant = Store.restaurants.find(r => r.id == restaurantId);
+        const currency = getCurrency(restaurant);
         const container = document.getElementById('appContent');
         let html = `<button class="btn-small back-btn">← ${I18n.t('back')}</button>`;
         Store.menu.forEach(item => {
           const name = SafeHTML.escape(item.name);
           const desc = SafeHTML.escape(item.description || '');
-          const price = fmtPrice(item.price_cents);
           const img = item.image ? `<img src="${SafeHTML.escape(item.image)}" class="item-image" alt="${name}">` : '';
           html += `
             <div class="menu-item">
@@ -803,7 +825,7 @@
               <div class="item-info">
                 <div class="item-name">${name}</div>
                 <div class="item-desc">${desc}</div>
-                <div class="item-price">${price} ${currency}</div>
+                <div class="item-price">${formatPrice(item.price_cents, currency)}</div>
               </div>
               <button class="add-btn" data-item-id="${item.id}">+</button>
             </div>`;
@@ -833,7 +855,7 @@
         UI.showEmpty(I18n.t('empty_cart'));
         return;
       }
-      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+      const currency = getCurrency(Store.currentRestaurant);
       let html = '';
       let subtotal = 0;
       Store.cart.forEach((item, idx) => {
@@ -847,10 +869,10 @@
               <span>${item.quantity}</span>
               <button class="qty-btn" data-idx="${idx}" data-delta="1">+</button>
             </div>
-            <span>${fmtPrice(lineTotal)} ${currency}</span>
+            <span>${formatPrice(lineTotal, currency)}</span>
           </div>`;
       });
-      html += `<div class="cart-total">${I18n.t('total')}: ${fmtPrice(subtotal)} ${currency}</div>
+      html += `<div class="cart-total">${I18n.t('total')}: ${formatPrice(subtotal, currency)}</div>
                <button class="btn-primary" id="proceedCheckoutBtn">${I18n.t('place_order')}</button>`;
       container.innerHTML = html;
 
@@ -879,7 +901,6 @@
         Store.orders = Array.isArray(res) ? res : (res.data || res || []);
         Cart._updateOrdersBadge();
         const container = document.getElementById('appContent');
-        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
 
         if (!Store.orders.length) {
           UI.showEmpty(I18n.t('orders_empty'));
@@ -889,6 +910,7 @@
         let html = '';
         Store.orders.forEach(o => {
           const statusText = I18n.t('order_status_' + mapStatus(o.status)) || o.status;
+          const currency = o.restaurant_currency || 'SAR';
           html += `
             <div class="order-card" data-id="${o.id}">
               <div class="order-card-header">
@@ -896,7 +918,7 @@
                 <span class="order-status status-${mapStatus(o.status)}">${statusText}</span>
               </div>
               <div class="order-card-body">
-                <span>${I18n.t('total')}: ${fmtPrice(o.total_cents)} ${currency}</span>
+                <span>${I18n.t('total')}: ${formatPrice(o.total_cents, currency)}</span>
                 <span>${I18n.t('order_date')}: ${new Date(o.created_at).toLocaleDateString()}</span>
               </div>
             </div>`;
@@ -918,7 +940,7 @@
     _showOrderDetail(order) {
       const sheet = document.getElementById('orderDetailContent');
       if (!sheet) return;
-      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+      const currency = order.restaurant_currency || 'SAR';
       const statusText = I18n.t('order_status_' + mapStatus(order.status)) || order.status;
       const items = Store.menu.filter(m => order.id); // approximate
 
@@ -926,8 +948,8 @@
         <div style="margin-bottom:16px">
           <strong>${SafeHTML.escape(order.restaurant_name || '')}</strong><br>
           <span>${I18n.t('status')}: ${statusText}</span><br>
-          <span>${I18n.t('total_paid')}: ${fmtPrice(order.total_cents)} ${currency}</span><br>
-          <span>${I18n.t('delivery_fee')}: ${fmtPrice(order.delivery_fee_cents)} ${currency}</span><br>
+          <span>${I18n.t('total_paid')}: ${formatPrice(order.total_cents, currency)}</span><br>
+          <span>${I18n.t('delivery_fee')}: ${formatPrice(order.delivery_fee_cents, currency)}</span><br>
           <span>${I18n.t('order_date')}: ${new Date(order.created_at).toLocaleString()}</span><br>
           <span>${I18n.t('address_unavailable')}: ${SafeHTML.escape(order.delivery_address || '')}</span>
         </div>
@@ -1008,15 +1030,15 @@
         Store.wallet = res.wallet || null;
         Store.walletTx = res.transactions || [];
         const container = document.getElementById('appContent');
-        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+        const currency = getCurrency(Store.currentRestaurant || {});
 
         let html = '';
         if (Store.wallet) {
           html += `
             <div class="wallet-card">
-              <div class="wallet-balance">${fmtPrice(Store.wallet.balance_cents || 0)} ${currency}</div>
+              <div class="wallet-balance">${formatPrice(Store.wallet.balance_cents || 0, currency)}</div>
               <div class="wallet-label">${I18n.t('wallet_balance')}</div>
-              <div class="wallet-pending">${I18n.t('wallet_pending')}: ${fmtPrice(Store.wallet.pending_cents || 0)} ${currency}</div>
+              <div class="wallet-pending">${I18n.t('wallet_pending')}: ${formatPrice(Store.wallet.pending_cents || 0, currency)}</div>
             </div>`;
         }
 
@@ -1034,8 +1056,8 @@
                 <div style="width:${(100 - creditPct)}%;background:var(--danger);transition:width 0.5s"></div>
               </div>
               <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-top:4px;color:var(--text-secondary)">
-                <span>${I18n.t('order_income')}: ${fmtPrice(credits)} ${currency}</span>
-                <span>${I18n.t('order_spending')}: ${fmtPrice(debits)} ${currency}</span>
+                <span>${I18n.t('order_income')}: ${formatPrice(credits, currency)}</span>
+                <span>${I18n.t('order_spending')}: ${formatPrice(debits, currency)}</span>
               </div>
             </div>
           </div>`;
@@ -1045,7 +1067,7 @@
               <div class="tx-item">
                 <span>${SafeHTML.escape(tx.note || '')}</span>
                 <span style="color:${tx.type === 'credit' ? 'var(--success)' : 'var(--danger)'}">
-                  ${tx.type === 'credit' ? '+' : '-'}${fmtPrice(tx.amount_cents)} ${currency}
+                  ${tx.type === 'credit' ? '+' : '-'}${formatPrice(tx.amount_cents, currency)}
                 </span>
               </div>`;
           });
@@ -1058,7 +1080,7 @@
 
     profile() {
       const container = document.getElementById('appContent');
-      const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+      const currency = getCurrency();
       let html = '';
       if (Store.user) {
         html = `
@@ -1179,18 +1201,18 @@
           items: Store.cart.map(i => ({ menu_item_id: i.id, quantity: i.quantity }))
         });
         this.currentQuote = quoteRes.data || quoteRes;
-        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+        const currency = getCurrency(Store.currentRestaurant);
         const sub = this.currentQuote.subtotal || 0;
         const delivery = this.currentQuote.delivery_fee || 0;
-        const service = this.currentQuote.service_fee || 0;
+        const service = this.currentQuote?.service_fee || 0;
         const total = this.currentQuote.total || (sub + delivery + service);
 
         document.getElementById('checkoutTotal').innerHTML = `
-          <div style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(sub)} ${currency}</div>
-          <small style="display:flex;justify-content:space-between">${I18n.t('delivery_fee')}: ${fmtPrice(delivery)} ${currency}</small>
-          <small style="display:flex;justify-content:space-between">${I18n.t('service_fee')}: ${fmtPrice(service)} ${currency}</small>
+          <div style="display:flex;justify-content:space-between">${I18n.t('total')}: ${formatPrice(sub, currency)}</div>
+          <small style="display:flex;justify-content:space-between">${I18n.t('delivery_fee')}: ${formatPrice(delivery, currency)}</small>
+          <small style="display:flex;justify-content:space-between">${I18n.t('service_fee')}: ${formatPrice(service, currency)}</small>
           <hr>
-          <strong style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(total)} ${currency}</strong>`;
+          <strong style="display:flex;justify-content:space-between">${I18n.t('total')}: ${formatPrice(total, currency)}</strong>`;
       } catch (e) {
         UI.showToast(e.message, 'error');
       }
@@ -1207,21 +1229,21 @@
         const res = await api.post('/coupons/validate', { code, subtotalCents: subtotal });
         this.currentQuote = this.currentQuote || {};
         this.currentQuote.discount = res.discountCents || 0;
-        UI.showToast(`${I18n.t('coupon_applied')}: ${fmtPrice(res.discountCents ?? 0)}`, 'success');
+        UI.showToast(`${I18n.t('coupon_applied')}: ${formatPrice(res.discountCents ?? 0, getCurrency(Store.currentRestaurant))}`, 'success');
         // re-render totals
-        const currency = window.APP_CONFIG?.defaultCurrency || 'ر.س';
+        const currency = getCurrency(Store.currentRestaurant);
         const sub = subtotal;
         const delivery = this.currentQuote.delivery_fee || 0;
         const service = this.currentQuote.service_fee || 0;
         const discount = this.currentQuote.discount || 0;
         const total = sub + delivery + service - discount;
         document.getElementById('checkoutTotal').innerHTML = `
-          <div style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(sub)} ${currency}</div>
-          <small style="display:flex;justify-content:space-between">${I18n.t('delivery_fee')}: ${fmtPrice(delivery)} ${currency}</small>
-          <small style="display:flex;justify-content:space-between">${I18n.t('service_fee')}: ${fmtPrice(service)} ${currency}</small>
-          <small style="display:flex;justify-content:space-between;color:var(--success)">${I18n.t('discount')}: -${fmtPrice(discount)} ${currency}</small>
+          <div style="display:flex;justify-content:space-between">${I18n.t('total')}: ${formatPrice(sub, currency)}</div>
+          <small style="display:flex;justify-content:space-between">${I18n.t('delivery_fee')}: ${formatPrice(delivery, currency)}</small>
+          <small style="display:flex;justify-content:space-between">${I18n.t('service_fee')}: ${formatPrice(service, currency)}</small>
+          <small style="display:flex;justify-content:space-between;color:var(--success)">${I18n.t('discount')}: -${formatPrice(discount, currency)}</small>
           <hr>
-          <strong style="display:flex;justify-content:space-between">${I18n.t('total')}: ${fmtPrice(total)} ${currency}</strong>`;
+          <strong style="display:flex;justify-content:space-between">${I18n.t('total')}: ${formatPrice(total, currency)}</strong>`;
       } catch (e) {
         UI.showToast(e.message, 'error');
       }

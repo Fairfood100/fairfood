@@ -196,6 +196,24 @@
     }
   };
 
+  function getCurrency() {
+    const localeMap = { ar: 'SAR', en: 'USD', de: 'EUR' };
+    return localeMap[I18n._lang] || 'SAR';
+  }
+
+  function formatPrice(cents, currencyCode) {
+    try {
+      return new Intl.NumberFormat('ar-SA', {
+        style: 'currency',
+        currency: currencyCode,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      }).format(cents / 100);
+    } catch {
+      return (cents / 100).toFixed(2) + ' ' + currencyCode;
+    }
+  }
+
   /* ===========================================================
      3. API CLIENT (aligned with Customer/Driver pattern)
      =========================================================== */
@@ -464,8 +482,9 @@
         document.getElementById('statRestaurants')?.textContent = d.restaurants || 0;
         document.getElementById('statDrivers')?.textContent = d.drivers || 0;
         document.getElementById('statActiveOrders')?.textContent = d.activeOrders || 0;
-        document.getElementById('statRevenueToday')?.textContent = (d.revenueToday || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
-        document.getElementById('statPlatformRevenue')?.textContent = (d.platformCommission || 0) + ' ' + (window.APP_CONFIG?.defaultCurrency || '');
+        const admCurrency = getCurrency();
+        document.getElementById('statRevenueToday')?.textContent = formatPrice(d.revenueToday || 0, admCurrency);
+        document.getElementById('statPlatformRevenue')?.textContent = formatPrice(d.platformCommission || 0, admCurrency);
         const chartEl = document.getElementById('revenueChart');
         if (d.revenueData && Array.isArray(d.revenueData)) {
           const max = Math.max(...d.revenueData.map(v => v.value || 0), 1);
@@ -505,7 +524,7 @@
                 <p>${SafeHTML.escape(order.customer_name)} | ${order.status}</p>
               </div>
               <div>
-                <span>${order.total} ${window.APP_CONFIG?.defaultCurrency || ''}</span>
+                <span>${formatPrice(order.total_cents || 0, getCurrency())}</span>
               </div>
             </div>
           `).join('');
