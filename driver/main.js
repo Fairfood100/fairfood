@@ -529,90 +529,42 @@
   };
 
   /* ===========================================================
-     7. MAP SERVICE (No Fallback Coordinates)
+     7. MAP SERVICE (uses shared/map-service.js)
      =========================================================== */
   const MapService = {
-    init() {
-      if (Store.map) return;
-      const mapEl = document.getElementById('driverMap');
-      if (mapEl && typeof L !== 'undefined') {
-        Store.map = L.map(mapEl, { attributionControl: false, center: [24.7136, 46.6753], zoom: 12 });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '©️ <a href="https://carto.com/">CARTO</a>'
-        }).addTo(Store.map);
-
-        clearTimeout(Store._mapInitTimer);
-        Store._mapInitTimer = setTimeout(() => Store.map?.invalidateSize(), 400);
-
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            document.getElementById('mapFallback')?.classList.add('is-hidden');
-            Store.userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            Store.map.setView([Store.userLocation.lat, Store.userLocation.lng], 14);
-            this.updateUserMarker();
-          },
-          () => {
-            document.getElementById('mapFallback')?.classList.remove('is-hidden');
-          },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
-        );
-      } else {
-        document.getElementById('mapFallback')?.classList.remove('is-hidden');
-      }
+    async init() {
+      const map = await FairfoodMap.init('driverMap', { hideZoomControl: true });
+      if (!map) { document.getElementById('mapFallback')?.classList.remove('is-hidden'); return; }
+      Store.map = map;
+      const pos = await FairfoodMap.getCurrentPosition();
+      Store.userLocation = { lat: pos.lat, lng: pos.lng };
+      map.setView([pos.lat, pos.lng], 14);
+      document.getElementById('mapFallback')?.classList.add('is-hidden');
+      this.updateUserMarker();
     },
 
     updateUserMarker() {
-      if (!Store.map || !Store.userLocation) return;
-      if (Store.userMarker) {
-        Store.userMarker.setLatLng([Store.userLocation.lat, Store.userLocation.lng]);
-      } else {
-        Store.userMarker = L.marker([Store.userLocation.lat, Store.userLocation.lng], {
-          icon: L.divIcon({ className: 'user-marker', html: '🔵', iconSize: [20, 20] })
-        }).addTo(Store.map);
-      }
+      if (!Store.userLocation) return;
+      FairfoodMap.addMarker('driver_user', Store.userLocation.lat, Store.userLocation.lng, '', 'user');
     },
 
     updateDriverMarker(lat, lng) {
-      if (!Store.map || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      if (Store.driverMarker) {
-        Store.driverMarker.setLatLng([lat, lng]);
-      } else {
-        Store.driverMarker = L.marker([lat, lng], {
-          icon: L.divIcon({ className: 'driver-marker', html: '🛵', iconSize: [30, 30] })
-        }).addTo(Store.map);
-      }
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      FairfoodMap.addMarker('driver_delivery', lat, lng, '', 'driver');
     },
 
     startTracking() {
-      if (!Store.token || Store._watchId) return;
-      if (!('geolocation' in navigator)) {
-        UI.showToast(I18n.t('map_unavailable'), 'info');
-        return;
-      }
-      Store._watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          const accuracy = pos.coords.accuracy;
-          Store.userLocation = { lat, lng };
-          document.getElementById('mapFallback')?.classList.add('is-hidden');
-          this.updateUserMarker();
-          api.post('/driver/location', { lat, lng, accuracy }).catch(() => {});
-        },
-        (err) => {
-          console.warn('GPS tracking error:', err.message);
-          document.getElementById('mapFallback')?.classList.remove('is-hidden');
-          if (err.code === 1) UI.showToast(I18n.t('map_unavailable'), 'info');
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
-      );
+      if (!Store.token) return;
+      FairfoodMap.startWatching((pos) => {
+        Store.userLocation = { lat: pos.lat, lng: pos.lng };
+        document.getElementById('mapFallback')?.classList.add('is-hidden');
+        this.updateUserMarker();
+        api.post('/driver/location', { lat: pos.lat, lng: pos.lng, accuracy: pos.accuracy || 0 }).catch(() => {});
+      });
     },
 
     stopTracking() {
-      if (Store._watchId) {
-        navigator.geolocation.clearWatch(Store._watchId);
-        Store._watchId = null;
-      }
+      FairfoodMap.stopWatching();
     }
   };
 
@@ -743,10 +695,9 @@
     silentLogout() {
       RealtimeService.disconnect();
       MapService.stopTracking();
+      FairfoodMap.destroy('driverMap');
       clearInterval(App._pollTimer);
       clearInterval(App._activePollTimer);
-      clearTimeout(Store._mapTimer);
-      clearTimeout(Store._mapInitTimer);
       Store.token = null;
       localStorage.removeItem('driver_token');
       Store.user = null;
@@ -845,7 +796,7 @@
           document.getElementById('authSheet')?.classList.add('is-hidden');
           UI.showToast(I18n.t('driver_register_success'), 'success');
           Auth._authRequired = false;
-          MapService.init();
+          await MapService.init();
           MapService.startTracking();
           RealtimeService.init();
           App._startPolling();
@@ -866,7 +817,6 @@
      =========================================================== */
   const Screens = {
     home() {
-      MapService.init();
       this._loadQuickStats();
       if (Store.activeDelivery) {
         UI.openSheet('activeDeliverySheet');
@@ -1303,7 +1253,6 @@
 
         if (Store.token) {
           RealtimeService.init();
-          MapService.startTracking();
           this._startPolling();
         }
       } catch (e) {
@@ -1311,8 +1260,9 @@
       }
       UI.hideLoader();
 
-      // Map try (لا تمنع التحميل)
-      try { MapService.init(); } catch (e) { console.warn('Map init error:', e); }
+      // Map أولاً، ثم GPS بعده (عشان ما يصير سباق)
+      try { await MapService.init(); } catch (e) { console.warn('Map init error:', e); }
+      try { MapService.startTracking(); } catch (e) { console.warn('Tracking error:', e); }
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
       this._updateOnlineBtn();

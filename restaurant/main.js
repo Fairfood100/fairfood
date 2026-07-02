@@ -1100,37 +1100,13 @@
     if (dom.restaurantPhone) dom.restaurantPhone.value = r.phone || '';
     if (dom.restaurantAddress) dom.restaurantAddress.value = r.address || '';
     if (dom.restaurantCurrency) dom.restaurantCurrency.value = r.currency || '—';
-    initSettingsMap(r.lat, r.lng);
-  }
-
-  let settingsMap, settingsMarker;
-
-  function initSettingsMap(lat, lng) {
-    const mapEl = document.getElementById('settingsMap');
-    if (!mapEl) return;
-    if (settingsMap) settingsMap.remove();
-    const centerLat = lat || 24.7136;
-    const centerLng = lng || 46.6753;
-    settingsMap = L.map(mapEl, { zoomControl: false }).setView([centerLat, centerLng], lat ? 15 : 12);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19, attribution: '©️ <a href="https://carto.com/">CARTO</a>'
-    }).addTo(settingsMap);
-    settingsMarker = L.marker([centerLat, centerLng], { draggable: true }).addTo(settingsMap);
-    settingsMarker.on('dragend', () => {
-      const pos = settingsMarker.getLatLng();
-      document.getElementById('restaurantLat').value = pos.lat.toFixed(6);
-      document.getElementById('restaurantLng').value = pos.lng.toFixed(6);
+    FairfoodMap.initSettingsMap('settingsMap', {
+      lat: r.lat, lng: r.lng,
+      onMove(lat, lng) {
+        document.getElementById('restaurantLat').value = lat.toFixed(6);
+        document.getElementById('restaurantLng').value = lng.toFixed(6);
+      }
     });
-    settingsMap.on('click', (e) => {
-      settingsMarker.setLatLng(e.latlng);
-      document.getElementById('restaurantLat').value = e.latlng.lat.toFixed(6);
-      document.getElementById('restaurantLng').value = e.latlng.lng.toFixed(6);
-    });
-    if (lat && lng) {
-      document.getElementById('restaurantLat').value = lat;
-      document.getElementById('restaurantLng').value = lng;
-    }
-    setTimeout(() => settingsMap.invalidateSize(), 300);
   }
 
   async function saveSettings() {

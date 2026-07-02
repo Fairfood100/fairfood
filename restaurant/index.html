@@ -19,14 +19,13 @@
   <link rel="preload" href="/assets/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- CSP مؤقت -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.socket.io https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: https://*.basemaps.cartocdn.com https://cartodb-basemaps-a.global.ssl.fastly.net; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' wss: https://*.basemaps.cartocdn.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.socket.io https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; style-src 'self' https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net; img-src 'self' data: https://*.basemaps.cartocdn.com https://cartodb-basemaps-a.global.ssl.fastly.net; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self' wss: https://*.basemaps.cartocdn.com;">
 
   <title data-i18n="app_title">Fairfood Price – مطعم</title>
 
   <!-- Vendor CSS -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-light app-loading" data-app="restaurant">
@@ -348,8 +347,8 @@
   </section>
 
   <!-- Vendor JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="config.js"></script>
+  <script src="../shared/map-service.js"></script>
   <script src="main.js" defer></script>
 </body>
 </html>

@@ -553,6 +553,7 @@
       Store.user = null;
       if (Store.ws) { Store.ws.close(); Store.ws = null; }
       GPSService.clearWatch();
+      FairfoodMap.destroy('trackingMap');
       this.showRequired();
       UI.showToast(I18n.t('logout'), 'success');
     },
@@ -603,92 +604,29 @@
   };
 
   const GPSService = {
-    getCurrentPosition() {
-      return new Promise((resolve, reject) => {
-        if (!navigator.geolocation) { reject(new Error('Geolocation not supported')); return; }
-        navigator.geolocation.getCurrentPosition(
-          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-          (err) => reject(err),
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-        );
-      });
-    },
-
-    _lastGpsTime: 0,
-
-    watchPosition(callback) {
-      if (Store.watchId) navigator.geolocation.clearWatch(Store.watchId);
-      Store.watchId = navigator.geolocation.watchPosition(
-        (pos) => {
-          const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          Store.userLocation = coords;
-          callback(coords);
-        },
-        (err) => console.warn('GPS error', err),
-        { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
-      );
-    },
-
-    clearWatch() {
-      if (Store.watchId) {
-        navigator.geolocation.clearWatch(Store.watchId);
-        Store.watchId = null;
-      }
-    },
-
+    getCurrentPosition() { return FairfoodMap.getCurrentPosition(); },
+    watchPosition(callback) { FairfoodMap.startWatching(callback); },
+    clearWatch() { FairfoodMap.stopWatching(); },
     async reverseGeocode(lat, lng) {
-      const now = Date.now();
-      if (now - this._lastGpsTime < 30000) return;
-      this._lastGpsTime = now;
-      try {
-        const res = await api.get(`/geo/reverse?lat=${lat}&lng=${lng}`);
-        return res?.display_name || res?.data?.display_name || I18n.t('address_unavailable');
-      } catch (e) {
-        return I18n.t('address_unavailable');
-      }
+      return FairfoodMap.reverseGeocode(lat, lng, window.APP_CONFIG?.apiBaseUrl || '/api/v1');
     }
   };
 
-  const RIP = '©️ <a href="https://carto.com/">CARTO</a>';
   const MapService = {
     init(lat, lng) {
-      if (Store.map) return;
-      const centerLat = Number.isFinite(lat) ? lat : 24.7136;
-      const centerLng = Number.isFinite(lng) ? lng : 46.6753;
-      const mapEl = document.getElementById('trackingMap');
-      if (mapEl && typeof L !== 'undefined') {
-        Store.map = L.map(mapEl, { center: [centerLat, centerLng], zoom: 12 });
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: RIP }).addTo(Store.map);
-        setTimeout(() => Store.map?.invalidateSize(), 300);
-        if (Number.isFinite(lat) && Number.isFinite(lng)) this.addUserMarker(lat, lng);
-      }
+      FairfoodMap.init('trackingMap', { lat, lng, zoom: 12, hideZoomControl: true, hideLocateBtn: true });
     },
-
     addUserMarker(lat, lng) {
-      if (!Store.map || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      if (!Store.userMarker) {
-        Store.userMarker = L.marker([lat, lng], {
-          icon: L.divIcon({ className: 'user-marker', html: '🔵', iconSize: [20, 20] })
-        }).addTo(Store.map);
-      } else {
-        Store.userMarker.setLatLng([lat, lng]);
-      }
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      FairfoodMap.addMarker('cust_user', lat, lng, '', 'user');
     },
-
     updateUserLocation(lat, lng) {
-      if (!Store.map || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      this.addUserMarker(lat, lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      FairfoodMap.addMarker('cust_user', lat, lng, '', 'user');
     },
-
     updateDriverLocation(lat, lng) {
-      if (!Store.map || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
-      if (Store.driverMarker) {
-        Store.driverMarker.setLatLng([lat, lng]);
-      } else {
-        Store.driverMarker = L.marker([lat, lng], {
-          icon: L.divIcon({ className: 'driver-marker', html: '🛵', iconSize: [30, 30] })
-        }).addTo(Store.map);
-      }
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+      FairfoodMap.addMarker('cust_driver', lat, lng, '', 'driver');
     }
   };
 
