@@ -403,7 +403,49 @@
 
   <!-- config.js inline: ما نعتمد على defer أبداً -->
   <script>window.APP_CONFIG={appName:"Fairfood Price - السائق",apiBaseUrl:"/api/v1",socketUrl:window.location.origin,mapProvider:"leaflet",defaultLanguage:"ar",supportPhone:""}</script>
-  <script src="../shared/map-service.js" defer></script>
+  <script src="../shared/map-service.js"></script>
   <script src="main.js"></script>
+  <!-- طوارئ آمن: إذا main.js عطل، الأزرار تشتغل بالـ fetch المباشر -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function(){
+    // إذا Auth موجود (main.js اشتغل)، نسكت
+    if (window.Auth || document.querySelector('#authLoginBtn span')) return;
+    var BASE = window.APP_CONFIG?.apiBaseUrl || '/api/v1';
+    // تسجيل الدخول
+    var loginBtn = document.getElementById('authLoginBtn');
+    if (loginBtn) loginBtn.addEventListener('click', async function(){
+      var email = document.getElementById('authEmail')?.value?.trim();
+      var pass = document.getElementById('authPassword')?.value;
+      if (!email || !pass) return alert('املأ البريد وكلمة المرور');
+      try {
+        var r = await fetch(BASE+'/driver/auth/login', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,password:pass})});
+        var d = await r.json();
+        if (!r.ok || d.success === false) throw new Error(d.message || d.error?.message || 'خطأ');
+        localStorage.setItem('driver_token', d.data?.token || d.token);
+        document.getElementById('authSheet')?.classList.add('is-hidden');
+        location.reload();
+      } catch(e) { alert(e.message); }
+    });
+    // تسجيل جديد
+    var regBtn = document.getElementById('doRegisterBtn');
+    if (regBtn) regBtn.addEventListener('click', async function(){
+      var name = document.getElementById('regName')?.value?.trim();
+      var email = document.getElementById('regEmail')?.value?.trim();
+      var phone = document.getElementById('regPhone')?.value?.trim();
+      var pass = document.getElementById('regPassword')?.value;
+      var vehicle = document.getElementById('regVehicle')?.value || 'car';
+      var plate = document.getElementById('regPlate')?.value?.trim();
+      if (!name || !email || !phone || !pass) return alert('املأ جميع الحقول');
+      try {
+        var r = await fetch(BASE+'/auth/register', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:'driver',name:name,email:email,phone:phone,password:pass,vehicle:vehicle,plateNumber:plate})});
+        var d = await r.json();
+        if (!r.ok || d.success === false) throw new Error(d.message || d.error?.message || 'خطأ');
+        localStorage.setItem('driver_token', d.data?.token || d.token);
+        document.getElementById('authSheet')?.classList.add('is-hidden');
+        location.reload();
+      } catch(e) { alert(e.message); }
+    });
+  });
+  </script>
 </body>
 </html>
