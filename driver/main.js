@@ -1243,13 +1243,23 @@
     auth: Auth,
 
     async init() {
+      console.log('[App] init start');
       try {
         this.router = new Router();
         I18n.setLang(Store.settings.language);
         document.body.setAttribute('data-theme', Store.settings.theme);
 
         Auth._bindEvents();
-        await Auth.fetchUser();
+        // Timeout للـ fetchUser عشان ما يعلق
+        try {
+          await Promise.race([
+            Auth.fetchUser(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('fetchUser timeout')), 8000))
+          ]);
+        } catch (e) {
+          if (e.message === 'fetchUser timeout') console.warn('[App] fetchUser timed out');
+          else throw e;
+        }
 
         if (Store.token) {
           RealtimeService.init();
@@ -1258,11 +1268,13 @@
       } catch (e) {
         console.error('Init error:', e);
       }
+      console.log('[App] init step1 done');
       UI.hideLoader();
 
       // Map أولاً، ثم GPS بعده (عشان ما يصير سباق)
       try { await MapService.init(); } catch (e) { console.warn('Map init error:', e); }
       try { MapService.startTracking(); } catch (e) { console.warn('Tracking error:', e); }
+      console.log('[App] init step2 done (map)');
 
       const toggleBtn = document.getElementById('toggleOnlineBtn');
       this._updateOnlineBtn();
@@ -1386,6 +1398,12 @@
     }
   };
 
-  document.addEventListener('DOMContentLoaded', () => App.init());
+  document.addEventListener('DOMContentLoaded', () => {
+    // Fallback: إخفاء اللودر بعد 4 ثواني مهما صار
+    const loaderTimer = setTimeout(() => {
+      document.getElementById('app')?.classList.remove('app-loading');
+    }, 4000);
+    App.init().finally(() => { clearTimeout(loaderTimer); UI.hideLoader(); });
+  });
 
 })();

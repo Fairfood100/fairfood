@@ -4,7 +4,7 @@
   const TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
   const TILE_ATTR = '&copy; <a href="https://carto.com/">CARTO</a>';
   const CENTER_RIYADH = [24.7136, 46.6753];
-  const GPS_TIMEOUT = 10000;
+  const GPS_TIMEOUT = 5000;
   const GPS_MAX_AGE = 60000;
 
   const CDNS = [
