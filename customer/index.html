@@ -8,6 +8,9 @@
   <meta name="robots" content="index,follow" />
   <title data-i18n="app_title">Fairfood Price</title>
 
+  <!-- طوارئ: إخفاء اللودر بعد 5 ثواني -->
+  <script>window.addEventListener('DOMContentLoaded',function(){setTimeout(function(){document.getElementById('app')?.classList.remove('app-loading')},5e3)})</script>
+
   <!-- Vendor CSS
        انقل الملفات إلى /assets/vendor/ قبل الإطلاق النهائي -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
