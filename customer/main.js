@@ -614,7 +614,7 @@
 
   const MapService = {
     init(lat, lng) {
-      FairfoodMap.init('trackingMap', { lat, lng, zoom: 12, hideZoomControl: true, hideLocateBtn: true });
+      FairfoodMap.init('trackingMap', { lat, lng, zoom: 15, hideZoomControl: false, hideLocateBtn: false });
     },
     addUserMarker(lat, lng) {
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
@@ -909,9 +909,9 @@
 
     tracking() {
       if (Store.currentOrder) {
-        if (Store.userLocation) {
-          MapService.init(Store.userLocation.lat, Store.userLocation.lng);
-        }
+        const lat = Store.userLocation?.lat || 24.7136;
+        const lng = Store.userLocation?.lng || 46.6753;
+        MapService.init(lat, lng);
         UI.openTracking(Store.currentOrder);
         this._fetchDriverLocation(Store.currentOrder.id);
       } else {

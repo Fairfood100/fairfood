@@ -819,6 +819,7 @@ body[dir="ltr"] .search-box input {
 
 .tracking-map {
   flex: 1;
+  min-height: 300px;
   background: #dbeafe;
 }
 

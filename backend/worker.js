@@ -929,6 +929,7 @@ async function app(request, env) {
     if (a.error) return a.error;
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id=?").bind(a.user.id).first();
     if (!r) return fail("Restaurant not found", 404, "NOT_FOUND", env);
+    const rows = await env.DB.prepare("SELECT o.*, r.name AS restaurant_name FROM orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.restaurant_id=? ORDER BY o.created_at DESC LIMIT 200").bind(r.id).all();
     const orders = (rows.results || []).map(o => ({ ...o, total: o.total_cents }));
     const orderIds = orders.map(o => o.id);
     if (orderIds.length) {
@@ -952,6 +953,7 @@ async function app(request, env) {
     const rId = restaurantOrdersById[1];
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE id=? AND owner_user_id=?").bind(rId, a.user.id).first();
     if (!r) return fail("Forbidden", 403, "FORBIDDEN", env);
+    const rows = await env.DB.prepare("SELECT o.*, r.name AS restaurant_name FROM orders o JOIN restaurants r ON r.id=o.restaurant_id WHERE o.restaurant_id=? ORDER BY o.created_at DESC LIMIT 200").bind(rId).all();
     const orders = (rows.results || []).map(o => ({ ...o, total: o.total_cents }));
     const orderIds = orders.map(o => o.id);
     if (orderIds.length) {

@@ -1191,41 +1191,55 @@
   }
 
   function connectSocket() {
-    if (!window.io || !state.token) return;
-    if (state.socket) {
-      state.socket.disconnect();
-    }
-    state.socket = window.io(CONFIG.socketUrl || window.location.origin, {
-      auth: { token: state.token },
-      transports: ['websocket', 'polling']
-    });
-    state.socket.on('connect', () => {
+    if (state.ws) { state.ws.close(); state.ws = null; }
+    if (!state.token) return;
+
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const url = `${protocol}//${window.location.host}/api/realtime`;
+
+    state.ws = new WebSocket(url);
+
+    state.ws.onopen = () => {
       dom.reconnectBanner?.classList.add('hidden', 'is-hidden');
+      state.ws.send(JSON.stringify({ type: 'join:restaurants' }));
       if (state.restaurantId) {
-        state.socket.emit('restaurant:join', { restaurantId: state.restaurantId });
+        state.ws.send(JSON.stringify({ type: 'join:restaurant', restaurantId: state.restaurantId }));
       }
-    });
-    state.socket.on('disconnect', () => {
+    };
+
+    state.ws.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        const event = msg.event || msg.type;
+        const data = msg.data || msg;
+
+        if (event === 'order:new') {
+          playSound(dom.soundNewOrder);
+          addNotification(`${t('order')} #${(data.orderNumber || data.orderId || '').slice(0, 8)}`, 'success');
+          showToast(t('new_orders_title'), 'success');
+          loadDashboard();
+        }
+        if (event === 'order:cancelled') {
+          playSound(dom.soundCancelledOrder);
+          loadDashboard();
+        }
+        if (event === 'driver:arrived') {
+          playSound(dom.soundDriverArrived);
+          if (dom.driverETA) dom.driverETA.textContent = data?.eta || '';
+          dom.driverInfoBar?.classList.remove('hidden', 'is-hidden');
+        }
+        if (event === 'earnings:update') {
+          loadEarnings();
+        }
+      } catch (_) {}
+    };
+
+    state.ws.onclose = () => {
       dom.reconnectBanner?.classList.remove('hidden', 'is-hidden');
-    });
-    state.socket.on('order:new', (order) => {
-      playSound(dom.soundNewOrder);
-      addNotification(`${t('order')} #${order.orderNumber || ''}`, 'success');
-      showToast(`${t('new_orders_title')}`, 'success');
-      loadDashboard();
-    });
-    state.socket.on('order:cancelled', () => {
-      playSound(dom.soundCancelledOrder);
-      loadDashboard();
-    });
-    state.socket.on('driver:arrived', (data) => {
-      playSound(dom.soundDriverArrived);
-      if (dom.driverETA) dom.driverETA.textContent = data?.eta || '';
-      dom.driverInfoBar?.classList.remove('hidden', 'is-hidden');
-    });
-    state.socket.on('earnings:update', () => {
-      loadEarnings();
-    });
+      setTimeout(connectSocket, 5000);
+    };
+
+    state.ws.onerror = () => { state.ws?.close(); };
   }
 
   /* ===== Auth ===== */
