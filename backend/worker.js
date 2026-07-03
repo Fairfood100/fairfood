@@ -824,9 +824,9 @@ async function app(request, env) {
     const r = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id=?").bind(a.user.id).first();
     if (!r || r.id !== restaurantUpdate[1]) return fail("Forbidden", 403, "FORBIDDEN", env);
     
-    // Auto-update currency if lat/lng changed
-    let currency = null;
-    if (b.lat && b.lng) {
+    // Currency: manual choice beats auto-detect
+    let currency = b.currency || null;
+    if (!currency && b.lat && b.lng) {
       currency = await getCurrencyFromCoords(b.lat, b.lng);
     }
     

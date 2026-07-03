@@ -7,6 +7,16 @@
     defaultLanguage: 'ar'
   };
 
+  const ALL_CURRENCIES = [
+    'AED','AFN','ALL','AMD','ARS','AUD','AZN','BAM','BDT','BGN','BHD','BND','BRL','BTN','BWP','BYN',
+    'CAD','CHF','CLP','CNY','COP','CVE','CZK','DJF','DKK','DZD','EGP','ETB','EUR','GBP','GEL','GHS',
+    'GMD','GNF','HKD','HUF','IDR','ILS','INR','IQD','IRR','ISK','JOD','JPY','KES','KGS','KHR','KMF',
+    'KRW','KWD','KZT','LAK','LBP','LKR','LRD','LSL','LYD','MAD','MDL','MGA','MKD','MMK','MNT','MRU',
+    'MUR','MVR','MWK','MXN','MYR','MZN','NAD','NGN','NOK','NPR','NZD','OMR','PEN','PHP','PKR','PLN',
+    'QAR','RON','RSD','RUB','RWF','SAR','SCR','SDG','SEK','SGD','SLE','SOS','STN','SYP','SZL','THB',
+    'TJS','TMT','TND','TRY','TWD','TZS','UAH','UGX','USD','UZS','VND','XAF','XOF','YER','ZAR','ZWL'
+  ].sort();
+
   const STORAGE = {
     token: 'fairfood_restaurant_token',
     lang: 'fairfood_restaurant_lang',
@@ -945,7 +955,7 @@
         ${imgHtml}
         <div class="item-details">
           <div class="item-name">${escapeHTML(item.name || '')}</div>
-          <div class="item-price">${money(item.price_cents ? item.price_cents / 100 : item.price)}</div>
+          <div class="item-price">${money(item.price_cents || 0)}</div>
           <label class="switch-label">
             <input type="checkbox" ${available ? 'checked' : ''} data-menu-action="toggle" data-item-id="${id}">
             <span>${t('item_available')}</span>
@@ -1099,7 +1109,12 @@
     if (dom.restaurantNameInput) dom.restaurantNameInput.value = r.name || '';
     if (dom.restaurantPhone) dom.restaurantPhone.value = r.phone || '';
     if (dom.restaurantAddress) dom.restaurantAddress.value = r.address || '';
-    if (dom.restaurantCurrency) dom.restaurantCurrency.value = r.currency || '—';
+    if (dom.restaurantCurrency) {
+      const current = r.currency || 'SAR';
+      dom.restaurantCurrency.innerHTML = ALL_CURRENCIES.map(c =>
+        `<option value="${c}" ${c === current ? 'selected' : ''}>${c}</option>`
+      ).join('');
+    }
     FairfoodMap.initSettingsMap('settingsMap', {
       lat: r.lat, lng: r.lng,
       onMove(lat, lng) {
@@ -1120,6 +1135,7 @@
         isOpen: dom.restaurantOpenToggle.checked,
         lat: Number(document.getElementById('restaurantLat')?.value) || null,
         lng: Number(document.getElementById('restaurantLng')?.value) || null,
+        currency: document.getElementById('restaurantCurrency')?.value || null,
         notifications: {
           newOrders: dom.notifyNewOrders.checked,
           statusChange: dom.notifyStatusChange.checked,
@@ -1246,18 +1262,23 @@
       if (state.restaurantId) localStorage.setItem(STORAGE.restaurantId, state.restaurantId);
       closeAuthSheet();
       showToast(t('auth_welcome'), 'success');
-      try {
-        await loadBootstrap();
-        await Promise.all([loadDashboard(), loadMenu(), loadEarnings()]);
-        connectSocket();
-        renderAll();
-        updateBadges();
-      } catch (e) {
-        showToast(t('network_error'), 'info');
-      }
+      await _afterAuth();
     } catch (err) {
       showToast(t('auth_login_error') + ': ' + (err.message || ''), 'error');
     }
+  }
+
+  async function _afterAuth() {
+    let bootstrapOk = false;
+    try { await loadBootstrap(); bootstrapOk = true; } catch (e) { showToast(t('network_error'), 'info'); }
+    if (!bootstrapOk) { setLoading(false); return; }
+    try { await loadDashboard(); } catch (e) { console.warn('loadDashboard failed:', e); }
+    try { await loadMenu(); } catch (e) { console.warn('loadMenu failed:', e); }
+    try { await loadEarnings(); } catch (e) { console.warn('loadEarnings failed:', e); }
+    connectSocket();
+    renderAll();
+    updateBadges();
+    setLoading(false);
   }
 
   function toggleAuthForm(showRegister) {
@@ -1289,15 +1310,7 @@
       localStorage.setItem(STORAGE.token, token);
       closeAuthSheet();
       showToast(t('auth_register_success'), 'success');
-      try {
-        await loadBootstrap();
-        await Promise.all([loadDashboard(), loadMenu(), loadEarnings()]);
-        connectSocket();
-        renderAll();
-        updateBadges();
-      } catch (e) {
-        showToast(t('network_error'), 'info');
-      }
+      await _afterAuth();
     } catch (err) {
       showToast(t('auth_login_error') + ': ' + (err.message || ''), 'error');
     }
@@ -1346,8 +1359,10 @@
       setLoading(true);
 
       if (state.token) {
-        await loadBootstrap();
-        await Promise.all([loadDashboard(), loadMenu(), loadEarnings()]);
+        try { await loadBootstrap(); } catch (e) { showToast(t('network_error'), 'info'); }
+        try { await loadDashboard(); } catch (e) { console.warn('loadDashboard failed:', e); }
+        try { await loadMenu(); } catch (e) { console.warn('loadMenu failed:', e); }
+        try { await loadEarnings(); } catch (e) { console.warn('loadEarnings failed:', e); }
         connectSocket();
       } else {
         setLoading(false);
