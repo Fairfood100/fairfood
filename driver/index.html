@@ -8,8 +8,8 @@
   <meta name="robots" content="index,follow" />
   <title data-i18n="app_title">Fairfood Price - السائق</title>
 
-  <!-- طوارئ: إخفاء اللودر بعد 5 ثواني حتى لو السكريبتات فشلت -->
-  <script>window.addEventListener('DOMContentLoaded',function(){setTimeout(function(){document.getElementById('app')?.classList.remove('app-loading')},5e3)})</script>
+  <!-- طوارئ: إخفاء اللودر + عرض تسجيل الدخول إذا main.js عطل -->
+  <script>window.addEventListener('DOMContentLoaded',function(){setTimeout(function(){var a=document.getElementById('app');if(a){a.classList.remove('app-loading')}if(!localStorage.getItem('driver_token')){var s=document.getElementById('authSheet');if(s){s.classList.remove('is-hidden')}}},5e3)})</script>
 
   <!-- Vendor CSS (انقلها إلى /assets/vendor/ قبل الإطلاق) -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
@@ -401,8 +401,9 @@
   <audio id="soundNewOrder" src="/assets/sounds/new_order.mp3" preload="none"></audio>
   <audio id="soundCancelled" src="/assets/sounds/cancelled.mp3" preload="none"></audio>
 
-  <script src="config.js" defer></script>
+  <!-- config.js inline: ما نعتمد على defer أبداً -->
+  <script>window.APP_CONFIG={appName:"Fairfood Price - السائق",apiBaseUrl:"/api/v1",socketUrl:window.location.origin,mapProvider:"leaflet",defaultLanguage:"ar",supportPhone:""}</script>
   <script src="../shared/map-service.js" defer></script>
-  <script src="main.js" defer></script>
+  <script src="main.js"></script>
 </body>
 </html>
