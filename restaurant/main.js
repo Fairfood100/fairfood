@@ -1,6 +1,10 @@
 (function () {
   'use strict';
 
+  function sg(k, d) { try { var v = localStorage.getItem(k); return v !== null ? v : d; } catch (e) { return d; } }
+  function ss(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function sr(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
   const CONFIG = window.APP_CONFIG || {
     apiBaseUrl: '/api/v1',
     socketUrl: window.location.origin,
@@ -25,10 +29,10 @@
   };
 
   const state = {
-    token: localStorage.getItem(STORAGE.token) || '',
-    restaurantId: localStorage.getItem(STORAGE.restaurantId) || '',
-    lang: localStorage.getItem(STORAGE.lang) || CONFIG.defaultLanguage || 'ar',
-    theme: localStorage.getItem(STORAGE.theme) || 'light',
+    token: sg(STORAGE.token) || '',
+    restaurantId: sg(STORAGE.restaurantId) || '',
+    lang: sg(STORAGE.lang) || CONFIG.defaultLanguage || 'ar',
+    theme: sg(STORAGE.theme) || 'light',
     currency: '',
     activeTab: 'dashboard',
     socket: null,
@@ -480,7 +484,7 @@
 
     if (response.status === 401) {
       state.token = '';
-      localStorage.removeItem(STORAGE.token);
+      sr(STORAGE.token);
       showAuthSheet();
       throw new Error('Unauthorized');
     }
@@ -525,7 +529,7 @@
 
   function applyLanguage(lang) {
     state.lang = i18n[lang] ? lang : 'ar';
-    localStorage.setItem(STORAGE.lang, state.lang);
+    ss(STORAGE.lang, state.lang);
 
     document.documentElement.lang = state.lang;
     document.documentElement.dir = state.lang === 'ar' ? 'rtl' : 'ltr';
@@ -549,7 +553,7 @@
 
   function applyTheme(theme) {
     state.theme = theme === 'dark' ? 'dark' : 'light';
-    localStorage.setItem(STORAGE.theme, state.theme);
+    ss(STORAGE.theme, state.theme);
     document.body.classList.toggle('theme-dark', state.theme === 'dark');
     document.body.classList.toggle('theme-light', state.theme !== 'dark');
     document.documentElement.setAttribute('data-theme', state.theme);
@@ -693,7 +697,7 @@
     state.restaurantId = state.restaurant.id || state.restaurant._id || state.restaurantId;
     state.currency = state.restaurant.currency || '';
     if (state.restaurantId) {
-      localStorage.setItem(STORAGE.restaurantId, state.restaurantId);
+      ss(STORAGE.restaurantId, state.restaurantId);
     }
     renderRestaurantHeader();
     renderSettings();
@@ -708,7 +712,7 @@
       ['new', 'pending', 'requested'].includes(String(o.status || '').toLowerCase())
     );
     state.activeOrders = state.orders.filter((o) =>
-      ['accepted', 'preparing', 'ready', 'driver_assigned'].includes(String(o.status || '').toLowerCase())
+      ['accepted_by_restaurant', 'preparing', 'ready_for_driver', 'driver_assigned', 'picked_up', 'on_the_way'].includes(String(o.status || '').toLowerCase())
     );
     renderMetrics();
     renderOrders();
@@ -1271,9 +1275,9 @@
       const user = res.user || res.data?.user;
       if (!token) throw new Error('No token returned');
       state.token = token;
-      localStorage.setItem(STORAGE.token, token);
+      ss(STORAGE.token, token);
       state.restaurantId = user?.restaurantId || user?.id || '';
-      if (state.restaurantId) localStorage.setItem(STORAGE.restaurantId, state.restaurantId);
+      if (state.restaurantId) ss(STORAGE.restaurantId, state.restaurantId);
       closeAuthSheet();
       showToast(t('auth_welcome'), 'success');
       await _afterAuth();
@@ -1321,7 +1325,7 @@
       const user = res.user || res.data?.user;
       if (!token) throw new Error('No token returned');
       state.token = token;
-      localStorage.setItem(STORAGE.token, token);
+      ss(STORAGE.token, token);
       closeAuthSheet();
       showToast(t('auth_register_success'), 'success');
       await _afterAuth();
@@ -1359,7 +1363,7 @@
   }
 
   async function init() {
-    if (!localStorage.getItem(STORAGE.theme) && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (!sg(STORAGE.theme) && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       state.theme = 'dark';
     }
     applyTheme(state.theme);

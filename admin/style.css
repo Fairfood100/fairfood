@@ -400,6 +400,26 @@ body[dir="ltr"] .admin-sidebar { border-left: none; border-right: 1px solid var(
 .is-hidden { display: none !important; }
 
 /* ---------- Responsive Adjustments ---------- */
+/* ---------- Account Actions (approve/reject) ---------- */
+.account-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-approve, .btn-reject {
+  padding: 6px 14px; border-radius: var(--radius-full); border: none;
+  font-weight: 700; cursor: pointer; font-size: 0.75rem; font-family: var(--font);
+  transition: var(--transition);
+}
+.btn-approve { background: var(--success); color: #fff; }
+.btn-approve:hover { opacity: 0.85; }
+.btn-reject { background: var(--danger); color: #fff; }
+.btn-reject:hover { opacity: 0.85; }
+.btn-approve:disabled, .btn-reject:disabled, .btn-delete:disabled { opacity: 0.5; cursor: default; }
+.btn-delete {
+  padding: 6px 10px; border-radius: var(--radius-full); border: none;
+  font-weight: 700; cursor: pointer; font-size: 0.75rem; font-family: var(--font);
+  transition: var(--transition); background: transparent; color: var(--danger);
+  border: 1px solid var(--danger);
+}
+.btn-delete:hover { background: var(--danger); color: #fff; }
+
 @media (max-width: 768px) {
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .screen { padding: 16px; }

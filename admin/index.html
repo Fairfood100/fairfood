@@ -37,14 +37,14 @@
           <h2 data-i18n="app_title">Fairfood Price</h2>
         </div>
         <nav class="sidebar-nav" role="navigation" data-i18n-aria-label="admin_navigation">
-          <button class="sidebar-link active" data-screen="dashboard" data-i18n="dashboard">📊 لوحة التحكم</button>
-          <button class="sidebar-link" data-screen="orders" data-i18n="active_orders">📋 الطلبات النشطة</button>
-          <button class="sidebar-link" data-screen="accounts" data-i18n="accounts_management">👥 إدارة الحسابات</button>
-          <button class="sidebar-link" data-screen="notifications" data-i18n="notifications">🔔 الإشعارات</button>
-          <button class="sidebar-link" data-screen="settings" data-i18n="settings">⚙️ إعدادات المنصة</button>
+          <button class="sidebar-link active" data-screen="dashboard" onclick="navigateTo('dashboard')" data-i18n="dashboard">📊 لوحة التحكم</button>
+          <button class="sidebar-link" data-screen="orders" onclick="navigateTo('orders')" data-i18n="active_orders">📋 الطلبات النشطة</button>
+          <button class="sidebar-link" data-screen="accounts" onclick="navigateTo('accounts')" data-i18n="accounts_management">👥 إدارة الحسابات</button>
+          <button class="sidebar-link" data-screen="notifications" onclick="navigateTo('notifications')" data-i18n="notifications">🔔 الإشعارات</button>
+          <button class="sidebar-link" data-screen="settings" onclick="navigateTo('settings')" data-i18n="settings">⚙️ إعدادات المنصة</button>
         </nav>
         <div class="sidebar-footer">
-          <button class="sidebar-link" data-action="logout" data-i18n="logout">🚪 تسجيل الخروج</button>
+          <button class="sidebar-link" data-action="logout" onclick="logOut()" data-i18n="logout">🚪 تسجيل الخروج</button>
         </div>
       </aside>
 
@@ -53,7 +53,7 @@
         <!-- هيدر علوي -->
         <header class="admin-header">
           <div class="header-left">
-            <button id="sidebarToggleBtn" class="icon-btn" data-i18n-aria-label="toggle_sidebar">
+            <button id="sidebarToggleBtn" class="icon-btn" onclick="toggleSidebar()" data-i18n-aria-label="toggle_sidebar">
               <i class="fas fa-bars"></i>
             </button>
             <h1 id="currentPageTitle" data-i18n="dashboard">لوحة التحكم</h1>
@@ -138,9 +138,9 @@
         <!-- 3. شاشة إدارة الحسابات (Accounts Management) -->
         <section id="accountsScreen" class="screen">
           <div class="tabs">
-            <button class="tab active" data-tab="customers" data-i18n="customers">العملاء</button>
-            <button class="tab" data-tab="restaurants" data-i18n="restaurants">المطاعم</button>
-            <button class="tab" data-tab="drivers" data-i18n="drivers">السائقين</button>
+            <button class="tab active" data-tab="customers" onclick="loadAccounts('customers')" data-i18n="customers">العملاء</button>
+            <button class="tab" data-tab="restaurants" onclick="loadAccounts('restaurants')" data-i18n="restaurants">المطاعم</button>
+            <button class="tab" data-tab="drivers" onclick="loadAccounts('drivers')" data-i18n="drivers">السائقين</button>
           </div>
           <div id="accountsList" class="accounts-list"></div>
           <div class="empty-state is-hidden" id="emptyAccounts">
@@ -173,22 +173,21 @@
   </div>
 
   <!-- شاشة تسجيل الدخول -->
-  <div id="authOverlay" class="auth-overlay is-hidden">
+  <script>(function(){setTimeout(function(){var a=document.getElementById('app');if(a)a.classList.remove('app-loading');},5e3)})();</script>
+
+  <div id="authOverlay" class="auth-overlay">
     <div class="auth-modal">
       <h2 data-i18n="auth_title">تسجيل دخول المشرف</h2>
       <label for="authEmail" data-i18n="auth_email_label">البريد الإلكتروني</label>
       <input type="email" id="authEmail" placeholder="البريد الإلكتروني" autocomplete="email" />
       <label for="authPassword" data-i18n="auth_password_label">كلمة المرور</label>
       <input type="password" id="authPassword" placeholder="كلمة المرور" autocomplete="current-password" />
-      <button type="button" id="authLoginBtn" class="btn-primary" data-i18n="auth_login_btn">دخول</button>
+      <button type="button" id="authLoginBtn" class="btn-primary" onclick="return window.adminLogin()" data-i18n="auth_login_btn">دخول</button>
       <p id="authError" class="auth-error is-hidden" data-i18n="auth_login_error">فشل تسجيل الدخول</p>
     </div>
   </div>
 
-  <!-- ملف الإعدادات الخارجي -->
-  <script src="config.js" defer></script>
-  <!-- Vendor JS (إن احتجت) -->
-  <!-- كود التطبيق الرئيسي -->
-  <script src="main.js" defer></script>
+  <script src="config.js"></script>
+  <script src="functions.js"></script>
 </body>
 </html>

@@ -1,8 +1,12 @@
 (function () {
   'use strict';
 
+  function sg(k, d) { try { var v = localStorage.getItem(k); return v !== null ? v : d; } catch (e) { return d; } }
+  function ss(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function sr(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
   const I18n = {
-    _lang: localStorage.getItem('app_lang') || 'ar',
+    _lang: sg('app_lang') || 'ar',
     _data: {
       ar: {
         app_title: 'Fairfood', loading: 'جاري التحميل…', locating: 'تحديد الموقع…',
@@ -192,12 +196,14 @@
     setLang(lang) {
       if (this._data[lang]) {
         this._lang = lang;
-        localStorage.setItem('app_lang', lang);
+        ss('app_lang', lang);
         document.documentElement.lang = lang;
         document.body.dir = (lang === 'ar') ? 'rtl' : 'ltr';
         this._updateUIStrings();
-        if (App.router) App.router.refresh();
       }
+    },
+    refreshUI() {
+      if (App.router) App.router.refresh();
     },
     _updateUIStrings() {
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -270,7 +276,7 @@
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
       const headers = { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
-      const token = localStorage.getItem('token') || localStorage.getItem('ff_token');
+      const token = sg('token') || sg('ff_token');
       if (token) headers.Authorization = `Bearer ${token}`;
 
       try {
@@ -282,8 +288,8 @@
         clearTimeout(timeout);
         const payload = await res.json().catch(() => ({}));
         if (res.status === 401 && !path.includes('/auth/login') && !path.includes('/auth/guest')) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('ff_token');
+          sr('token');
+          sr('ff_token');
           throw new Error('Session expired');
         }
         if (!res.ok || payload.success === false) {
@@ -311,13 +317,13 @@
 
   const Store = {
     user: null,
-    token: localStorage.getItem('token') || localStorage.getItem('ff_token') || null,
+    token: sg('token') || sg('ff_token') || null,
     addresses: [],
     restaurants: [],
     categories: [],
-    currentRestaurant: localStorage.getItem(RESTAURANT_KEY) || null,
+    currentRestaurant: sg(RESTAURANT_KEY) || null,
     menu: [],
-    cart: JSON.parse(localStorage.getItem(CART_KEY) || '[]'),
+    cart: JSON.parse(sg(CART_KEY) || '[]'),
     currentOrder: null,
     orders: [],
     wallet: null,
@@ -334,11 +340,11 @@
   };
 
   function persistCartAndRestaurant() {
-    localStorage.setItem(CART_KEY, JSON.stringify(Store.cart));
+    ss(CART_KEY, JSON.stringify(Store.cart));
     if (Store.currentRestaurant) {
-      localStorage.setItem(RESTAURANT_KEY, Store.currentRestaurant);
+      ss(RESTAURANT_KEY, Store.currentRestaurant);
     } else {
-      localStorage.removeItem(RESTAURANT_KEY);
+      sr(RESTAURANT_KEY);
     }
   }
 
@@ -489,6 +495,7 @@
 
   const Auth = {
     _authRequired: false,
+    _bound: false,
 
     showRequired() {
       this._authRequired = true;
@@ -506,7 +513,7 @@
       try {
         const res = await api.post('/auth/login', { email, password });
         Store.token = res.token;
-        localStorage.setItem('token', res.token);
+        ss('token', res.token);
         Store.user = res.user;
         this._authRequired = false;
         UI.closeSheet('authSheet');
@@ -521,7 +528,7 @@
       try {
         const res = await api.post('/auth/register', { name, email, phone, password, role: 'customer' });
         Store.token = res.token;
-        localStorage.setItem('token', res.token);
+        ss('token', res.token);
         Store.user = res.user;
         this._authRequired = false;
         UI.closeSheet('authSheet');
@@ -536,7 +543,7 @@
       try {
         const res = await api.post('/auth/guest', {});
         Store.token = res.token;
-        localStorage.setItem('token', res.token);
+        ss('token', res.token);
         Store.user = null;
         this._authRequired = false;
         UI.closeSheet('authSheet');
@@ -549,7 +556,7 @@
 
     logout() {
       Store.token = null;
-      localStorage.removeItem('token');
+      sr('token');
       Store.user = null;
       if (Store.ws) { Store.ws.close(); Store.ws = null; }
       GPSService.clearWatch();
@@ -570,6 +577,8 @@
     },
 
     _setupBindings() {
+      if (this._bound) return;
+      this._bound = true;
       document.getElementById('doLoginBtn')?.addEventListener('click', () => {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
@@ -1256,7 +1265,6 @@
     async init() {
       this.router = new Router();
       I18n.setLang(I18n._lang);
-      Auth._setupBindings();
       await Auth.fetchUser();
 
       let geocodePending = false;
@@ -1293,6 +1301,7 @@
       document.querySelectorAll('.lang-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           I18n.setLang(btn.dataset.lang);
+          I18n.refreshUI();
           document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
         });
@@ -1367,6 +1376,13 @@
     }
   };
 
+  // فوري: ربط أزرار الدخول + فتح شاشة الدخول فوراً
+  document.addEventListener('DOMContentLoaded', () => {
+    Auth._setupBindings();
+    if (!Store.token) Auth.showRequired();
+  });
+
+  // تهيئة التطبيق
   document.addEventListener('DOMContentLoaded', () => App.init());
 
 })();

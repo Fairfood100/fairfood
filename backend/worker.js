@@ -1388,6 +1388,19 @@ async function app(request, env) {
   // ADMIN - لوحة التحكم (خاص بالأدمن)
   // ================================================================
 
+  // إنشاء أول أدمن (إذا ما في أدمن)
+  if ((path === "/api/admin/setup" || path === "/api/v1/admin/setup") && method === "POST") {
+    const existing = await env.DB.prepare("SELECT COUNT(*) count FROM users WHERE role='admin'").first();
+    if (existing && existing.count > 0) return fail("Admin already exists", 403, "ADMIN_EXISTS", env);
+    const b = await readBody(request);
+    if (!b.email || !b.password || !b.name) return fail("Missing fields", 422, "MISSING_FIELDS", env);
+    const userId = uid("u");
+    await env.DB.prepare("INSERT INTO users (id, role, name, email, phone, password_hash, status) VALUES (?, 'admin', ?, ?, ?, ?, 'active')")
+      .bind(userId, b.name, String(b.email).toLowerCase(), b.phone || null, await hashPassword(b.password)).run();
+    await audit(env, { id: userId }, "admin.setup", "user", userId, request);
+    return ok({ token: await signJwt({ sub: userId, role: "admin" }, env), user: { id: userId, name: b.name, email: b.email, role: "admin" } }, env, 201);
+  }
+
   // دخول الأدمن
   if ((path === "/api/admin/auth/login" || path === "/api/v1/admin/auth/login") && method === "POST") {
     const b = await readBody(request);
@@ -1520,6 +1533,58 @@ async function app(request, env) {
     }
     await audit(env, a.user, "document." + docApprove[2], "document", docApprove[1], request);
     return ok({ status }, env);
+  }
+
+  // الموافقة أو رفض حساب سائق/مطعم مباشرة (بدون مستندات)
+  const userApprove = path.match(/^\/api\/admin\/users\/([^/]+)\/(approve|reject)$/);
+  if (userApprove && method === "POST") {
+    const a = await requireAuth(request, env, "admin");
+    if (a.error) return a.error;
+    const userId = userApprove[1];
+    const action = userApprove[2];
+    const status = action === "approve" ? "approved" : "rejected";
+    const user = await env.DB.prepare("SELECT id, role FROM users WHERE id=?").bind(userId).first();
+    if (!user) return fail("User not found", 404, "NOT_FOUND", env);
+    if (user.role === "driver") {
+      await env.DB.prepare("UPDATE drivers SET verification_status=? WHERE user_id=?").bind(status, userId).run();
+    } else if (user.role === "restaurant") {
+      await env.DB.prepare("UPDATE restaurants SET verification_status=? WHERE owner_user_id=?").bind(status, userId).run();
+    } else {
+      return fail("User type does not support verification", 422, "INVALID_ROLE", env);
+    }
+    await audit(env, a.user, "user." + action, "user", userId, request);
+    return ok({ status }, env);
+  }
+
+  // حذف حساب مستخدم (للأدمن)
+  const userDelete = path.match(/^\/api\/admin\/users\/([^/]+)\/delete$/);
+  if (userDelete && method === "POST") {
+    const a = await requireAuth(request, env, "admin");
+    if (a.error) return a.error;
+    const userId = userDelete[1];
+    const user = await env.DB.prepare("SELECT id, role FROM users WHERE id=?").bind(userId).first();
+    if (!user) return fail("User not found", 404, "NOT_FOUND", env);
+    if (user.role === "driver") {
+      const d = await env.DB.prepare("SELECT id FROM drivers WHERE user_id=?").bind(userId).first();
+      if (d) {
+        await env.DB.prepare("UPDATE orders SET driver_id=NULL WHERE driver_id=?").bind(d.id).run();
+        await env.DB.prepare("DELETE FROM driver_locations WHERE driver_id=?").bind(d.id).run();
+        await env.DB.prepare("DELETE FROM documents WHERE owner_type='driver' AND owner_id=?").bind(d.id).run();
+        await env.DB.prepare("DELETE FROM wallets WHERE owner_type='driver' AND owner_id=?").bind(d.id).run();
+        await env.DB.prepare("DELETE FROM drivers WHERE id=?").bind(d.id).run();
+      }
+    } else if (user.role === "restaurant") {
+      const r = await env.DB.prepare("SELECT id FROM restaurants WHERE owner_user_id=?").bind(userId).first();
+      if (r) {
+        await env.DB.prepare("DELETE FROM documents WHERE owner_type='restaurant' AND owner_id=?").bind(r.id).run();
+        await env.DB.prepare("DELETE FROM wallets WHERE owner_type='restaurant' AND owner_id=?").bind(r.id).run();
+        await env.DB.prepare("DELETE FROM restaurants WHERE id=?").bind(r.id).run();
+      }
+    }
+    await env.DB.prepare("DELETE FROM notifications WHERE user_id=?").bind(userId).run();
+    await env.DB.prepare("DELETE FROM users WHERE id=?").bind(userId).run();
+    await audit(env, a.user, "user.delete", "user", userId, request);
+    return ok({ deleted: true }, env);
   }
 
   // ================================================================

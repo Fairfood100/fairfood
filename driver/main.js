@@ -1,11 +1,15 @@
 (function () {
   'use strict';
 
+  function sg(k, d) { try { var v = localStorage.getItem(k); return v !== null ? v : d; } catch (e) { return d; } }
+  function ss(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  function sr(k) { try { localStorage.removeItem(k); } catch (e) {} }
+
   /* ===========================================================
      1. INTERNATIONALIZATION (i18n) – AR / EN / DE
      =========================================================== */
   const I18n = {
-    _lang: localStorage.getItem('driver_lang') || 'ar',
+    _lang: sg('driver_lang') || 'ar',
     _data: {
       ar: {
         app_title: 'Fairfood Price - السائق', loading: 'جاري التحميل…', locating: 'تحديد الموقع…',
@@ -246,12 +250,14 @@
     setLang(lang) {
       if (this._data[lang]) {
         this._lang = lang;
-        localStorage.setItem('driver_lang', lang);
+        ss('driver_lang', lang);
         document.documentElement.lang = lang;
         document.body.dir = lang === 'ar' ? 'rtl' : 'ltr';
         this._updateUIStrings();
-        if (App.router) App.router.refresh();
       }
+    },
+    refreshUI() {
+      if (App.router) App.router.refresh();
     },
     _updateUIStrings() {
       document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -318,7 +324,7 @@
         'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest'
       };
-      const token = localStorage.getItem('driver_token');
+      const token = sg('driver_token');
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       try {
@@ -334,12 +340,12 @@
 
         // لو صار 401 وكانت الف call من دوام قديم (التوكن تغير) نتجاهلها
         if (res.status === 401 && !path.includes('/auth/login')) {
-          const currentToken = localStorage.getItem('driver_token');
+          const currentToken = sg('driver_token');
           if (currentToken && currentToken !== token) {
             // المستخدم سجل دخول بتوكن جديد - نتجاهل الـ 401 القديم
             throw new Error('IGNORE_STALE_401');
           }
-          localStorage.removeItem('driver_token');
+          sr('driver_token');
           Auth.silentLogout();
           throw new Error(I18n.t('session_expired'));
         }
@@ -372,8 +378,8 @@
      =========================================================== */
   const Store = {
     user: null,
-    token: localStorage.getItem('driver_token') || null,
-    isOnline: localStorage.getItem('driver_online') === 'true',
+    token: sg('driver_token') || null,
+    isOnline: sg('driver_online') === 'true',
     orders: [],
     activeDelivery: null,
     earnings: null,
@@ -383,9 +389,9 @@
     documents: [],
     vehicleInfo: null,
     settings: {
-      language: localStorage.getItem('driver_lang') || 'ar',
-      theme: localStorage.getItem('driver_theme') || 'light',
-      sounds: localStorage.getItem('driver_sounds') !== 'false'
+      language: sg('driver_lang') || 'ar',
+      theme: sg('driver_theme') || 'light',
+      sounds: sg('driver_sounds') !== 'false'
     },
     map: null,
     socket: null,
@@ -659,12 +665,13 @@
      =========================================================== */
   const Auth = {
     _authRequired: false,
+    _bound: false,
 
     async login(email, password) {
       try {
         const res = await api.post('/driver/auth/login', { email, password });
         Store.token = res.token;
-        localStorage.setItem('driver_token', res.token);
+        ss('driver_token', res.token);
         Store.user = res.user;
         this._authRequired = false;
         document.getElementById('authSheet')?.classList.add('is-hidden');
@@ -699,10 +706,10 @@
       clearInterval(App._pollTimer);
       clearInterval(App._activePollTimer);
       Store.token = null;
-      localStorage.removeItem('driver_token');
+      sr('driver_token');
       Store.user = null;
       Store.isOnline = false;
-      localStorage.setItem('driver_online', 'false');
+      ss('driver_online', 'false');
       this.showRequired();
     },
 
@@ -726,9 +733,11 @@
     },
 
     _bindEvents() {
+      if (this._bound) return;
+      this._bound = true;
       let loginInProgress = false;
       document.getElementById('authLoginBtn')?.addEventListener('click', async () => {
-        if (loginInProgress) return;
+        if (loginInProgress || document.getElementById('authLoginBtn')?._busy) return;
         const email = document.getElementById('authEmail').value.trim();
         const password = document.getElementById('authPassword').value;
         if (!email || !password) {
@@ -769,7 +778,7 @@
       // Register
       let registerInProgress = false;
       document.getElementById('doRegisterBtn')?.addEventListener('click', async () => {
-        if (registerInProgress) return;
+        if (registerInProgress || document.getElementById('doRegisterBtn')?._busy) return;
         const name = document.getElementById('regName')?.value.trim();
         const email = document.getElementById('regEmail')?.value.trim();
         const phone = document.getElementById('regPhone')?.value.trim();
@@ -790,7 +799,7 @@
           const token = res.token || res.data?.token;
           const user = res.user || res.data?.user;
           if (!token) throw new Error(I18n.t('error_general'));
-          localStorage.setItem('driver_token', token);
+          ss('driver_token', token);
           Store.token = token;
           Store.user = user;
           document.getElementById('authSheet')?.classList.add('is-hidden');
@@ -1088,17 +1097,18 @@
 
       document.getElementById('langSelect').addEventListener('change', (e) => {
         I18n.setLang(e.target.value);
+        I18n.refreshUI();
         Store.settings.language = e.target.value;
-        localStorage.setItem('driver_lang', e.target.value);
+        ss('driver_lang', e.target.value);
       });
       document.getElementById('themeSelect').addEventListener('change', (e) => {
         document.body.setAttribute('data-theme', e.target.value);
         Store.settings.theme = e.target.value;
-        localStorage.setItem('driver_theme', e.target.value);
+        ss('driver_theme', e.target.value);
       });
       document.getElementById('soundsCheck').addEventListener('change', (e) => {
         Store.settings.sounds = e.target.checked;
-        localStorage.setItem('driver_sounds', e.target.checked);
+        ss('driver_sounds', e.target.checked);
       });
       document.getElementById('logoutBtn').addEventListener('click', () => Auth.logout());
     },
@@ -1249,7 +1259,6 @@
         I18n.setLang(Store.settings.language);
         document.body.setAttribute('data-theme', Store.settings.theme);
 
-        Auth._bindEvents();
         // Timeout للـ fetchUser عشان ما يعلق
         try {
           await Promise.race([
@@ -1283,7 +1292,7 @@
         try {
           await api.post('/driver/status', { online: newState });
           Store.isOnline = newState;
-          localStorage.setItem('driver_online', newState);
+          ss('driver_online', newState);
           this._updateOnlineBtn();
         } catch (e) {
           UI.showToast(e.message, 'error');
@@ -1314,7 +1323,7 @@
             const newTheme = document.body.dataset.theme === 'dark' ? 'light' : 'dark';
             document.body.setAttribute('data-theme', newTheme);
             Store.settings.theme = newTheme;
-            localStorage.setItem('driver_theme', newTheme);
+            ss('driver_theme', newTheme);
           } else if (action === 'support') {
             UI.openModal('supportModal');
           } else if (action === 'about') {
@@ -1324,6 +1333,18 @@
           } else if (action === 'dashboard') {
             this.router.navigate('home');
           }
+        });
+      });
+
+      document.querySelectorAll('[data-lang]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const lang = btn.dataset.lang;
+          I18n.setLang(lang);
+          I18n.refreshUI();
+          Store.settings.language = lang;
+          ss('driver_lang', lang);
+          document.querySelector('.lang-btn.active')?.classList.remove('active');
+          btn.classList.add('active');
         });
       });
 
@@ -1398,12 +1419,9 @@
     }
   };
 
-  document.addEventListener('DOMContentLoaded', () => {
-    // Fallback: إخفاء اللودر بعد 4 ثواني مهما صار
-    const loaderTimer = setTimeout(() => {
-      document.getElementById('app')?.classList.remove('app-loading');
-    }, 4000);
-    App.init().finally(() => { clearTimeout(loaderTimer); UI.hideLoader(); });
-  });
+  // Auto-boot if token exists (loaded dynamically after auth)
+  if (sg('driver_token')) {
+    App.init().catch(function(e) { console.error('App.init error:', e); });
+  }
 
 })();
